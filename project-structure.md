@@ -1,23 +1,25 @@
 # Project structure
 
-A project have three main componentes:
+We have to distinguish two project types: main and packages.
+
+Any project have three main componentes:
 
 * Your code
 * Core libraries (language provided)
 * User libraries (community provided)
 
+The code start in a specific file, what we call: `entry point file`,
+that file is the one that bootstrap and configure your application:
 
-Your code start in a specific file, what we call: `entry point file`,
-that file is the one that start and configure compilation (no external tooling):
+> compiler build index.src app.exe
 
-> compiler build index.src
-
-This file is very special because its the only one that can:
+## Main `entry point file`
 
 * Configure compiler
-* Declare global variables
+* Declare [global variables](variables.md#global-variables)
 * Import dependencies
 * Declare the function `main`
+* Declare the function `test` (optional, only required for [unit-testing](unit-testing.md))
 
 Here is an example of an `entry point file`:
 
@@ -25,7 +27,7 @@ Here is an example of an `entry point file`:
 #import core 1.0.0
 #import requests 1.5.1
 
-#set target_machine x64
+#set arch x64
 
 global const VERSION = 0.0.0
 global const VENDOR = "contoso"
@@ -36,58 +38,21 @@ function main() int {
 }
 ```
 
-See this file the compiler will fetch those dependencies, set target binary as
-64bits, declare a few globals and define main function.
+So in this example the compiler will fetch those dependencies,
+set arch to x64, declare a few globals and define main function
+
+## Package `entry point file`
+
+* Declare [package variables](variables.md#package-variables)
+* Import dependencies
+* Declare the function `init`
 
 
-# File structure
+# Source file structure
 
-A normal file is structured so it has a minimal order.
+The langauge enforce a minimal order in your file.
 
-* macros: import, definitions
-* variable declaration: package variables, file varibles, etc.
-* the rest: functions, types
-
-
-
-## debug, release and test
-
-index.src
-
-```
-import process
-import debug main
-import release main
-import test test
-```
-
-main.src
-```
-function main() {
-  print(process.arguments, file = process.stderr)
-}
-```
-
-test.src
-```
-import assert
-
-function main() {
-  assert.ok(true == true, "true is true")
-}
-```
-
-
-## import x.y.z
-
-Import a file with the following patterns:
-
-* ./x.y.z.src
-* ./x/y.z.src
-* ./x/y/z.src
-* <core-path>/x/y/z/index.src
-* <core-path>/x/y/z.src
-
-## Import <debug|release|test> x.y.z
-
-Import the file only if the build is in the right mode.
+* Macro and metaprogramming first: `#import`, `#define`, `#macro`
+* Type declaration
+* High level variable declaration: [package variables](variables.md#package-variables), [file variables](variables.md#file-variables)
+* functions

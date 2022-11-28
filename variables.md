@@ -4,6 +4,7 @@ A variables is the names that it's associated with a value in a computer program
 
 Here we list all type of variable the language offer.
 
+<a name="global-variables"></a>
 # global variables
 
 Global variables are available to every file in the project, packages are not
@@ -17,7 +18,8 @@ global var xxx;
 global const xxx;
 ```
 
-# package global variables
+<a name="package-variables"></a>
+# package variables
 
 A Package can export variables so the main program and other libraries will share
 it's access.
@@ -28,8 +30,8 @@ Declaration is bound to the top of the file.
 package var xxx;
 package const xxx;
 ```
-
-# file variable
+<a name="file-variables"></a>
+# file variables
 
 Any file can declare a variable at first level
 

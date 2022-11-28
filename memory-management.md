@@ -7,6 +7,9 @@ And a few limitation we can get rid of memory leaks.
 We will explain the operator and memory annotations.
 
 ## new
+<!--
+  https://cplusplus.com/reference/new/operator%20new/
+  -->
 
 Dynamically allocate memory on Heap.
 

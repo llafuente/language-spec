@@ -9,6 +9,7 @@ Both have the same syntax and should be undestood as a whole.
   https://en.wikipedia.org/wiki/Preprocessor
   https://en.wikipedia.org/wiki/Metaprogramming
   https://files.nothingisreal.com/software/gpp/gpp.html
+  https://github.com/logological/gpp/blob/master/src/gpp.c
 -->
 
 Implementation notes.
