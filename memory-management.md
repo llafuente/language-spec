@@ -1,20 +1,22 @@
 # Memory management
 
 Language implements a Automatic memory management based on static anotation of
-the memory. With just one premise: Memory must be owned by `one` in all moment.
-And a few limitation we can get rid of memory leaks.
+the memory. With just one premise: Memory must be owned by `one` in all moment,
+that implies a few limitations but we can get rid of memory leaks.
 
-We will explain the operator and memory annotations.
-
-## new
+## new / alloc
 <!--
   https://cplusplus.com/reference/new/operator%20new/
   -->
 
-Dynamically allocate memory on Heap.
+Dynamically allocate memory.
+`new` can be overloaded to support custom allocators by type or at "alloc" time.
+
+Custom allocators must honor the same characterictics as default allocator:
 
 * Memory is contiguous.
 * If target machine allowed, 32bit aligned.
+* Allocating zero memory returns `nullptr`
 
 `new` will transfer memory ownage to the local variable or a
 [memory-pool](#memory-pool).
@@ -26,13 +28,13 @@ function will be mark a `lend`, because it will `lend` the memory.
 
 Memory allocated inside a function that won't be lended, it will be deleted (freed).
 
-syntax:
+```syntax
+ new \[type] \[\[ expression]]
 
-> new \[type] \[\[ expression]]
+new \[type] \[ \[\[ expression]] @ identifier]
 
-> new \[type] \[ \[\[ expression]] @ identifier]
-
-> new shared type \[\[ expression]]
+new shared type \[\[ expression]]
+```
 
 The first one will create a pointer to that memory. Memory will be own by a local variable
 The second one will create a pointer to that memory. Memory will be own by a memory pool.
@@ -41,6 +43,10 @@ The third one will create a shared pointer to that memory. Memory will be own by
 ## grow
 
 Reallocate memory.
+
+`grow` has a runtime check, it's usage its not recomended because of that.
+
+It checks if the shared_pointer is unique, grow can only be used on shared_pointers.
 
 ## delete
 
@@ -55,10 +61,9 @@ The first rule is you can't delete what you don't own.
 * Transfer memory ownage to the caller
 * Memory lended must be from a unique source. The same function can't return memory from heap and memory-pools at the same time.
 
-## memory block
+## uninitilized
 
-* Es el estado inicial de la memoria creada por new
-* Si nadie toma el control de esa memoria, se borra al final del bloque
+
 
 # Example
 
