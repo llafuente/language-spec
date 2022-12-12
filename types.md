@@ -24,13 +24,13 @@ The following data types are built-in
 All numeric types has common properties to found the limits of each
 representation.
 
-> <type>.MAX
+> MAX
 
-> <type>.MIN
+> MIN
 
-> <type>.bytes
+> bytes
 
-> <type>.bits
+> bits
 
 Example:
 
@@ -50,18 +50,23 @@ Example:
 | float             | f32             |
 | double            | f64             |
 
-#### Properties
+#### Properties / fields
 <!--
   https://learn.microsoft.com/en-us/dotnet/api/system.double?view=net-7.0#fields
 -->
 
 Floating points has the same properties as integers with new aditions
 
-> <type>.NaN
+> NaN
 
-> <type>.INFINITY
+> INFINITY
 
-> <type>.MINUS_INFINITY
+> MINUS_INFINITY
+
+> EPSILON
+> Represents the smallest positive floating point value that is greater than zero. This field is constant.
+
+> EQUAL_ENOUGH
 
 Example:
 
@@ -79,11 +84,9 @@ like memory math.
 
 We do not allow implicit downcasts and/or some operations are not allowed.
 
-> fastest_int, bool
+#### `int`, `bool`
 
-Type that holds the fastest integer in the current target platform.
-
-`bool` is an alias of `fastest_int`.
+Type that holds the fastest integer in the target platform.
 
 > size
 
@@ -99,7 +102,7 @@ Like array length, capacity.
 
 Type that can store the difference of two pointers.
 
-Note that ptrdiff it's not templated, original types are lost as they are not
+Note that ptrdiff it's not templated, the original types are lost as they are not
 needed for math.
 
 <!--
@@ -121,9 +124,9 @@ print((address) b) // 0x????????
 
 > void
 
-void has two meanings.
+void has two meanings:
 
-First you don't care about the type, for example in templates you just want
+First, you don't care about the type, for example in templates you just want
 to "talk" to the base struct.
 
 Second you dont want to return anything in your functions.
@@ -179,9 +182,9 @@ We plan to solve all those precision problem raising from float number like:
 
 ##### complex
 
-### Memory
+## Memory
 
-#### ptr
+### ptr
 
 A pointer is a variable whose value is the address of another variable.
 
@@ -200,193 +203,64 @@ operator -(ptr<$t>, ptr<$t>) ptrdiff {}
 operator +(ptr<$t>, ptr<$t>) ptrdiff {}
 
 operator &(ptr<$t>) address {}
+operator cast(ptr<$t>a) address { return &a; }
 
-operator .(ptr<$t>) $t {} // access operator, only valid if $T has accesss operator
+// this is under-review how to do it inside the language
+// maybe there is a expressive way, otherwise will be in the compiler
+operator .(ptr<$t>) $t {}
 ```
 
-#### sptr
+### vector
 
-It's a shared pointer.
-
-Pointers to shared pointer is forbidden.
-
-#### rptr
-
-it's a reference pointer.
-
-It hold a reference inside a greater structure. That structure must be a shared pointer.
-
-#### vector
-
-A vector is a pointer to a memory range. It's unsafe by definition, and should
-be used with caution, like in C/C++. It's mostly used to implement array.
+A vector is a pointer to an unbound memory range. It's unsafe by definition, and should
+be used with caution, like in C/C++. It's mostly used to implement low level
+staff and optimization.
 
 If you want contiguous safe memory, use arrays.
 
 Operators (same as ptr) plus:
 
 ```
-operator =(ptr<$t>, address) ptr<$t> {} // move pointer
-operator =(ptr<$t>, ptr<$t>) ptr<$t> {} // move pointer
+operator =(vector<$t>, address) vector<$t> {} // move pointer
+operator =(vector<$t>, ptr<$t>) vector<$t> {} // move pointer
+operator =(vector<$t>, vector<$t>) vector<$t> {} // move pointer
 
-operator + (vector<$t> v, size i) vector<$t> {}
-operator - (vector<$t> v, size i) vector<$t> {}
-operator [](vector<$t> v, size i) vector<$t> {}
+operator + (vector<$t> v, size i) vector<$t> {} // move right
+operator - (vector<$t> v, size i) vector<$t> {} // move left
+operator [](vector<$t> v, size i) vector<$t> {} // get position
 ```
 
-#### Array
-
-An array it a contiguous memory you can deref safely.
-
-No overflow could happen.
-
-
-```
-interface SizeIterator<$t> {
-  get size length;
-  iterate(size index, ptr<bool> valid) ptr<$T> out
-}
-
-// a virtual struct is a type that is not itself
-// when you alloc memory for a point,
-struct array<$t> implements SizeIterator {
-  size length
-  alias len length
-
-  size capacity
-  alias cap capacity
-
-  // Type type // STUDY: maybe ?
-
-  vector<$t> self
-
-  operator new (size cap) address {
-    ptr<array<$t>> x = unsafe_cast<ptr<array<$t>>> libc_malloc(@sizeof(this) + @sizeof($t) * cap)
-
-    x.type = @typeof($t)
-    x.len = 0
-    x.capacity = cap
-
-    return &x
-  }
-
-  operator delete () {
-    libc_free(this)
-  }
-
-  operator[](size i) $t {
-    #if DEBUG
-      if (i > capacity) {
-        throw error("out of bounds")
-      }
-    #endif
-
-    return self + sizeof(u32) +  sizeof(u32) + i * sizeof(T)
-  }
-
-  iterate(size index, ptr<bool> valid) ptr<$T> out {
-    valid = length < index;
-    if (valid) {
-      return self[index]
-    } else {
-      return null
-    }
-  }
-  // end of iterator implementation
-
-  push($t value) {
-    ptr[length++] = value
-
-    return this
-  }
-  // ...
-}
-
-```
-
-Usage example:
-
-```
-i8[] x = new[10];
-var i = new i8[10];
-
-// properties
-x.push(0)
-i.push(1)
-i.grow(15) ; // grow internal memory by 15
-print(x.cap) // stdout: 10
-print(y.cap) // stdout: 15
-print(x.len) // stdout: 1
-print(y.len) // stdout: 1
-i[7] = 99
-print(y.len) // stdout: 8
-```
-
-### Text
-
-#### Rune
-
-The Rune represent a single character (possible multibyte) in a given enconding.
-
-```
-enum string_encoding {
-  BIN
-  ASCII,
-  UTF_8,
-  UTF_16,
-  UTF_32,
-  BASE64,
-}
-
-struct rune {
-  size capacity;
-  string_encoding encoding;
-  range<u8> value;
-}
-rune.capactity = 7 // max character for utf8 is 6, one more for \0
-rune.encoding
-rune.value
-```
+### flexible_vector
 
 <!--
-TODO Study
-Little endian / Big endian
-https://en.wikipedia.org/wiki/Comparison_of_Unicode_encodings
+  https://en.wikipedia.org/wiki/Flexible_array_member
 -->
+Is a unbound vector at the end of a struct. That's the only place it can be
+used. Nobody can declare a flexible_vector variable, use vector instead as
+it will be implicit casted.
 
-#### String
+flexible_vector suffers the same problems vector has and
+should be used with love.
 
-Represent a list of characters.
+It heavy used in core library for hardcore optimizations.
 
-```
-struct string {
-  size length // length in runes/characters
-  size blength // bytes used
-  size capacity
-  encodings encoding
-  ptr<u8> value
-}
-```
 
-Operators
-```
-operator[](size position) rune {} // get
-operator[](size position, rune) rune {} // assignament
+### sptr / shared_ptr
 
-operator+(string) {}
-operator+(rune) {}
-operator+(i8) {}
-operator+(i16) {}
-operator+(i32) {}
-operator+(i64) {}
-operator+(u8) {}
-operator+(u16) {}
-operator+(u32) {}
-operator+(u64) {}
-operator+(float) {}
-operator+(double) {}
-operator+(...) {}
-```
+It's a shared pointer. shared pointers compose other type by prepending a
+counter. If that counter reach zero, the shared_ptr will be released.
+
+Pointers/vectors to any memoty owned by a shared pointer is forbidden.
+To reference memory inside a shared_pointer use: `ref_ptr`.
+
+### rptr / ref_ptr
+
+It's a reference pointer.
+
+It hold a reference inside a greater structure. That structure must be a
+shared pointer and it's the owner real memory owner.
+
+`ref_pointer` increment/decrement `shared_ptr` counter.
 
 ## Enumerated
 
@@ -399,12 +273,12 @@ We can rewrite the example to use `string` as type:
 
 ```
 enum string_encoding_str {
-  BIN = "Binary",
-  ASCII = "Ascii",
-  UTF_8 = "UTF-8",
-  UTF_16 = "UTF-16",
-  UTF_32 = "UTF-32",
-  BASE64 = "BASE64",
+  BIN = "Binary"
+  ASCII = "Ascii"
+  UTF_8 = "UTF-8"
+  UTF_16 = "UTF-16"
+  UTF_32 = "UTF-32"
+  BASE64 = "BASE64"
 }
 
 enum string_encoding_str2 {
@@ -455,10 +329,23 @@ operator [](size position) // It will return the value of the identifier at give
 
 ## Structured
 
+```syntax
+struct_properties_flags = (hoist | readonly ) struct_properties_flags
+struct_properties_list = (struct_properties_flagsₒₚₜ type identifier | alias identifier identifier) ENDL struct_properties_list
+struct_alignament = [align number]
+
 ```
+<!--
+struct identifier struct_alignamentₒₚₜ '{' struct_properties_list '}'
+
+struct-or-union-specifier:
+    struct identifier struct_alignamentₒₚₜ { struct-declaration-list }
+-->
+Examples:
+```language
 struct Vector2 {
-  f32 x;
-  f32 y;
+  f32 x
+  f32 y
 }
 
 struct Vector3 extends Vector2 {
@@ -466,22 +353,114 @@ struct Vector3 extends Vector2 {
 }
 
 struct Quaternion extends Vector3 {
-  rename x as x2; // STUDY
-
   f32 w;
 }
+```
 
+### `hoist`
+
+`hoist` makes structs properties access faster by making given name optional.
+
+Examples:
+```
 struct Player {
   hoist Vector position;
 }
 
 p = Player()
-p.position.x = 1;
-p.y = 1;
+p.y = 1 // hoisted property
+p.position.x = 1 // still valid
+```
+### readonly
 
+`readonly` properties need to be asigned at constructor level, and no more.
+
+*NOTE*: `readonly` is only a compiler check, during runtime user can do
+many types of trickeries with pointers to modify the value
+
+### alias
+
+`alias` a property with a new name and every original property flags will be
+honored.
+
+## extends
+
+Inheritance
+
+```language
+struct A {
+  int value
+  constructor(_value) {
+    value = _value
+  }
+
+  void print() {
+    print("A.value = ", value)
+  }
+}
+
+struct B extends A {
+  int value2
+
+  constructor(int _value, int _value2) {
+    A(_value)
+    value2 = _value2
+  }
+
+  void print2() {
+    cast<A>(this).print()
+    print("B.value2 = ", value2)
+  }
+}
+
+
+var v = B(101, 100)
+#assert v.value != 101
+#assert v.value2 != 100
+
+
+v.print() // works
+cast<A>(v).print() // also, works
+v.print2()
 ```
 
-* readonly properties need to be asigned at constructor level, and no more.
+## composite
+
+Compose two structs by appending one to the other.
+
+Both keep total independence and both constructors must be called at creation time.
+
+```language
+struct A {
+  int value
+  constructor(_value) {
+    value = _value
+  }
+
+  void print() {
+    print("A.value = ", value)
+  }
+}
+
+struct B composite A as a {
+  int value2
+
+  constructor(int _value2) {
+    value2 = _value2
+  }
+}
+
+// TODO -> alloc [B.sizeof(100) + A.sizeof(101)]
+var v = B(100)(101)
+#assert v.value2 != 100
+#assert v.a.value != 101
+#assert v.value != 101
+
+
+v.print() // fail
+cast<A>(v).print() // works
+```
+
 
 ## Type aggregation
 
@@ -494,51 +473,65 @@ array<Vectors> list(20);
 
 ## Type testing
 
+Types can be tested at compile time and runtime because a `type` can be used as variable.
+
 ```
 interface IA {}
 interface IB {}
 
-// compile time
-sort($t a, $t b) i32 {
-  #if $t implements IA
-  execute this and evaluate
-  #else
+struct A implments IA {}
+struct B implments IB {}
 
+// compile time
+template $t1
+template $t2
+
+function compare($t1 a, $t2 b) i32 {
+  #if $t1 implements IA
+    // execute this and evaluate
+    return -1
+  #else
+    return 1
   #endif
 }
+
+var a_inst = A()
+var b_inst = A()
+
+compare(a_inst, b_inst) // return -1
+compare(b_inst, a_inst) // return 1
+
 
 // runtime time
-sort(type t, $t a, $t b) i32 {
-  #if t implements IA
-  execute this and evaluate
-  #else
-
-  #endif
+function runtime_compare(type t, $t1 a, $t2 b) i32 {
+  if t implements IA {
+    //execute this and evaluate
+    return -1
+  } else {
+    return 1
+  }
 }
+runtime_compare(A, a_inst, b_inst) // return -1
+runtime_compare(type(a_inst), a_inst, b_inst) // return 1
 
-
+runtime_compare(B, b_inst, a_inst) // return 1
+runtime_compare(type(b_inst), a_inst, b_inst) // return -1
 ```
 
 ## Type discrimination / tagged union (Safe unions)
 
 ```
 enum EntityType {
-  House = "House",
+  Chair = "Chair",
   Table = "Table",
 }
 
-struct Entity {
+struct Entity interface {
   readonly type: EntityType; // discriminators are readonly properties
-
-  constructor(type) {
-    this.type = type;
-  }
 }
 
-//Entity.constructor(Entity* this, )
-
 struct Chair : extends BaseEntity {
-  readonly type: EntityType = EntityType.House; // that are defaulted on childrens
+  readonly type: EntityType = EntityType.Chair; // that are defaulted on childrens
   color: string;
 }
 
@@ -551,21 +544,46 @@ struct Table : extends BaseEntity {
 type Furniture = Chair | Table;
 
 function createFurniture(type: string): Furniture {
-  new Furniture(type)
+  switch (type) {
+    case EntityType.Chair:
+      return Chair()
+    case EntityType.Table:
+      return Table()
+  }
+}
+
+function createFurniture2(type: string): Furniture {
+  var f = new Furniture()
+
+  switch (type) {
+    case EntityType.Chair:
+      Chair.constructor(f)
+    case EntityType.Table:
+      Table.constructor(f)
+  }
+  return f
 }
 
 function useFurniture(f: Furniture) {
   // f.legs - legs in not a property of Chair, guard the access
+  switch (type) {
+    case EntityType.Chair:
+      // here f is a Chair, and no Furniture anymore
+    case EntityType.Table:
+      Table.constructor(f)
+  }
   if (f.type == "Chair") {
     // inside this block the compiler should now f is type Chair
     // f.legs - gives an error
   }
 }
 
+var x = new array<Furniture>(10)
+
+var f = Chair.constructor(x.push_back())
+var f2 = Table.constructor(x.push_back())
 
 ```
-
-## Dictionaries
 
 ## Functions
 
@@ -660,12 +678,22 @@ lsoa: soa_vector_list = new(20);
 
 print(sumarize(laos))
 print(sumarize(lsoa))
-
-
 ```
 
-
 # Convenience types
+
+## Array
+
+see [array](type-array.md)
+
+## Text / strings
+
+see [rune](type-strings.md#rune)
+see [string](type-strings.md#string)
+
+## Dictionary
+
+TODO
 
 ## time
 
