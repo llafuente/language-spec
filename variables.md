@@ -1,53 +1,74 @@
 # Variables
 
-A variables is the names that it's associated with a value in a computer program.
+A variables is the name that it's associated with a value in a computer program.
 
-Here we list all type of variable the language offer.
+That name can point to a value that change over time: a `variable` (`var`)
+or a values that don't: a `constant` (`const`)
+
+The scope of a variable tells the compiler the life cycle of the variable.
+We list all the options below.
 
 <a name="global-variables"></a>
-# global variables
+## global
 
-Global variables are available to every file in the project, packages are not
-part of your project so a package could not read your global variables.
+Global variables are available to every file in `main project`,
+`packages` are not part of your project so a package could not
+read your global variables.
 
-They must be declared in the entry point file of your program.
+They must be declared in the `entry point file` of your program.
 
-Declaration:
+```syntax
+global var [type] identifier
+
+global const [type] identifier = expression
 ```
-global var xxx;
-global const xxx;
-```
+
+As you may already notice, `constants` must be assigned at declaration.
 
 <a name="package-variables"></a>
-# package variables
+## package variables
 
 A Package can export variables so the main program and other libraries will share
 it's access.
 
 Declaration is bound to the top of the file.
 
+```syntax
+package var [type] identifier
+
+package const [type] identifier = expression
 ```
-package var xxx;
-package const xxx;
-```
+
 <a name="file-variables"></a>
-# file variables
+## file variables
 
 Any file can declare a variable at first level
 
+```syntax
+var [type] identifier
+const [type] identifier = expression
 ```
+
+Example:
+
+```language
 var xxx;
 
 function x() {
 }
 ```
 
-# scope variable
+## block variable
 
-A scope variable will live from it's declaration until the close of the block,
+A block variable will live from it's declaration until the end of current block,
 unless is part of a lambda, in that case, it will live the same as the lambda.
 
+```syntax
+var [type] identifier
+const [type] identifier = expression
 ```
+
+```language
 function x() {
   var xxx;
 }
@@ -63,26 +84,43 @@ function x() () string {
 
 ```
 
-# typed variable
+# Typing
 
-Variable will take the type of the first assignament, you don't need to do it.
-but could be usefull to enforce the type so future refactoring do not modify
-the variable type.
+Typing a variable is optional in the language, it's very probable you don't need
+to type anything in your main program.
 
-```
-function x() {
-  var i8 xxx;
-}
-```
+If type is omited, the variable will take the type of the first assignament.
 
-# magic variables
+Nevertheless enforcing types makes your program more stable to refactorings.
 
-This variables are created by the compiler but it's not necessary to use or
-declare. They will be avaiable in the related block.
 
-For example
-```
+# Magic variables
+
+This variables are declared by the compiler and it's usage if optional.
+They will be avaiable in the related block.
+
+All magic variable start with `$` (dollar sign).
+
+Example:
+```language
 loop 5 {
   print("index = " + $index)
 }
 ```
+
+Magic variable can collide with your variables, like in this example:
+
+```language
+var $index = 0
+loop 5 {
+  print("index = " + $index)
+}
+```
+
+```error
+variable $index redeclared at line 2:1
+```
+
+## Implementation notes.
+
+Magic variables shouldn't be special inside the compiler.
