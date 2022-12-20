@@ -400,10 +400,13 @@ The output of the command won't be re-evaluated.
 
 Generate a unique number.
 
-Example:
-
+```syntax
+'#' uid identifier ENDL
 ```
-#define BLOCK_UID #uid
+
+Example
+```language
+#uid BLOCK_UID
 
 start_#BLOCK_UID#:
 // do some mad science
@@ -453,6 +456,14 @@ Display the warning message but continue compilation.
 
 ```syntax
 '#' warning text ENDL
+```
+
+## `#type_error msg`
+
+Display a type error message and abort compilation.
+
+```syntax
+'#' type_error text ENDL
 ```
 
 ### #repeat (line repeater)
