@@ -120,13 +120,18 @@ The first rule is you can't delete what you don't own.
 
 `delete` memory from a pool is forbidden, you must `delete` the pool.
 
-## `lend`: transfer memory ownage
+## Memory annotation
+
+### `lend`: transfer memory ownage
 
 * Transfer memory ownage to the caller
 * `lend` is only available as anotation of a return type. So a function can only lend a single memory.
   If your function need to return more use a [`memory pool`](#memory-pool).
 
-## uninitilized
+
+### `lend`
+
+### `uninitilized`
 
 When a memory is annotated as `uninitilized` the memory must be sent to a constructor before assigned to a variable of any type.
 
@@ -254,12 +259,41 @@ memory to store the last.
 var a = new i8[10]
 var b = new i8[20]
 
+// initialize here some values
+
 memory_copy(a, b) // ok
 memory_copy(b, a) // ko: not enough memory at runtime!
 a = grow[20]
 memory_copy(b, a) // ok: now we have enough
-
 ```
+### memory_cmp
+
+It will loop the memory byte by byte and return
+* 0 if equal.
+* 1 if a > b
+* -1 if a < b
+
+memory_cmp works with vectors and arrays.
+* vector it will loop until a value is zero
+* array will loop array length.
+
+```language
+var a = new i8[10]
+var b = new i8[20]
+a.cpush()(10)
+a.cpush()(11)
+b.cpush()(10)
+b.cpush()(11)
+
+#assert memory_cmp(a, b) == 0
+
+b[1] = 11
+#assert memory_cmp(a, b) == 1
+
+b[1] = 13
+#assert memory_cmp(a, b) == -1
+```
+
 
 # Implementation notes
 
