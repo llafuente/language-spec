@@ -33,9 +33,9 @@ if-statement =
 
 *Semantics*
 
-Executes the next block of code if the the given condition yields true.
+Executes the next block of code if the given condition yields true.
 
-If the "if-condition" yields true the "if-then-block" will be executed.
+If the "if-condition" yields true, the "if-then-block" will be executed.
 If the else part of the selection statement is present and "if-condition"
 yields false, "else-then-block" will be executed.
 
@@ -73,7 +73,7 @@ statements depending on the value of a condition. If no match is found and
 `default` part is present it will be executed.
 
 A `case` could have multiple conditions comma separated.
-If one check yields true the `case-block` will be executed.
+If one check yields true, the `case-block` will be executed.
 
 `break` will exit switch statement.
 
@@ -98,14 +98,20 @@ There shall be at least one `case` or `default` within a `switch` statement.
 
 `fallthrough` shall be the last statement in a `case-block`.
 
-The last stament of a `case-block` must be `break` or `fallthrough`.
+The last statement of a `case-block` must be `break` or `fallthrough`.
 
-*Examples*
+*Example*
+
+We can check a value against a variety of conditions of different types.
+
 ```language
-switch value {
-  case a, b, c:
+switch string_value {
+  case string_a, string_b, string_c:
     fallthrough
-  case d:
+  case string_d:
+    // do something
+    break
+  case "constant-string":
     // do something
     break
   case /^abc/:
@@ -115,22 +121,15 @@ switch value {
 }
 ```
 
-
-`switch` can be overriden by an operator with the following interface:
+as mentioned `switch` use `operator ==` so for example this is how we support regex matching for strings
 ```language
 // interface
-// function operator switch(? input, ? check) bool {
+// function operator ==(? input, ? check) bool {
 //   return true
 // }
 
-// real example
-struct point {
-  float x
-  float y
-}
-
-function operator switch(point input, point check) bool {
-  return point.x == check.x && point.y == check.y
+function operator ==(string input, regex check) bool {
+  return check.test(input)
 }
 ```
 
@@ -198,6 +197,7 @@ skip_decl:
     print(x)
   }
 }
+```
 
 ## Loop Statements
 
@@ -225,7 +225,7 @@ loop-statement =
 
 It will create a magic variable `$index` for the numeric index value, and
 `$value` that will hold the value of given structure if needed. Both magic
-variable can have custom names if provided.
+variables can have custom names if provided.
 
 *Constraints*
 
@@ -272,6 +272,7 @@ The compiler shall replace the `loop` statement with a `macro` call.
 
 
 ```
+// helper macro to loop from start to end, one by one
 #macro loop_range(#value start, #value end, #text index_name = "$index") block {
   #uid L_UID
 
@@ -295,7 +296,7 @@ The compiler shall replace the `loop` statement with a `macro` call.
 #L_UID#_loop_end: {}
 }
 
-// this macro
+// loop macro will generate code based on val type
 #macro loop(#value val, #text index_name = "$index", #text value_name = "$value") block {
 #if (val is array) or (val is string)
   #loop_range(1, arr.length, #index_name#) {
@@ -303,13 +304,18 @@ The compiler shall replace the `loop` statement with a `macro` call.
     #block#
   }
 #else if val is number
+  #if #value_name# != "$value"
+    #semantic_error "Invalid loop value, when looping a number there is no value."
+  #fi
+
   #loop_range(1, val, #index_name#) #block#
 #else if val is range
   #loop_range(val.start, val.end, #index_name#) #block#
 #else if val implements RangeIterator
   // TODO
 #else
-  #type_error "Invalid loop expression expected type: array, string, number or range"
+  #type_error "Invalid loop expression expected type: array, string, number or range."
+#fi
 }
 ```
 
@@ -365,9 +371,6 @@ foreach-statement =
 
 `foreach` will loop a structure.
 
-
-Performance notes.
-
 `foreach` key has no performance impact.
 
 `foreach` key and value has, mostly with structs, because they will be copied to
@@ -375,13 +378,15 @@ in each iteration to the stack.
 
 *Semantics*
 
-`loop` will repeat given block of code for each value the given structure holds.
+`foreach` will repeat given block of code for each value that given expression holds.
 
-It will create a magic variable `$index` for the numeric index value, and
-`$value` that will hold the value of given structure. Both magic
-variable can have custom names if provided.
+It will create two magic variables:
+* `$index` of type index for the numeric index value
+* `$value` that will hold the value of given structure.
+Both magic variable can have custom names if provided.
 
-The structure is safe to be modified (change, add or remove are allowed).
+The input is safe to be modified, change, add or remove are allowed.
+*Note* Removing/changing current `$value` could make the value unusable depending on the implementations.
 
 *Constraints*
 
@@ -406,7 +411,7 @@ struct point {
 // foreach by value
 
 var list = new point[10]
-list.cpush()(10, 10)
+list.init_push()(10, 10)
 
 foreach k,v in list {
   v.x = 100
@@ -429,6 +434,14 @@ foreach k,v in list {
 }
 
 #assert list[0].x == 100 // 100, because we copy the pointer and modify the target memory
+
+foreach k,v in list {
+  list.clear_pop()
+  #assert v.x == 0 // v is "safe" but logically, shouldn't be used as the array is empty
+}
+
+#assert list.length == 0
+#assert list.capacity == 10
 ```
 
 #### Implementation
