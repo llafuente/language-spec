@@ -22,10 +22,9 @@
 
 ## casting
 
-Syntax:
-```
-cast<type>(--)
-unsafe_cast<type>(--)
+```syntax
+cast < type > ( expression )
+unsafe_cast < type > ( expression )
 ```
 <!--
 
@@ -39,7 +38,7 @@ STUDY: Design notes
 
 If the same operator is chained multiple times over the same type for example:
 
-```
+```language
 "a" + "b" + "c"
 ```
 
@@ -56,15 +55,15 @@ Those operator have a scope, they are not global.
 So if you define a struct, like point in a file, and the operator in another
 file, your program need to import both to work with operators.
 
-syntax:
-```
+```language
 function operator+(point a, point b) point {
   return point(a.x + b.x, a.y + b.y)
 }
 ```
 
 If you try to define built-in operators you will get an error, for example
-```
+
+```language
 function operator+(i8 a,i8 b) point {
   return point(a.x + b.x, a.y + b.y)
 }

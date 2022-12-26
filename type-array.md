@@ -1,72 +1,22 @@
 # Array
 
-An array it a contiguous memory you can deref safely.
+*Semantics*
+
+An array it a contiguous memory container of a single type,
+each element has a fixed size.
 
 No overflow could happen.
 
+*Constraints*
 
-```
-interface LengthIterator<$t> {
-  get size length;
-  iterate(size index, ptr<bool> valid) ptr<$T> out
-}
+The compiler shall complaint about reference an element
 
-struct array<$t> implements LengthIterator {
-  size length
-  alias len length
 
-  size capacity
-  alias cap capacity
 
-  // Type type // STUDY: maybe ?
 
-  flexible_vector<$t> self
 
-  operator new (size cap) address {
-    ptr<array<$t>> x = unsafe_cast<ptr<array<$t>>> libc_malloc(@sizeof(this) + @sizeof($t) * cap)
 
-    x.type = @typeof($t)
-    x.len = 0
-    x.capacity = cap
-
-    return &x
-  }
-
-  operator delete () {
-    libc_free(this)
-  }
-
-  operator[](size i) $t {
-    #if DEBUG
-      if (i > capacity) {
-        throw error("out of bounds")
-      }
-    #endif
-
-    return self + sizeof(u32) +  sizeof(u32) + i * sizeof(T)
-  }
-
-  iterate(size index, ptr<bool> valid) ptr<$T> out {
-    valid = length < index;
-    if (valid) {
-      return self[index]
-    } else {
-      return null
-    }
-  }
-  // end of iterator implementation
-
-  push($t value) {
-    ptr[length++] = value
-
-    return this
-  }
-  // ...
-}
-
-```
-
-Usage example:
+*Example*
 
 ```
 i8[] x = new[10];
@@ -83,6 +33,67 @@ print(y.len) // stdout: 1
 i[7] = 99
 print(y.len) // stdout: 8
 ```
+
+*Implementation*
+
+```
+template $array_t
+template $array_ptrt $array_t is ptr
+
+interface IndexIterator<$t> {
+  get size length
+  operator[](index position) $t
+}
+
+struct array<$t> implements LengthIterator {
+  size length
+  alias len length
+
+  size capacity
+  alias cap capacity
+
+  // Type type // STUDY: maybe ?
+
+  flexible_vector<$t> data
+}
+
+struct array<$array_ptrt> implements LengthIterator {
+  size length
+  alias len length
+
+  size capacity
+  alias cap capacity
+
+  // Type type // STUDY: maybe ?
+
+  own flexible_vector<$array_ptrt> data
+}
+
+function operator new (ptr<array<$t>> this, size capacity) address {
+  // this = unsafe_cast<ptr<array<$t>>> libc_malloc(@sizeof(array<$t>) + $t.sizeof * cap)
+  this = unsafe_cast<ptr<array<$t>>> libc_calloc(@sizeof(array<$t>) + $t.sizeof * cap)
+
+  // x.type = @typeof($t)
+  this.len = 0
+  this.cap = capacity
+}
+
+function operator delete (ptr<array<$t>> this) {
+  libc_free(this)
+}
+
+function operator[](ptr<array<$t>> this, index i) $t {
+  #if ARRAY_CHECK_OOB
+    if (i > capacity) {
+      throw error("out of bounds")
+    }
+  #endif
+
+  return this.data[i]
+  // as ptr -> this.data + i * $t.sizeof
+}
+```
+
 ## methods
 
 ## init_push() uninitialized $t

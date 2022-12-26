@@ -530,10 +530,9 @@ outterloop: loop 1..10 as $i {
 }
 ```
 
-<a name="break-implementation"></a>
-#### Implementation
+*Constraints*
 
-The compiler will search upwards a label with the
+The compiler shall traverse up searching a label with the
 following pattern: `*_loop_end` and choose accordingly the given id.
 Pick the first if id is not present
 
@@ -547,10 +546,9 @@ the beginning.
 
 `id` has the same meaning as explained in [`continue`](#continue).
 
-<a name="restart-implementation"></a>
-#### Implementation
+*Constraints*
 
-The compiler will search upwards a label with the
+The compiler shall traverse up searching a label with the
 following pattern: `*_loop_restart` and choose accordingly the given id.
 Pick the first if id is not present
 
@@ -565,9 +563,8 @@ The `break` statement tells a loop to stop what it’s doing and exit.
 
 `id` has the same meaning as explained in [`continue`](#continue).
 
-<a name="continue-implementation"></a>
-#### Implementation
 
-The compiler will search upwards a label with the
+*Constraints*
+The compiler shall traverse up searching a label with the
 following pattern: `*_loop_continue` and choose accordingly the given id.
 Pick the first if id is not present

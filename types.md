@@ -329,6 +329,20 @@ operator [](size position) // It will return the value of the identifier at give
 
 ## Structured
 
+*Semantics*
+
+A struct is an aggregate type with contigous memory type which members can have distinct types.
+
+*Constraints*
+
+A struct can contain padding between members. Apply the same rules as
+`c language` to keep compatibility.
+
+<!--
+  Thus, for example, structure assignment may be implemented element-at-a-time or via memcpy.
+-->
+
+
 ```syntax
 struct_properties_flags = (hoist | readonly ) struct_properties_flags
 struct_properties_list = (struct_properties_flagsₒₚₜ type identifier | alias identifier identifier) ENDL struct_properties_list
