@@ -13,6 +13,10 @@ The controlling expression shall have bool type, there won't be implicit convers
 
 ### `if` / `else`
 
+<!--
+  https://clang.llvm.org/doxygen/classclang_1_1IfStmt.html
+-->
+
 *syntax*
 
 ```syntax
@@ -33,28 +37,40 @@ if-statement =
 
 *Semantics*
 
-Executes the next block of code if the given condition yields true.
-
-If the "if-condition" yields true, the "if-then-block" will be executed.
+1. If the "if-condition" yields true, the "if-then-block" will be executed.
 If the else part of the selection statement is present and "if-condition"
 yields false, "else-then-block" will be executed.
 
-if a statement of "if-then-block" is reached via a label, the "if-condition" is not evaluated and the "else-then-block" is not executed.
+2. If a statement of "if-then-block" is reached via a label, the "if-condition" is not evaluated and the "else-then-block" is not executed.
 
-if a statement of "else-then-block" is reached via a label, the "if-condition" is not evaluated.
+3. If a statement of "else-then-block" is reached via a label, the "if-condition" is not evaluated.
 
+
+*Constraints*
+
+1. "if-condition" shall have boolean type.
+
+
+*Example*
 
 ```language
+var x = false
+var y = true
+
 if x {
-
+  print("x is true")
 } else if y {
-
+  print("y is true")
 } else {
-
+  print("x and y are false")
 }
 ```
 
 ### `switch` (`case`, `break` and `fallthrough`)
+
+<!--
+  https://clang.llvm.org/doxygen/classclang_1_1SwitchStmt.html
+-->
 
 *Syntax*
 
@@ -64,8 +80,10 @@ switch-statement
   default : statements
 
 switch-statement
-  switch ( expression ) { switch-s }
+  switch ( expression ) { switch-statement }
 ```
+
+
 *Semantics*
 
 The switch statement causes control to be transferred to one of several
@@ -80,9 +98,10 @@ If one check yields true, the `case-block` will be executed.
 `fallthrough` will jump to the first statement in the next `case-block` or
 `default-block`.
 
+
 *Constraints*
 
-switch condition expression will be evaluated once, the cached value will be
+`switch condition expression` will be evaluated once, the cached value will be
 used in each case condition check.
 
 <!--
@@ -121,7 +140,7 @@ switch string_value {
 }
 ```
 
-as mentioned `switch` use `operator ==` so for example this is how we support regex matching for strings
+As mentioned `switch` use `operator ==` so for example this is how we support regex matching for strings
 ```language
 // interface
 // function operator ==(? input, ? check) bool {
@@ -137,10 +156,19 @@ function operator ==(string input, regex check) bool {
 
 ## Goto Statement
 
+*Syntax*
+
+```syntax
+goto-statement
+  goto label-identifier
+```
+
+
 *Semantics*
 
 A goto statement causes an unconditional jump to the statement prefixed
 by the named label
+
 
 *Constraints*
 
@@ -149,6 +177,7 @@ function.
 
 A jump shall not skip the declaration or initilization of any variable used
 later.
+
 
 *Example*
 
@@ -203,11 +232,11 @@ skip_decl:
 
 We have a few loop statements: `loop`, `for`, `foreach`, `while` and `do-while`.
 
-`restart` will affect all.
+There are special statements inside loop with specific behaviour, explained below:
 
-`continue` will affect all.
-
-`break` will affect all and `switch`
+* `restart` will affect all.
+* `continue` will affect all.
+* `break` will affect all and `switch`
 
 <a name="loop"></a>
 ### `loop`
@@ -219,30 +248,30 @@ loop-statement =
   loop expression [as literal[, literal] block
 ```
 
+
 *Semantics*
 
-`loop` will repeat given block of code, loop body, a defined number of times.
+1. `loop` will repeat `loop body` a pre-defined number of times.
 
-It will create a magic variable `$index` for the numeric index value, and
+2. It will create a magic variable `$index` for the numeric index value, and
 `$value` that will hold the value of given structure if needed. Both magic
 variables can have custom names if provided.
 
+
 *Constraints*
 
-`loop` is meant to be top performant. It will cache the expression, won't
-reevaluate in each loop, that makes `loop` unsafe to input modifications.
-In case you want to modify the array/string input use foreach instead as use an
-(slower but safer) iterator.
+`loop` shall cache the loop-expression, so it's safe to expression modifications,
+see example below for more info. If your loop need to change behaviour for example
+because the length of the string is changes use another loop statement like:
+[`for`](#for) / [`foreach`](#foreach) / [`while`](#while) or [`do-while`](#do-while)
 
 There is no way to increment a number different than one,
 use [`for`](#for) instead.
 
-The controlling expression shall have numeric, range, string or array type.
-* `numeric`: it will repeat that number of times,
-* `range` then it will start and end according to the range.
-* `string` then it will loop the `string` and value type will be `rune`.
-* `array` then it will loop the `array` and value type will be the same the
-array holds.
+The controlling expression shall have numeric, range or implement IndexIterator.
+* `numeric`: it shall repeat `loop-body` given number of times.
+* `range`: it shall repeat `loop-body` starting and ending according to given range.
+* `IndexIterator` it shall loop its length. An for example `$value` will have `rune` type if a `string` is given.
 
 <!--
 * if expression is a struct
@@ -251,7 +280,7 @@ array holds.
  * It loop each property and value is `as` has two literals (separated by commas).
 -->
 
-*Examples*
+*Example*
 
 The following example will print 1 to 10 and continue.
 It won't fall into infinite loops, as `loop` is safe of this common pitfall.
@@ -264,14 +293,13 @@ loop 1..i {
 ```
 
 <a name="loop-implementation"></a>
-#### Implementation
+*Implementation*
 
 `loop` it's in fact a `macro`.
 
 The compiler shall replace the `loop` statement with a `macro` call.
 
-
-```
+```language
 // helper macro to loop from start to end, one by one
 #macro loop_range(#value start, #value end, #text index_name = "$index") block {
   #uid L_UID
@@ -298,12 +326,7 @@ The compiler shall replace the `loop` statement with a `macro` call.
 
 // loop macro will generate code based on val type
 #macro loop(#value val, #text index_name = "$index", #text value_name = "$value") block {
-#if (val is array) or (val is string)
-  #loop_range(1, arr.length, #index_name#) {
-    var #value_name# arr[#index_name#]
-    #block#
-  }
-#else if val is number
+#if val is number
   #if #value_name# != "$value"
     #semantic_error "Invalid loop value, when looping a number there is no value."
   #fi
@@ -312,7 +335,10 @@ The compiler shall replace the `loop` statement with a `macro` call.
 #else if val is range
   #loop_range(val.start, val.end, #index_name#) #block#
 #else if val implements RangeIterator
-  // TODO
+  #loop_range(1, val.length, #index_name#) {
+    var #value_name# val[#index_name#]
+    #block#
+  }
 #else
   #type_error "Invalid loop expression expected type: array, string, number or range."
 #fi
@@ -378,12 +404,12 @@ in each iteration to the stack.
 
 *Semantics*
 
-`foreach` will repeat given block of code for each value that given expression holds.
+`foreach` shall repeat `foreach-body` for each value that given expression holds.
 
 It will create two magic variables:
 * `$index` of type index for the numeric index value
 * `$value` that will hold the value of given structure.
-Both magic variable can have custom names if provided.
+Both magic variables can have custom names if provided.
 
 The input is safe to be modified, change, add or remove are allowed.
 *Note* Removing/changing current `$value` could make the value unusable depending on the implementations.
@@ -398,7 +424,7 @@ Notice: This have performance implications.
 
 The controlling expression need to implement `IndexIterator`
 
-*Examples*
+*Example*
 
 The following example illustrate both behaviours with pointer and value.
 
@@ -425,7 +451,7 @@ foreach k in list {
 
 #assert list[0].x == 100 // 100, because we access directly the array memory
 
-// foreach by pointer
+// foreach by reference
 
 var list2 = new ptr<point>[10]
 list.push(new point(10, 10))
@@ -433,11 +459,12 @@ foreach k,v in list {
   v.x = 100
 }
 
-#assert list[0].x == 100 // 100, because we copy the pointer and modify the target memory
+#assert list[0].x == 100 // 100, because we copied the pointer but modify the target memory
 
 foreach k,v in list {
   list.clear_pop()
   #assert v.x == 0 // v is "safe" but logically, shouldn't be used as the array is empty
+  // list[k] will give a runtime error because it's empty.
 }
 
 #assert list.length == 0
@@ -494,6 +521,15 @@ The compiler shall replace the `loop` statement with a `macro` call.
 <a name="continue"></a>
 ### `continue` id
 
+*Syntax*
+
+```syntax
+continue-statement=
+  continue label-identifier
+  continue number
+  continue
+```
+
 *Semantics*
 
 The `continue` statement tells a loop to stop what it’s doing and start again at
@@ -501,6 +537,7 @@ the beginning of the next iteration through the loop.
 
 `id` represent the closest iteration to `continue`, by default 1, the closest one.
 A label can be used instead to clarify.
+
 
 *Example*
 
@@ -530,6 +567,7 @@ outterloop: loop 1..10 as $i {
 }
 ```
 
+
 *Constraints*
 
 The compiler shall traverse up searching a label with the
@@ -539,12 +577,23 @@ Pick the first if id is not present
 <a name="restart"></a>
 ### `restart` id
 
+*Syntax*
+
+```syntax
+restart-statement=
+  restart label-identifier
+  restart number
+  restart
+```
+
+
 *Semantics*
 
 The `restart` statement tells a loop to stop what it’s doing and start again at
 the beginning.
 
 `id` has the same meaning as explained in [`continue`](#continue).
+
 
 *Constraints*
 
@@ -556,6 +605,16 @@ Pick the first if id is not present
 <a name="break"></a>
 ### `break` id
 
+*Syntax*
+
+```syntax
+break-statement=
+  break label-identifier
+  break number
+  break
+```
+
+
 *Semantics*
 
 The `break` statement tells a loop to stop what it’s doing and exit.
@@ -565,6 +624,7 @@ The `break` statement tells a loop to stop what it’s doing and exit.
 
 
 *Constraints*
+
 The compiler shall traverse up searching a label with the
 following pattern: `*_loop_continue` and choose accordingly the given id.
 Pick the first if id is not present

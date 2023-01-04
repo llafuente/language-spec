@@ -45,7 +45,7 @@ interface IndexIterator<$t> {
   operator[](index position) $t
 }
 
-struct array<$t> implements LengthIterator {
+struct array<$t> implements IndexIterator {
   size length
   alias len length
 
@@ -57,7 +57,7 @@ struct array<$t> implements LengthIterator {
   flexible_vector<$t> data
 }
 
-struct array<$array_ptrt> implements LengthIterator {
+struct array<$array_ptrt> implements IndexIterator {
   size length
   alias len length
 

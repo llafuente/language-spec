@@ -246,6 +246,14 @@ func main() {
 
 ## utils
 
+### memory_set
+
+It will loop the given memory and set given value
+
+### memory_clear
+
+use memory_set to set zero as value.
+
 ### memory_copy
 
 It will loop the memory and copy it's content into another location.
