@@ -34,7 +34,7 @@ STUDY: Design notes
 * alternative sysntax: cast(x)(--) ?
 -->
 
-## Operator optimization (Under study)
+## Operator optimization (Experimental)
 
 If the same operator is chained multiple times over the same type for example:
 
@@ -65,7 +65,7 @@ If you try to define built-in operators you will get an error, for example
 
 ```language
 function operator+(i8 a,i8 b) point {
-  return point(a.x + b.x, a.y + b.y)
+  return x + b
 }
 ```
 

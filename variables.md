@@ -11,19 +11,31 @@ We list all the options below.
 <a name="global-variables"></a>
 ## global
 
-Global variables are available to every file in `main project`,
-`packages` are not part of your project so a package could not
-read your global variables.
-
-They must be declared in the `entry point file` of your program.
+*syntax*
 
 ```syntax
-global var [type] identifier
+global var type identifier
+
+global var [type] identifier = expression
 
 global const [type] identifier = expression
 ```
 
-As you may already notice, `constants` must be assigned at declaration.
+*Semantics*
+
+A Global variables is available to every file in main project
+
+`packages` are not part of your project so a package could not
+read your global variables.
+
+*Constraints*
+
+Global variables shall not be declared outside your program `entry file`
+
+A global variable that is not assigned shall have a type.
+
+
+
 
 <a name="package-variables"></a>
 ## package variables

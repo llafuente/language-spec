@@ -23,22 +23,44 @@ Those documents define the compilation process and minimal code generation neede
 
 # Specification:
 
-[1. Scope](scope.md)
-[2. Glossary](glossary.md)
-[3. Conformance](conformance.md)
+## General
 
-[3. Source file considerations](a-source-file.md)
+[Scope](general/scope.md)
+
+[Normative references](general/normative-references.md)
+
+[Glossary](general/glossary.md)
+
+[Conformance](general/conformance.md)
+
+## Compiler
+
+[Compilation phases](compiler/compilation-phases.md)
+
+* Lexical Analysis
+* Syntax Analysis
+* Semantic Analysis
+* Code generation
+
+[The source file](compiler/the-source-file.md)
+
+* Character sets
+* Trigraph sequences
+* Multibyte characters
+
+[Project structure](compiler/project-structure.md)
+
 <!--
-* 5.2.1 Character sets
-* 5.2.1.1 Trigraph sequences
-* 5.2.1.2 Multibyte characters
 -->
-[4. The compiler - Compilation phases](the-compiler.md)
-[3. A program - Entry point](a-program.md)
-[3. A library - Entry point](a-library.md)
+
+## Language
 
 [4. Variables](variables.md)
+
 [4. Type system](type-system.md)
+
 [5. Expressions](expressions.md)
+
 [6. Statements](statements.md)
+
 [4. Declarations](declarations.md)
