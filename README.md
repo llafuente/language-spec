@@ -44,6 +44,7 @@ Those documents define the compilation process and minimal code generation neede
 
 [The source file](compiler/the-source-file.md)
 
+* Structure (order)
 * Character sets
 * Trigraph sequences
 * Multibyte characters
