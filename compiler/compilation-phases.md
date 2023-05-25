@@ -24,7 +24,7 @@ As meta programing is allowed, the compiler will repeat some phases.
 2. Scans the source code string as a stream of characters and converts it
 into meaningful lexemes/tokens.
 
-2.1. Honor trigraphs.
+2. 1. Honor trigraphs.
 
 3. The output for the next phase will be a list of tokens.
 
@@ -35,17 +35,17 @@ into meaningful lexemes/tokens.
 
 2. Starting at root, traverse the AST
 
-2.1. Check AST is syntax valid.
+2. 1. Check AST is syntax valid.
 
-2.2. Preprocessor
+2. 2. Preprocessor
 
-2.2.1. For each `#Import`.
+2. 2. 1. For each `#Import`.
 
-2.2.1.1. If it's a dependency, install it to desired version.
+2. 2. 1. 1. If it's a dependency, install it to desired version.
 
-2.2.1.2. Start lexical Analysis at dependency entry point.
+2. 2. 1. 2. Start lexical Analysis at dependency entry point.
 
-2.2.2. Expand up to 5 times the rest of preprocessor directives.
+2. 2. 2. Expand up to 5 times the rest of preprocessor directives.
 
 <a name="semantic-analysis"></a>
 ## Semantic Analysis
@@ -54,10 +54,10 @@ into meaningful lexemes/tokens.
 
 2. Infer varible declarations.
 
-2.1. Variable shall take the type of the first assignament, but the size
+2. 1. Variable shall take the type of the first assignament, but the size
 shall be decided later.
 
-2.2. The compiler shall display a semantic error if the type for the first
+2. 2. The compiler shall display a semantic error if the type for the first
 assignament is unkown.
 
 3. Generate code for all functions/types templated.

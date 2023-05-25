@@ -11,21 +11,21 @@ Any project have three main componentes:
 * Core packages (language provided)
 * User packages (community provided)
 
-A project start at: `entry point file` wich is the one that bootstrap
-and configure your `program` or `package`.
+Any project start at: the `entry point file` which is the one that bootstrap
+your code and configure the compiler.
 
 > compiler build index.src app.exe
 
-`index.src` it's the entry point.
+The file `index.src` it's the `entry point file`.
 
-A program can have multiple entry points, for example: development and
-production environments.
+A `program` can have multiple entry points, for example: development and
+production environments but a `package` shall have only one.
 
-## `program`: entry point
+## `program` - `entry point file`
 
-* Configure compiler
+* Configure compiler. It's the only place you can use `#set`.
 * Declare [global variables](variables.md#global-variables)
-* Import dependencies with version
+* `#import` dependencies with version
 * Shall declare function `main`
 
   It's the first function to be executed, should create and destroy

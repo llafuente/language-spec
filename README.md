@@ -30,6 +30,12 @@
 
 [Project structure](compiler/project-structure.md)
 
+[Configuration](compiler/compiler-configuration.md)
+
+* `#get`
+* `#set`
+* `#require`
+
 <!--
 -->
 
