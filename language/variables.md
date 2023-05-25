@@ -34,7 +34,7 @@ Global variables shall not be declared outside your program `entry file`
 
 A global variable that is not assigned shall have a type.
 
-
+The identifier shall no be uppercased, that reserved to defines.
 
 
 <a name="package-variables"></a>
@@ -131,6 +131,20 @@ loop 5 {
 
 ```error
 variable $index redeclared at line 2:1
+```
+
+If the compiler is unsure of what variable are you using is shall raise an error.
+
+```language
+loop 5 {
+  loop 5 {
+    print("index = " + $index)
+  }
+}
+```
+
+```error
+variable $index redeclared at line 1:1
 ```
 
 ## Implementation notes.

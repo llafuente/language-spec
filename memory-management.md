@@ -1,32 +1,17 @@
 # Memory management
 
-Language implements a Automatic memory management based on static anotation of
+Language implements a Automatic memory management based on static annotation of
 the memory. With just one premise: Memory must be owned by `one` in all moment,
-that implies a few limitations but we can get rid of memory leaks.
+that implies a few limitations but we can get rid of memory leaks or
+runtime memory management.
 
+<a name="new"></a>
 ## `new`: allocate memory
 <!--
   https://cplusplus.com/reference/new/operator%20new/
-  -->
+-->
 
-Dynamically allocate memory.
-`new` can be overloaded to support custom allocators by type or at "alloc" time.
-
-Custom allocators must honor the same characterictics as default allocator:
-
-* Memory must be contiguous.
-* If target machine allowed, 32bit aligned.
-* Allocating zero memory returns `nullptr`
-
-`new` will [`lend`](#lend) memory to the local variable or to a
-[memory-pool](#memory-pool).
-
-
-or by a local variable.
-If that variable is the result of the function (return) the return type of that
-function will be mark a `lend`, because it will `lend` the memory.
-
-Memory allocated inside a function that won't be lended, it will be deleted (freed).
+*Syntax*
 
 ```syntax
 // single heap instance
@@ -37,33 +22,66 @@ new [shared] type [ '(' function_arguments ')' [at identifier]]
 new [shared] type '[' expression ']' '(' function_arguments ')' [at identifier]
 ```
 
+*Semantics*
 
-### Implementation notes
+Dynamically allocate memory in the heap.
 
-* Allocate primitives without initializing will auto-initialize: numbers = `0`, `bool` = `false`, ptr-like = `nullptr`.
+`new` will [`lend`](#lend) memory to the local variable or to a
+[memory-pool](#memory-pool).
+
+
+*Constraints*
+
+1. Allocated memory shall be contiguous and 32bit aligned (If target architecture)
+
+2. Allocating zero memory shall raise runtime error.
+
+3. Allocate primitives without initializing will auto-initialize: numbers = `0`, `bool` = `false`, ptr-like = `nullptr`.
   ```language
+  // auto-initialize
   var x = new i8         // x = 0
   var y = new i8(10)     // y = 10
-  var z = new vector<i8>[20](20) // z[0..20] = 32
+
+  // manual-initialization
+  var z = new vector<i8>[20](20) // z[0..20] = 20
   ```
 
-* Allocate a struct without initializing is forbidden, because it's uninitilized memory.
+4. Allocate a `struct` without initializing shall raise an error (because it's uninitilized memory)
   ```language
   struct point {
     float x
     float y
   }
 
-  var p = new point() // default constructor, everthing will be zero
-  var p2 = new point // p2 is holding uninitialized memory, that's an error
+  var p = new point() // default constructor, everything will be zero
+  var p2 = new point // p2 is holding uninitialized ref<point>, that's an error
+  var p3 = new point() // ok
   ```
 
-* You can allocate memory that is not initialized, like an array
+5. You can allocate memory that is not initialized, like an array
   ```language
-  var z1 = new i8[20]        // initilize the array, but not it's values
-  var z2 = new array<i8>[20] // alias of the above
+  var z2 = new i8[20]        // alias of the above
   var z3 = new i8[20](0)     // initilize the array and all values to zero
   ```
+
+
+### Customs allocators
+
+
+`new` can be overloaded to support custom allocators by type or at "alloc" time.
+
+Custom allocators must honor the same characterictics as default allocator:
+
+
+
+or by a local variable.
+If that variable is the result of the function (return) the return type of that
+function will be mark a `lend`, because it will `lend` the memory.
+
+Memory allocated inside a function that won't be lended, it will be deleted (freed).
+
+
+
 
 ### Minimal code generation set
 
@@ -72,14 +90,27 @@ new type(a, b, c)
 ```
 
 ```
-function heap_allocator(size) uninitilized ptr {
-  return malloc(size)
+function heap_allocator<$type>(i32 bytes) uninitilized ptr<$type> {
+  return clib.malloc(bytes)
 }
 
-type.constructor(
-  /* this = uninitialized i8* */ unsafe_cast<ptr<type>> heap_allocator(type.sizeof(a, b, c)),
-  a, b, c
-)
+function heap_allocator_and_construct<$type>(elements, a, b, c): ptr<$type> {
+  if (elements == 1) {
+    return $type.constructor(heap_allocator<$type>($type.sizeof), a, b, c);
+  }
+
+  // TODO!! this implies a problem for compiler as memory and p contains uninitilized memory
+  var memory, p = heap_allocator<$type>(elements * $type.sizeof);
+
+  for (int i = 0; i < size; i += $type.sizeof) {
+    $type.constructor(p, a, b, c);
+    p+=$type.sizeof;
+  }
+
+  return memory;
+}
+
+
 ```
 
 ```language
@@ -106,7 +137,13 @@ for (size int $i = 0; $i < 10; ++$i) {
 
 ## `grow`: reallocate memory
 
-Reallocate memory, only `shared pointers` can be reallocated, and only if they are unique.
+*Semantics*
+
+Allocate memory and copy its contents.
+
+*Constrains*
+
+1. Only `shared pointers` can grow.
 
 `grow` will check those conditions at runtime, and it will throw an error if it's not possible to grow.
 

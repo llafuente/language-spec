@@ -37,3 +37,13 @@ in a dangerous way, also most of the varargs are macros... that we shouldn't
 mimic.
 
 just need research...
+
+## Functions
+
+### libc.malloc
+
+### libc.free
+
+### deref
+
+Dereference a pointer.

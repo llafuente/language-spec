@@ -2,7 +2,7 @@
 
 ## Rune
 
-The Rune represent a single character (possible multibyte) in a given enconding.
+The Rune represent a single character (possible multibyte) in a given encoding.
 
 ```
 enum string_encoding {
@@ -47,7 +47,7 @@ struct string {
 Operators
 ```
 operator[](size position) rune {} // get
-operator[](size position, rune) rune {} // assignament
+operator[](size position, rune) rune {} // assignment
 
 operator+(string) {}
 operator+(rune) {}

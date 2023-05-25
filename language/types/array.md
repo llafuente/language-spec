@@ -1,44 +1,59 @@
 # Array
 
+*syntax*
+
+```syntax
+array-list =
+  empty
+  non-comma-expression , non-comma-expression
+  non-comma-expression
+
+array-literal =
+  [ array-list ]
+```
+
 *Semantics*
 
 An array it a contiguous memory container of a single type,
 each element has a fixed size.
 
-No overflow could happen.
 
 *Constraints*
 
 The compiler shall complaint about reference an element
 
+No overflow shall happen.
 
+`string[]` means an array with strings
 
-
+`[string]` means an array with a single string
 
 
 *Example*
 
 ```
 i8[] x = new[10];
-var i = new i8[10];
+var y = new i8[10];
 
 // properties
 x.push(0)
-i.push(1)
-i.grow(15) ; // grow internal memory by 15
+y.push(1)
+y.grow(15) ; // grow internal memory by 15
 print(x.cap) // stdout: 10
 print(y.cap) // stdout: 15
 print(x.len) // stdout: 1
 print(y.len) // stdout: 1
-i[7] = 99
+y[7] = 99
 print(y.len) // stdout: 8
+
+#assert type(x) == type(y)
 ```
 
 *Implementation*
 
 ```
-template $array_t
-template $array_ptrt $array_t is ptr
+template $t
+template $array_ptrt $t is ptr
 
 interface IndexIterator<$t> {
   get size length
@@ -69,7 +84,7 @@ struct array<$array_ptrt> implements IndexIterator {
   own flexible_vector<$array_ptrt> data
 }
 
-function operator new (ptr<array<$t>> this, size capacity) address {
+function operator new (ptr<array<$t>> this, size capacity) void {
   // this = unsafe_cast<ptr<array<$t>>> libc_malloc(@sizeof(array<$t>) + $t.sizeof * cap)
   this = unsafe_cast<ptr<array<$t>>> libc_calloc(@sizeof(array<$t>) + $t.sizeof * cap)
 
@@ -83,8 +98,8 @@ function operator delete (ptr<array<$t>> this) {
 }
 
 function operator[](ptr<array<$t>> this, index i) $t {
-  #if ARRAY_CHECK_OOB
-    if (i > capacity) {
+  #if COMPILER.ARRAY_CHECK_OOB
+    if (i >= this.length) {
       throw error("out of bounds")
     }
   #endif
@@ -107,6 +122,7 @@ var arr = i8[10]
 #assert arr.length == 0
 #assert arr.capacity == 10
 
+arr.init_push() = 5
 arr.init_push()(5)
 
 #assert arr[0] == 5
@@ -130,7 +146,7 @@ function init_push(array<$t> this) uninitialized $t {
 *Implementation*
 
 ```language
-function push(array<$t> this, $t value) {
+function push(array<$t> this, $t value) size {
   if this.length == this.capacity {
     throw "array out of capacity"
   }

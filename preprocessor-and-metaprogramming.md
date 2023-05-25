@@ -2,7 +2,7 @@
 
 Preprocessor and metaprograming both share the same purpose, to generate code,
 but at different compilation stage.
-Both have the same syntax and should be undestood as a whole.
+Both have the same syntax and should be understood as a whole.
 
 <!--
   https://gcc.gnu.org/onlinedocs/cpp/Macros.html
@@ -22,17 +22,40 @@ Implementation notes.
 
 ## `#define`
 
-Defines a direct text substitution. Unlike c/cpp does not have arguments.
-
-It's the preferred method to declare constants.
-
-It MUST be just one line.
-
-If used inside a macro it will live only inside the macro.
+*syntax*
 
 ```syntax
 #define identifier text ENDL
 ```
+
+*Semantics*
+
+Defines a direct text substitution. Unlike c/cpp does not have arguments.
+
+It's the preferred method to declare constant globals because it will
+be accessible inside packages.
+
+*constrains*
+
+1. The identifier must be uppercased.
+
+2. It shall be just one line.
+
+3. `#define` is scoped.
+
+`#define` at program entry point it's available in every file in the program.
+
+`#define` at package entry point it's available in every file in that package.
+
+`#define` at block scope can be used outside the block.
+
+4. If a define is redefined a semantic-error shall be raised.
+
+
+*notes*
+
+There is no `#undef`, so package developers should append a unique prefix to
+theirs definitions.
 
 Example:
 
@@ -43,33 +66,7 @@ Example:
 
 ## `#macro`
 
-Creates a function-like macro that can take arguments.
-It's always "inlined" by definition replacing each call.
-<!--
-The compiler will choose when to expand depending on what inputs require the macro.
--->
-
-
-A macro function declares explicity how to handle inputs using:
-* [`#text`](#macro-text)
-* [`#value`](#macro-value)
-
-A macro function can fetch next block of code and expanded inside it's own block see [`#block`](#macro-block).
-
-### Implementation notes
-
-Expanding a macro function will create expand the entire function body, a new block included.
-Therefore can't return a value, using return inside a macro means the function that use it will return.
-its variables won't leak out.
-If you want to use a variable initialized/modified by the macro declare it outside the macro.
-
-A macro function need to be syntax valid code by it's own.
-
-Inside a macro function `#macro` are forbidden.
-
-A macro argument is everything not comma and parenthesis will be honored,
-no open parenthesis will be allowed without the closing match.
-these prevent unshielded commas.
+*syntax*
 
 ```syntax
 macro_argument = ( #text text_no_comma_no_endl | #value expression_rhs )
@@ -79,33 +76,121 @@ macro_argument_list = [ macro_modifier macro_input [, macro_argument_list] ]
 #macro identifier '(' macro_argument_list ')' [ #block ] block
 ```
 
+*semantics*
+
+Creates a function-like macro that can take arguments.
+
+A macro can fetch next block of code and expanded inside it's own block see [`#block`](#macro-block).
+
+*Constraints*
+
+1. A `#macro` is inlined at macro-call.
+
+2. A `#macro` contains the same statements as function-body.
+
+<!--
+The compiler will choose when to expand depending on what inputs require the macro.
+-->
+
+2. Each macro arguments can declares can how to handle input:
+* [`#text`](#macro-text) (default)
+* [`#value`](#macro-value)
+
+3. If a macro fetch the next block of code must use it inside.
+
+4. When expanding a macro will create a new block at call site to keep
+everything declared in the macro inside it's own scope.
+
+5. A macro function can't return. If used shall raise an syntax-error Using `return` inside `#macro` means that you
+will expand `return` at call site.
+
+This is an error.
+
+```language
+#macro ret() {
+  return 0
+}
+
+function test(): number {
+  #ret()
+}
+```
+
+6. A macro call can be rhs expression.
+
+
+This is an error.
+
+```language
+#macro expr() {
+  1 + 1
+}
+
+function test(): number {
+  var x = #expr()
+
+  return x
+}
+```
+
+7. A macro function need to be syntax valid code by it's own.
+
+8. Inside a `#macro`: `#macro` is forbidden.
+
+9. A macro argument is everything not comma and parenthesis will be honored,
+no open parenthesis will be allowed without the closing match.
+these prevent unshielded commas.
+
+*Examples*
+A macro can access variables outside its scope but no the other way around.
+
+```language
+#macro m_sum() {
+  var x = 10
+  c = a + b
+}
+
+function sum(i8 a, i8 b) {
+  var c
+  #m_sum()
+  // print(x) <-- // this is a semantic error, variable not found
+
+  return c
+}
+```
+
 <a name="macro-arguments"></a>
 ### arguments
 
 To expand the argument use `#` followed by the name of the argument and `#` again.
 
 To stringify the argument use `##` followed by the name of the argument and `#` again.
+The string is double quote escaped.
 
 <a name="macro-text"></a>
 ### `#text` argument
 
-Arguments mark as `#text` are going to be expanded as recieved.
+*semantics*
 
-This is the default method, and `#text` it's optional.
+`#text` is a macro argument modifier that tell that fetch the entire expression
+as text.
 
-Example:
+This is the default method so `#text` it's optional.
+
+*Example*
 
 ```language
 // Declaration
 #macro print_text(#text t) {
-  print("#t#")
-  print(##t#)
+  print("#t#") // it will print t text value
+  print(##t#) // it will stringify t value and create a double quote string
 }
 
 // Usage
 #print_text(xxx.ccc)
 #print_text(any_valid_exression())
 #print_text(even-not-valid-staff-is-allowed ? .-)
+#print_text(someone do not space quotes ")
 ```
 
 Expansion:
@@ -122,16 +207,30 @@ Expansion:
   print("even-not-valid-staff-is-allowed ? .-")
   print("even-not-valid-staff-is-allowed ? .-")
 }
+{
+  print("someone do not space quotes "")
+  print("someone do not space quotes \"")
+}
+
 ```
 
 <a name="macro-value"></a>
 ### `#value` argument
 
-Arguments mark as `#value` are going to be assigned to a local variable,
-and that will be used, so keep in mind that it must be a valid rhs and there
-will be only one resolution to the expression.
+*semantics*
 
-Example:
+`#value` is a macro argument modifier that make the expression to be evaluated
+and assigned to a local variable.
+
+*Constraints*
+
+1. Given expression must be a valid rhs
+
+2. Expression shall be evaluated only once at the top of the expansion.
+
+
+*Example*
+
 ```language
 // declaration
 #macro print_type(#value v) {
@@ -142,7 +241,7 @@ Example:
 #print_type(10+5.2)
 ```
 
-Expansion:
+*Expansion*
 ```
 // declaration
 // usage
@@ -156,13 +255,13 @@ Expansion:
 }
 ```
 
-Output:
+*Output*
 ```
 i8 = 17
 float = 17.2
 ```
 
-Example 2:
+*Example 2*
 
 ```language
 // Declaration
@@ -190,7 +289,7 @@ var overflowed = false;
 print ("value", r, "overflowed?", overflowed)
 ```
 
-Expansion:
+*Expansion 2*
 ```
 var a: i8 = 120;
 var b: i8 = 120;
@@ -219,9 +318,14 @@ print ("value", r, "overflowed?", overflowed)
 <a name="macro-block"></a>
 ### `#block`
 
-A `#macro` marked with `#block` require a body-block at call site.
+*semantics*
 
-Example:
+`#block` is a macro modifier that force the a macro call to be followed by a
+block, that will be expanded inside the macro.
+
+*Constrains*
+
+*Example*:
 
 This is almost how we implement foreach internally in the language.
 
@@ -265,7 +369,7 @@ foreach_kv(key, it, [1,2,3,4]) {
 }
 ```
 
-What happen
+*Expansion*
 ```
 { // expanding foreach arguments
   itr_able_unique := [1,2,3,4];
@@ -303,40 +407,26 @@ list := [1,2,3,4]
 }
 
 ```
-### Variadic-Macros
-
-Variadic macros are not included in the language. The reason is we don't need it.
-It a bit hacky but variadic is supported because we honor parenthesis.
-
-Example:
-
-```language
-#macro print_them(#text arg) {
-  print#arg#
-}
-
-#print_them((1, 2, 3))
-#print_them((1))
-#print_them(1) // this will fail, that's why it's a by hacky
-```
-
-<!--
-REVIEW
-The `#repeat` operator is "underconsideration" to do the job of repeat
-over varargs.
- -->
 
 ## `#forstruct`
 
-`forstruct` will loop the struct properties.
-
-It will be expanded later when types are ready.
+*Syntax*
 
 ```syntax
 #forstruct identifier, identifier in expression block
 ```
+*Semantics*
 
-Example:
+`#forstruct` will loop the struct properties.
+
+*Constraints*
+
+`#forstruct` shall be part of metaprogramming expansion. So a `#macro` containing
+`#forstruct` shall be marked as metaprogramming to be expanded later.
+
+
+*Example*
+
 ```language
 struct point {
   i8 x
@@ -364,9 +454,25 @@ print(1, "y", p.y)
 
 ## `#assert`
 
-Raise a compile time error.
+*syntax*
+
+```syntax
+assert_expression = TODO
+'#' assert assert_expression ENDL
+```
+
+*Semantics*
+
+Raise a compile time error if condition yield false.
 
 `#assert` check will be delayed until macros expanded and all types are resolved.
+
+*Constraints*
+
+`#assert` shall be part of metaprogramming expansion. So a `#macro` containing
+`#assert` shall be marked as metaprogramming to be expanded later.
+
+*Example*
 
 ```
 #assert x is_type_of Y
@@ -375,12 +481,16 @@ Raise a compile time error.
 #assert sizeof(x) > 16
 ```
 
-```syntax
-assert_expression = TODO
-'#' assert assert_expression ENDL
-```
 
 ## `#exec`
+
+*syntax*
+
+```syntax
+'#' exec text ENDL
+```
+
+*Semantics*
 
 Execute given command:
 * if exit code is 0: It will include its standard output in the current output
@@ -391,20 +501,22 @@ in libraries.
 
 The output of the command won't be re-evaluated.
 
-```syntax
-'#' exec text ENDL
-```
 
 
 ## `#uid`
 
-Generate a unique number.
+*Syntax*
 
 ```syntax
 '#' uid identifier ENDL
 ```
 
-Example
+*Semantics*
+
+It generates a unique number per expansion.
+
+
+*Example*
 ```language
 #uid BLOCK_UID
 
@@ -420,66 +532,106 @@ end_#BLOCK_UID#:
 
 ## `#line`
 
-Display current line
+*Syntax*
 
 ```syntax
 '#' line
 ```
 
+*Semantics*
+
+Display current line
+
+
 ## `#file`
 
-Display current file
+*Syntax*
 
 ```syntax
 '#' file
 ```
 
-## `#date`
+*Semantics*
 
-Display current date
+Display current file
+
+## `#date` [*TODO*: format]
+
+*Syntax*
 
 ```syntax
 '#' date
 ```
 
+*Semantics*
+
+Display current date.
+
+*Constraints*
+
+Date format can be configured using compiler flag `PREPROCESSOR_DATE_FORMAT`
+
+*Example*
+```language
+#set preprocessor.date.format YYYY-mm-DD
+
+print(##date)
+```
+
 ## `#error msg`
 
-Display the error message and abort compilation.
+*Syntax*
 
 ```syntax
 '#' error text ENDL
 ```
 
+*Semantics*
+
+Display the error message and abort compilation.
+
+
 ## `#warning msg`
 
-Display the warning message but continue compilation.
+*Syntax*
 
 ```syntax
 '#' warning text ENDL
 ```
 
+*Semantics*
+
+Display the warning message but continue compilation.
+
 ## `#type_error msg`
 
-Display a type error message and abort compilation.
+*Syntax*
 
 ```syntax
 '#' type_error text ENDL
 ```
 
+*Semantics*
+
+Display a type error message and abort compilation.
+
 ### #repeat (line repeater)
+
+*Syntax*
 
 ```syntax
 identifier_list = identifier , identifier_list
 '#' repeat '(' identifier_list ')'
 ```
 
+*Semantics*
 
 This macro will repeat current line for each value sent.
 
 If two line repeater are found in the same line both must have the same number
 of values because both will be expanded at the same time.
 
-## Example 1
+*Example*
 
 Input
 ```
@@ -493,7 +645,7 @@ doSomething(b)
 doSomething(c)
 ```
 
-## Example 2
+*Example*
 
 Input
 ```
@@ -507,7 +659,7 @@ b.doSomething()
 c.doSomething()
 ```
 
-## Example 2
+*Example*
 
 Input
 ```
@@ -647,3 +799,29 @@ Syntax error: foreach_v expected a block 2:1
 ^
 1 + 1
 ```
+
+
+
+
+<!--
+### Variadic-Macros [*UNDER STUDY*]
+
+Variadic macros are not included in the language. The reason is we don't need it.
+It a bit hacky but variadic is supported because we honor parenthesis.
+
+Example:
+
+```language
+#macro print_them(#text arg) {
+  print#arg#
+}
+
+#print_them((1, 2, 3))
+#print_them((1))
+#print_them(1) // this will fail, that's why it's a by hacky
+```
+
+REVIEW
+The `#repeat` operator is "underconsideration" to do the job of repeat
+over varargs.
+-->

@@ -45,6 +45,8 @@ Here is an example of an `entry point file`:
 
 #set arch x64
 
+#define REQUEST_ENGINE webrequest
+
 global const VERSION = 0.0.0
 global const VENDOR = "contoso"
 

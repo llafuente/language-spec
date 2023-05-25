@@ -14,7 +14,7 @@ It specifies
 
 1.2. This specification includes a compliance language unit test.
 This test is included in the best effort basis.
-Try to include most of the features, constraints, limits
+Try to include most of the features, constraints, limits.
 
 
 1.3. This specification also includes the metaprogramming implementation of many
