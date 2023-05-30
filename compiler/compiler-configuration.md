@@ -57,5 +57,5 @@ Enforce a property to be at a specific value
 
 1. It's only available at `package` `entry point file`.
 
-
+2. If the property don't match the value compiler shall raise a configuration error.
 

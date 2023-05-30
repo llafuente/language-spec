@@ -53,11 +53,11 @@ Example:
   https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/
 -->
 
-| Type               | Aliases         |
-| ------------------ | --------------- |
-| decimal32          | float, f32      |
-| decimal64          | double, f64     |
-| decimal128         | ldouble, f128   |
+| Type               | Aliases             |
+| ------------------ | ------------------- |
+| f32                | float, decimal32    |
+| f64                | double, decimal64   |
+| f128               | ldouble, decimal128 |
 
 *Literals*
 

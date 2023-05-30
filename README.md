@@ -52,6 +52,8 @@
 
 [Functions](language/functions.md)
 
+[Introspection](language/introspection.md)
+
 <!--
 [5. Expressions](expressions.md)
 
