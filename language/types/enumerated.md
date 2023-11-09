@@ -15,7 +15,7 @@ the contents.
 *Example*
 
 ```
-enum string_encoding_str {
+type string_encoding_str = enum {
   BIN = "Binary"
   ASCII = "Ascii"
   UTF_8 = "UTF-8"
@@ -24,7 +24,7 @@ enum string_encoding_str {
   BASE64 = "BASE64"
 }
 
-enum string_encoding_str2 {
+type string_encoding_str2 = enum {
   BIN = "Binary"
 }
 

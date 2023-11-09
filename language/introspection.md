@@ -34,7 +34,7 @@ https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html
 ```language
 package rtti
 
-enum TypeKind {
+enum Primitives {
   i8
   i16
   i32
@@ -53,7 +53,7 @@ enum TypeKind {
   size
   ptrdiff
   address
-  rune
+  // rune
 
   void
   // TODO add pointer-like
@@ -69,7 +69,7 @@ enum TypeKind {
 
 struct FieldType {
   string name
-  TypeKind type
+  Primitives type
   // getter/setter has -1 offset
   i32 offset
 
@@ -79,10 +79,21 @@ struct FieldType {
   optional<callable> setter
 }
 
+struct KnownFieldType<$struct_t, $field_t> extends FieldType {
+  function get () $field_t {
+    // TODO pointer math magic
+  }
+  function set($struct_t s, $field_t f) {
+    // TODO pointer math magic
+  }
+}
+
 struct TemplateType {
   string name
   typeid type
 
+  // to what type do the Type is implemented
+  resolutions array<Type>
   // TODO restrictions
 }
 
@@ -93,7 +104,7 @@ struct MethodType {
   callable func
 
   function call(arguments args) variant {
-    func()
+    func.call(args)
   }
   alias invoke call
 }
@@ -112,7 +123,7 @@ struct Type {
   }
   optional<string>   _binaryName
 
-  TypeKind type
+  Primitives type
   // sizeof
   i32 size
 
@@ -130,10 +141,10 @@ struct Type {
   bool canThrow
 
   get isFunction() bool {
-    return type == TypeKind.function
+    return type == Primitives.function
   }
   get isNumeric() bool {
-    return type in TypeKind.i8 or TypeKind.i16 TypeKind.i32 or TypeKind.i64 or TypeKind.u8 or TypeKind.u16 or TypeKind.u32 or TypeKind.u64 or TypeKind.f32 or TypeKind.f64 or TypeKind.f128
+    return type in Primitives.i8 or Primitives.i16 Primitives.i32 or Primitives.i64 or Primitives.u8 or Primitives.u16 or Primitives.u32 or Primitives.u64 or Primitives.f32 or Primitives.f64 or Primitives.f128
   }
 }
 

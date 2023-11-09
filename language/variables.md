@@ -8,17 +8,33 @@ or a values that don't: a `constant` (`const`)
 The scope of a variable tells the compiler the life cycle of the variable.
 We list all the options below.
 
+*Constraints*
+
+1. A variable can't be shadowed. Compiler shall raise an error.
+
+
 <a name="global-variables"></a>
 ## global
 
 *syntax*
 
 ```syntax
-global var type identifier
+global_variable_declaration_statement
+  // infer variable with initialization
+  : 'global' 'var' identifier '=' rhs_expression
 
-global var [type] identifier = expression
+  // typed variable with initialization
+  | 'global' 'var' type identifier '=' rhs_expression
 
-global const [type] identifier = expression
+  // typed variable no initialization
+  | 'global' 'var' type identifier
+
+  // typed constant with initialization
+  | 'global' 'const' type identifier '=' rhs_expression
+
+  // untyped constant with initialization
+  | 'global' 'const' identifier '=' rhs_expression
+  ;
 ```
 
 *Semantics*
@@ -46,81 +62,183 @@ it's access.
 Declaration is bound to the top of the file.
 
 ```syntax
-package var [type] identifier
+package_variable_declaration_statement
+  // infer variable with initialization
+  : 'package' 'var' identifier '=' rhs_expression
 
-package const [type] identifier = expression
+  // typed variable with initialization
+  | 'package' 'var' type identifier '=' rhs_expression
+
+  // typed variable no initialization
+  | 'package' 'var' type identifier
+
+  // typed constant with initialization
+  | 'package' 'const' type identifier '=' rhs_expression
+
+  // untyped constant with initialization
+  | 'package' 'const' identifier '=' rhs_expression
+  ;
 ```
+
 
 <a name="file-variables"></a>
 ## file variables
 
-Any file can declare a variable at first level
+*Syntax*
 
 ```syntax
-var [type] identifier
-const [type] identifier = expression
+file_variable_declaration_statement
+  // infer variable with initialization
+  : 'var' identifier '=' rhs_expression
+
+  // typed variable with initialization
+  | 'var' type identifier '=' rhs_expression
+
+  // typed variable no initialization
+  | 'var' type identifier
+
+  // typed constant with initialization
+  | 'const' type identifier '=' rhs_expression
+
+  // untyped constant with initialization
+  | 'const' identifier '=' rhs_expression
+  ;
 ```
+
+*Semantics*
+
+Variable declared at file level will be available to all function within
+the file.
+
+*Constraints*
+
+1. Initialized variables go to executable DATA segment.
+
+2. Uninitialized variables go to executable BSS segment.
+
+
 
 Example:
 
 ```language
-var xxx;
-
-function x() {
-}
+var ten = 10
 ```
 
 ## block variable
 
-A block variable will live from it's declaration until the end of current block,
-unless is part of a lambda, in that case, it will live the same as the lambda.
+*Syntax*
 
 ```syntax
-var [type] identifier
-const [type] identifier = expression
+block_variable_declaration_statement
+  : file_variable_declaration_statement
+  ;
 ```
 
+*Semantics*
+
+A block variable will live until the end of the current block unless it's fetch
+by a lambda, in that case it will live until the lambda dies.
+
+*Constraints*
+
+
+*Example*
+
 ```language
-function x() {
-  var xxx;
+struct a {
+  new() { print("constructor")}
+  delete() { print("destructor")}
 }
 
-function x() () string {
-  var xxx = "hello";
+function simple() {
+  var aptr = new a();
+} // <-- aptr dies!
+
+print("start")
+simple()
+print("end")
+
+```
+
+```output
+start
+constructor
+destructor
+end
+```
+
+*Example*
+
+```language
+struct a {
+  new() { print("constructor")}
+  delete() { print("destructor")}
+}
+
+type callback = function () string;
+
+function do_your_job() lend callback {
+  var aptr = new a();
   function r() string {
-    return xxx
+    print("lambda start and return")
+    return aptr
   }
 
   return r
 }
 
+print("start")
+var t = do_your_job()
+print("job started")
+print(t())
+print("lambda finished")
+delete t
+print("end")
 ```
 
-# Typing
+```output
+start
+constructor
+lambda start and return
+lambda finished
+destructor
+end
+```
+
+
+# Type / infer
 
 Typing a variable is optional in the language, it's very probable you don't need
 to type anything in your main program.
 
-If type is omited, the variable will take the type of the first assignament.
+If type is omitted, the variable will take the type of the first assignment.
 
-Nevertheless enforcing types makes your program more stable to refactorings.
+Nevertheless enforcing types makes your program more stable to refactoring.
 
 
 # Magic variables
 
-This variables are declared by the compiler and it's usage if optional.
-They will be avaiable in the related block.
+*Semantics*
 
-All magic variable start with `$` (dollar sign).
+We call magic variables those that the programmer don't explicitly declare.
 
-Example:
+*Constraints*
+
+1. Magic variable shall be prefixed by `$` (dollar sign) to avoid easy
+collisions.
+
+
+*Example*
+
 ```language
 loop 5 {
   print("index = " + $index)
 }
 ```
 
-Magic variable can collide with your variables, like in this example:
+*Example*
+
+An error raise when a magic variable try to shadow your variables.
 
 ```language
 var $index = 0
@@ -133,7 +251,9 @@ loop 5 {
 variable $index redeclared at line 2:1
 ```
 
-If the compiler is unsure of what variable are you using is shall raise an error.
+*Example*
+
+An error raise if a magic variable will shadow another magic variable.
 
 ```language
 loop 5 {
@@ -146,6 +266,21 @@ loop 5 {
 ```error
 variable $index redeclared at line 1:1
 ```
+<!--
+STUDY!
+
+But only if used. ??
+If not used, it's ok.
+
+```language
+loop 5 {
+    print("index = " + $index)
+  loop 5 {
+    print("ok")
+  }
+}
+```
+-->
 
 ## Implementation notes.
 

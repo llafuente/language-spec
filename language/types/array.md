@@ -1,5 +1,24 @@
 # Array
 
+# static_array | sarray
+
+*Semantics*
+
+Static vector of a defined number possible values
+
+
+```
+interface comparable<$t> {
+  operator==($t a, $t b) boolean
+}
+
+struct static_array<$t> {
+  capacity
+}
+```
+
+# dynamic array
+
 *syntax*
 
 ```syntax
@@ -72,7 +91,7 @@ struct array<$t> implements IndexIterator {
   flexible_vector<$t> data
 }
 
-struct array<$array_ptrt> implements IndexIterator {
+struct array<$t is pointer> implements IndexIterator {
   size length
   alias len length
 
@@ -81,7 +100,7 @@ struct array<$array_ptrt> implements IndexIterator {
 
   // Type type // STUDY: maybe ?
 
-  own flexible_vector<$array_ptrt> data
+  own flexible_vector<$t> data
 }
 
 function operator new (ptr<array<$t>> this, size capacity) void {
@@ -218,5 +237,23 @@ function fill(array<$t> this, $t value, index start = index.MIN, index end = ind
   this.length = max(this.length, end)
 
   return this
+}
+```
+
+
+# unique_array | uarray
+
+*Semantics*
+
+Array of unique values.
+
+
+```
+interface comparable<$t> {
+  operator==($t a, $t b) boolean
+}
+
+struct unique_array<$t implements comparable<$t>> extends array<$t> {
+  // TODO implement all methods that push data into the array
 }
 ```

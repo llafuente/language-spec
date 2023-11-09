@@ -1,14 +1,14 @@
 # `error`
 
 ```language
-struct source_code_location {
+type source_code_location = struct {
   string file;
   string function;
   string line;
   string column;
 }
 
-struct error {
+type error = struct {
   error parent;
   string message;
   source_code_location[] stack;

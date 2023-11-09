@@ -5,7 +5,7 @@
 | Category               | Operator                                                  | Associativity |
 |------------------------|-----------------------------------------------------------|---------------|
 | Postfix                | () [] . ++ - -                                            | Left to right |
-| Unary                  | +  -  !  ~  ++  - -  (type)* &amp; sizeof typeof          | Right to left |
+| Unary                  | +  -  !  ~  ++  - -  (type)* &amp; typeof                 | Right to left |
 | Multiplicative         | *  /  %                                                   | Left to right |
 | Additive               | +  -                                                      | Left to right |
 | Shift                  | &lt;&lt; &gt;&gt;                                         | Left to right |

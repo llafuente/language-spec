@@ -16,8 +16,8 @@ single-template-constraints =
   extends type
 
 template-constraints =
+  template-constraints ',' single-template-constraints
   single-template-constraints
-  template-constraints , single-template-constraints
 
 template-decl =
   // template declaration

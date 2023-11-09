@@ -29,17 +29,17 @@ first initialization. Those type creates a foundation to build those that can
 be muted. A good example are: `istring` or `iarray`.
 
 The language also exposes a heavy type introspection` `types information` at runtime.
-And it also generete a fair amount of function to manipulate types.
+And it also generate a fair amount of function to manipulate types.
 See: [Types at runtime](./introspection.md)
 
 A variable or a type can have a static value as it's type. This is how we
 support `tagged unions`.
 
 ```
-struct chair {
+type chair = struct {
   "chair" type
 }
-struct table {
+type table = struct {
   "table" type
 }
 type ikea = chair | table;
@@ -49,3 +49,77 @@ type ikea = chair | table;
 Most of the types start as Inmutables like
 `static_array`, this array cannot grow. `static_string`
 -->
+
+```syntax
+dollar_identifier
+  : '$' identifier
+  ;
+
+dollar_identifier_list
+  : dollar_identifier (',' dollar_identifier)*
+  ;
+
+type_identifier
+  : identifier ('<' dollar_identifier_list '>')?
+  ;
+
+
+type_decl
+  : 'type' type_identifier '=' type
+  ;
+
+type
+  : 'function' '(' function_parameter_list ')' type       # function_type_decl
+  | type '[]'                                             # array_type_decl
+  | type '?'                                              # nullable_type_decl
+  | type '<' dollar_identifier_list '>'                   # template_type_decl
+  | struct_type_decl                                      # struct_type
+  | type ('|' type)+                                      # aggregate_type_decl
+  | identifier                                            # identifier_type
+  ;
+
+/*
+function_type_decl
+  :
+  ;
+array_type_decl
+  : type '[]'
+  ;
+
+nullable_type_decl
+  : type '?'
+  ;
+
+template_type_decl
+  : type '<' dollar_identifier_list '>'
+  ;
+
+aggregate_type_decl
+  : type ('|' type)+
+  ;
+*/
+
+
+property_modifiers
+  : 'hoist'
+  | 'readonly'
+  | 'own'
+  ;
+
+struct_property_decl
+  : (property_modifiers)* type identifier ('=' (constant | string_literal))?
+  | 'alias' identifier identifier
+  | 'get' type identifier function_body
+  | 'set' type identifier function_body
+  ;
+
+struct_properties_decl
+  : struct_property_decl (ENDL struct_property_decl)*
+  ;
+
+struct_type_decl
+  : 'struct' identifier ('extends' identifier)? ('align' integer_constant)? '{' struct_properties_decl '}'
+  ;
+
+```
+

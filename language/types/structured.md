@@ -2,37 +2,11 @@
 
 *Semantics*
 
-A `struct` is an aggregate type with contiguous memory type which members can have distinct types.
+1. A `struct` is an aggregate type with contiguous memory type which members can have distinct types.
 
 *Constraints*
 
-A struct can contain padding between members. Apply the same rules as
-`c language` to keep compatibility.
-
-<!--
-  Thus, for example, structure assignment may be implemented element-at-a-time or via memcpy.
--->
-
-
-```syntax
-struct_properties_flags =
-  hoist struct_properties_flags
-  readonly struct_properties_flags
-
-struct_properties_list =
-  alias identifier identifier ENDL struct_properties_list
-  struct_properties_flagsₒₚₜ type identifier ENDL struct_properties_list
-
-struct_alignament =
-  align literal_integer
-
-struct_extends =
-  extends identifier
-
-struct_declaration =
-  struct identifier struct_alignamentₒₚₜ struct_extendsₒₚₜ '{' struct_properties_list '}'
-
-```
+1. Same as `c language`, struct must be 100% compatible.
 
 *Example*
 
@@ -43,72 +17,103 @@ struct Vector2 {
 }
 
 struct Vector3 extends Vector2 {
-  f32 z;
+  f32 z
 }
 
 struct Quaternion extends Vector3 {
-  f32 w;
+  f32 w
 }
 ```
 
-## `hoist` property modifier
+# default constructor
 
 *Semantics*
 
-`hoist` makes structs properties access faster by making given name optional.
-
-*Constraints*
-
-1. `hoist` shall not be applied to setters or getters.
+A default constructor is defined with all the properties in order.
 
 *Example*
 
 ```language
-struct Player {
-  hoist Vector position;
+struct a {
+  $t y
+  float z
 }
-
-p = Player()
-p.y = 1 // hoisted property
-p.position.x = 1 // still valid
+/*
+default constructor:
+function ($t y, float z) {
+  this.y = y
+  this.z = z
+}
+*/
 ```
 
-## `readonly` property modifier
+# Initialization
+
+## JS Object initialization
+
+*Example*
+
+```language
+struct v2 {
+  float x
+  float y
+}
+// ordered initialization using the default constructor
+// type not required
+var vec0 = v2(0, 0)
+
+// ordered initialization as JS Object
+var v2 vec1a = {0, 0}
+var vec1b = v2{0, 0}
+
+// named initialization as JS Object
+var v2 vec2a = {x: 0, y: 0}
+var vec2b = v2 {x: 0, y: 0}
+
+// Property Init Shorthand
+var float x = 100
+var v2 vec3a = {x, y: 0}
+var vec3b = v2 {x, y: 0}
+
+// named initialization as JS Object not literal
+var v2 vec3c = {x: x, y: 0}
+```
+
+# default destructor
 
 *Semantics*
 
-`readonly` properties cannot be modified outside the constructor.
+A default destructor is defined and will free the memory of all properties
+that `own` memory.
 
-*Constraints*
+```language
+struct a {
+  own ref<string> pstr
+  ref<string> pstr2
+}
+/*
+default destructor:
+function () {
+  delete this.pstr
+}
+*/
+```
 
-1. `readonly` shall not be applied to setters or getters.
 
-2. If a `struct` has `readonly` properties a constructor must be defined.
+# struct modifiers
 
-## `alias`: property modifier
+## `extends` (Inheritance)
 
 *Semantics*
 
-An `alias` is just a compiler construct. An alias won't occupy memory.
-It just give a new name to access the original property.
+`extends` creates new `struct` with all the previous properties and methods.
 
 *Constraints*
 
-1. Aliased property modifiers shall be honored.
+1. A property in derived struct shall not collide with base struct properties.
 
-## Inheritance: `extends`: struct modifier
-
-*Semantics*
-
-`extends` enables you to create new classes that reuse, extend, and modify
-the behavior defined in other classes.
-
-*Constraints*
-
-1. A derived struct shall not have properties with the same name as base struct.
-
-2. Derived struct constructor must call base struct constructor.
-
+2. A method in derived struct shall not collide with base struct method unless
+overwrite/override is used. This includes the constructor.
 
 ```language
 struct A {
@@ -117,7 +122,7 @@ struct A {
     value = _value
   }
 
-  void print() {
+  function print() void {
     print("A.value = ", value)
   }
 }
@@ -125,17 +130,17 @@ struct A {
 struct B extends A {
   int value2
 
-  constructor(int _value, int _value2) {
-    A(_value)
+  override constructor(int _value, int _value2) {
+    override(_value)
     value2 = _value2
   }
 
-  void print() {
-    cast<A>(this).print()
+  override function print() void {
+    override()
     print("B.value2 = ", value2)
   }
 
-  void print2() {
+  function print2() void {
     print("B.value2 = ", value2)
   }
 }
@@ -151,6 +156,117 @@ cast<A>(v).print() // call A.print
 v.print2() // call B.print2
 ```
 
+## `align` (memory alignament)
+
+*Semantics*
+
+Align `struct` properties to given value.
+
+*Constraints*
+
+1. Same as `c language`, struct must be 100% compatible.
+
+# Properties modifiers
+
+## `hoist`
+
+*Semantics*
+
+`hoist` modifier makes property name optional so the access fells like extends.
+
+This ease composition patterns.
+
+*Constraints*
+
+1. `hoist` shall not be applied to setters or getters.
+
+2. `hoist` shall checked no collisions in self property names or other hoist.
+
+*Example*
+
+```language
+struct Vector3 {
+  float x
+  float y
+  float z
+
+  function add(Vector3 b) {
+    x += b.x
+    y += b.y
+    z += b.z
+  }
+}
+struct Player {
+  hoist Vector3 position;
+}
+
+p = Player()
+p.y = 1 // hoisted property
+p.position.x = 1 // still valid
+
+// It only expose properties, not methods.
+p.add(Vector3(10,11,12)) // fail, add is not a member of Player.
+p.position.add(Vector3(10,11,12)) // ok
+```
+
+## `readonly` property modifier
+
+*Semantics*
+
+Mark the property as `readonly` outside the constructor, so nobody can modify
+it's value.
+
+*Constraints*
+
+1. `readonly` shall not be applied to setters or getters.
+
+2. If a `struct` has `readonly` properties without default value a constructor
+shall be defined.
+
+*Example*
+
+```language
+struct dbtable {
+  readonly string id
+  string name
+  //...
+}
+
+var dbtable t("xxx-xxx-xxx", "yyy")
+t.id = "zzz-zzz-zzz" // fail: id property is readonly
+t.name = "zzz-zzz-zzz" // ok
+
+t.id.grow(10) // it will also fail, as grow modify id
+var string part = t.id.substr(1, 5) // works, as slice will create a new string
+```
+
+## `alias`
+
+*Semantics*
+
+Creates an `alias` name for given property.
+
+An alias won't occupy memory as it's just a syntax sugar.
+
+*Constraints*
+
+1. Aliased property modifiers shall be honored.
+
+2. Alias shall not collide with other name properties.
+
+3. Alias shall not be used/exported to rtti (under consideration)
+
+
+## `own`
+
+*Semantics*
+
+Mark the property as memory owner. This implies that the memory will be freed
+at destruction.
+
+*Constraints*
+
+1. Memory shall be freed at destructor
 
 ## `override` modifier
 
@@ -160,15 +276,37 @@ v.print2() // call B.print2
 
 *Semantics*
 
-Extends an inherited method.
+Replace a inherited method but the overridden method shall be call in function body.
 
 *Constraints*
 
-1. `override` method must call inherited method.
+1. At `override` function body there must be a call to inherited method.
 
 2. `override` modifier shall be applied only to methods.
 
 3. `overwrite` and `override` shall be mutually exclusives
+
+*Example*
+
+```language
+struct v2 {
+  float x
+  float y
+  constructor(float x, float y) {
+    this.x = x
+    this.y = y
+  }
+}
+
+struct v3 extends v2 {
+  float z
+
+  override constructor(float x, float y, float z) {
+    override(x, y)
+    this.z = z
+  }
+}
+```
 
 ## `overwrite`
 
@@ -180,9 +318,26 @@ Replace an inherited method.
 
 1. `overwrite` modifier shall be applied only to named functions and methods.
 
-2. `overwrite` and `override` shall be mutually exclusives
+2. `overwrite` and `override` shall be mutually exclusives.
 
 
-# `class`
+*Example*
 
-`class` is an alias of `struct`.
+```language
+struct v2 {
+  float x
+  float y
+
+  function toString() string {
+    return __CLASS__ + "{" + this.x + ", " + this.y + "}"
+  }
+}
+
+struct v3 extends v2 {
+  float z
+
+  overwrite function toString() string {
+    return __CLASS__ + "{" + this.x + ", " + this.y + ", " + this.z + "}"
+  }
+}
+```
