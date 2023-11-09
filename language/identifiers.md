@@ -1,11 +1,11 @@
-# identifiers
+# Identifiers
 
 <!--
 (6.4.2.1)
 (6.4.3)
 -->
 ```syntax
-identifier
+Identifier
     :   IDENTIFIER_NON_DIGIT
         (   IDENTIFIER_NON_DIGIT
         |   DIGIT
@@ -13,16 +13,14 @@ identifier
     ;
 
 identifier_list
-    :   identifier? (',' identifier?)*
+    :   Identifier? (',' Identifier?)*
     ;
-
 fragment
 IDENTIFIER_NON_DIGIT
     :   NON_DIGIT
     |   UNIVERSAL_CHARACTER_NAME
     //|   // other implementation_defined characters...
     ;
-
 fragment
 NON_DIGIT
     :   [a-zA-Z_]

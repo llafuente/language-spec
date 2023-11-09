@@ -11,22 +11,17 @@ same as c, but we want to support advanced staff like
 /*
   literal / constants
 */
-/*
-digit_sequence
-    :   DIGIT+
-    ;
-*/
 
-constant
-  //: digit_sequence
-  : integer_constant
-  | floating_constant
+Constant
+  : Integer_constant
+  | Floating_constant
   // TODO study enumeration must be named, so it's a member access
   // | enumeration_literal
-  | character_constant
+  | Character_constant
   ;
 
-integer_constant
+fragment
+Integer_constant
   : DECIMAL_CONSTANT INTEGER_SUFFIX?
   | OCTAL_CONSTANT INTEGER_SUFFIX?
   | HEXADECIMAL_CONSTANT INTEGER_SUFFIX?
@@ -66,7 +61,7 @@ DECIMAL_CONSTANT
   : NON_ZERO_DIGIT DIGIT*
   ;
 
-string_literal
+String_literal
     :   ENCODING_PREFIX? '"' SCHAR_SEQUENCE? '"'
     ;
 
@@ -119,7 +114,7 @@ OCTAL_DIGIT
     :   [0-7]
     ;
 
-floating_constant
+Floating_constant
     :   DECIMAL_FLOATING_CONSTANT
     |   HEXADECIMAL_FLOATING_CONSTANT
     ;
@@ -176,7 +171,7 @@ DIGIT_SEQUENCE
   :   DIGIT+
 ;
 
-character_constant
+Character_constant
     :   '\'' CCHAR_SEQUENCE '\''
     |   'L\'' CCHAR_SEQUENCE '\''
     |   'u\'' CCHAR_SEQUENCE '\''

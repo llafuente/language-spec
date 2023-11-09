@@ -35,7 +35,7 @@ See: [Types at runtime](./introspection.md)
 A variable or a type can have a static value as it's type. This is how we
 support `tagged unions`.
 
-```
+```language
 type chair = struct {
   "chair" type
 }
@@ -52,7 +52,7 @@ Most of the types start as Inmutables like
 
 ```syntax
 dollar_identifier
-  : '$' identifier
+  : '$' Identifier
   ;
 
 dollar_identifier_list
@@ -60,7 +60,7 @@ dollar_identifier_list
   ;
 
 type_identifier
-  : identifier ('<' dollar_identifier_list '>')?
+  : Identifier ('<' dollar_identifier_list '>')?
   ;
 
 
@@ -75,7 +75,7 @@ type
   | type '<' dollar_identifier_list '>'                   # template_type_decl
   | struct_type_decl                                      # struct_type
   | type ('|' type)+                                      # aggregate_type_decl
-  | identifier                                            # identifier_type
+  | Identifier                                            # identifier_type
   ;
 
 /*
@@ -107,18 +107,19 @@ property_modifiers
   ;
 
 struct_property_decl
-  : (property_modifiers)* type identifier ('=' (constant | string_literal))?
-  | 'alias' identifier identifier
-  | 'get' type identifier function_body
-  | 'set' type identifier function_body
+  : (property_modifiers)* type Identifier ('=' (Constant | String_literal))?
+  | 'alias' Identifier Identifier
+  | 'get' type Identifier function_body
+  | 'set' type Identifier function_body
+  | function_decl
   ;
 
-struct_properties_decl
-  : struct_property_decl (ENDL struct_property_decl)*
+struct_property_list
+  : end_of_statement* (struct_property_decl end_of_statement)+ end_of_statement*
   ;
 
 struct_type_decl
-  : 'struct' identifier ('extends' identifier)? ('align' integer_constant)? '{' struct_properties_decl '}'
+  : 'struct' ('extends' Identifier)? ('align' DIGIT_SEQUENCE)? '{' struct_property_list '}'
   ;
 
 ```

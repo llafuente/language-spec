@@ -6,7 +6,7 @@
 
 ```syntax
 function_decl
-  : 'function' identifier '(' function_parameter_list ')' type+ function_body
+  : 'function' Identifier '(' function_parameter_list ')' type+ function_body
   ;
 
 function_body
@@ -22,7 +22,7 @@ function_parameter_list
   ;
 
 function_parameter
-  : type identifier ('=' (constant | string_literal))?
+  : type Identifier ('=' (Constant | String_literal))?
   ;
 ```
 

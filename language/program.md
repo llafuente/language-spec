@@ -20,7 +20,7 @@ program_stms
   ;
 
 end_of_statement
-  : ( Newline | ';')
+  : ( '\r\n' | '\n' | ';')
   ;
 
 Whitespace
@@ -35,6 +35,8 @@ Newline
         )
         -> skip
     ;
+
+WS : [ \t\r\n]+ -> skip;
 
 Comment_line
     :   '//' ~[\r\n]*

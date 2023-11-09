@@ -21,19 +21,19 @@ We list all the options below.
 ```syntax
 global_variable_declaration_statement
   // infer variable with initialization
-  : 'global' 'var' identifier '=' rhs_expression
+  : 'global' 'var' Identifier '=' rhs_expression
 
   // typed variable with initialization
-  | 'global' 'var' type identifier '=' rhs_expression
+  | 'global' 'var' type Identifier '=' rhs_expression
 
   // typed variable no initialization
-  | 'global' 'var' type identifier
+  | 'global' 'var' type Identifier
 
   // typed constant with initialization
-  | 'global' 'const' type identifier '=' rhs_expression
+  | 'global' 'const' type Identifier '=' rhs_expression
 
   // untyped constant with initialization
-  | 'global' 'const' identifier '=' rhs_expression
+  | 'global' 'const' Identifier '=' rhs_expression
   ;
 ```
 
@@ -64,19 +64,19 @@ Declaration is bound to the top of the file.
 ```syntax
 package_variable_declaration_statement
   // infer variable with initialization
-  : 'package' 'var' identifier '=' rhs_expression
+  : 'package' 'var' Identifier '=' rhs_expression
 
   // typed variable with initialization
-  | 'package' 'var' type identifier '=' rhs_expression
+  | 'package' 'var' type Identifier '=' rhs_expression
 
   // typed variable no initialization
-  | 'package' 'var' type identifier
+  | 'package' 'var' type Identifier
 
   // typed constant with initialization
-  | 'package' 'const' type identifier '=' rhs_expression
+  | 'package' 'const' type Identifier '=' rhs_expression
 
   // untyped constant with initialization
-  | 'package' 'const' identifier '=' rhs_expression
+  | 'package' 'const' Identifier '=' rhs_expression
   ;
 ```
 
@@ -89,19 +89,19 @@ package_variable_declaration_statement
 ```syntax
 file_variable_declaration_statement
   // infer variable with initialization
-  : 'var' identifier '=' rhs_expression
+  : 'var' Identifier '=' rhs_expression
 
   // typed variable with initialization
-  | 'var' type identifier '=' rhs_expression
+  | 'var' type Identifier '=' rhs_expression
 
   // typed variable no initialization
-  | 'var' type identifier
+  | 'var' type Identifier
 
   // typed constant with initialization
-  | 'const' type identifier '=' rhs_expression
+  | 'const' type Identifier '=' rhs_expression
 
   // untyped constant with initialization
-  | 'const' identifier '=' rhs_expression
+  | 'const' Identifier '=' rhs_expression
   ;
 ```
 
@@ -145,17 +145,23 @@ by a lambda, in that case it will live until the lambda dies.
 *Example*
 
 ```language
-struct a {
-  new() { print("constructor")}
-  delete() { print("destructor")}
+type a = struct {
+  float a
+}
+```
+
+```language
+type a = struct {
+  function new() { print("constructor")}
+  function delete() { print("destructor")}
 }
 
-function simple() {
+function simple_test() {
   var aptr = new a();
 } // <-- aptr dies!
 
 print("start")
-simple()
+simple_test()
 print("end")
 
 ```
@@ -170,9 +176,9 @@ end
 *Example*
 
 ```language
-struct a {
-  new() { print("constructor")}
-  delete() { print("destructor")}
+type a = struct {
+  function new() { print("constructor")}
+  function delete() { print("destructor")}
 }
 
 type callback = function () string;

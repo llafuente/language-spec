@@ -34,17 +34,17 @@ A default constructor is defined with all the properties in order.
 *Example*
 
 ```language
-struct a {
+type a = struct {
   $t y
   float z
+  /*
+  default constructor:
+  function new($t y, float z) {
+    this.y = y
+    this.z = z
+  }
+  */
 }
-/*
-default constructor:
-function ($t y, float z) {
-  this.y = y
-  this.z = z
-}
-*/
 ```
 
 # Initialization
@@ -54,7 +54,7 @@ function ($t y, float z) {
 *Example*
 
 ```language
-struct v2 {
+type v2 = struct {
   float x
   float y
 }
@@ -79,7 +79,7 @@ var vec3b = v2 {x, y: 0}
 var v2 vec3c = {x: x, y: 0}
 ```
 
-# default destructor
+# Default destructor
 
 *Semantics*
 
@@ -87,16 +87,18 @@ A default destructor is defined and will free the memory of all properties
 that `own` memory.
 
 ```language
-struct a {
+type a = struct {
   own ref<string> pstr
-  ref<string> pstr2
+  sref<string> pstr2
+
+  /*
+  default destructor:
+  function () {
+    delete this.pstr
+    // do not delete
+  }
+  */
 }
-/*
-default destructor:
-function () {
-  delete this.pstr
-}
-*/
 ```
 
 

@@ -6,16 +6,16 @@ expressions
 */
 
 primary_expr
-    : identifier
-    | string_literal
-    | constant
+    : Identifier
+    | String_literal
+    | Constant
     | '(' expression ')'
     ;
 
 postfix_expr
     // memberAccessExpression
     : postfix_expr '[' expression ']'          # postfix_expr_braces
-    | postfix_expr '.' identifier              # postfix_expr_dot
+    | postfix_expr '.' Identifier              # postfix_expr_dot
     // function call
     | postfix_expr '(' argument_expr_list? ')' # postfix_expr_call
     | primary_expr ( '++' | '--' )*            # postfix_expr_idncr
@@ -121,4 +121,15 @@ rhs_expression
   : conditional_expr
   ;
 
+```
+
+
+
+```language
+10
+10.0
+1e10
+1+1
+1-1
+"xxxx"
 ```
