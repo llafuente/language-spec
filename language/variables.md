@@ -24,13 +24,13 @@ global_variable_declaration_statement
   : 'global' 'var' Identifier '=' rhs_expression
 
   // typed variable with initialization
-  | 'global' 'var' type Identifier '=' rhs_expression
+  | 'global' 'var' type_ref Identifier '=' rhs_expression
 
   // typed variable no initialization
-  | 'global' 'var' type Identifier
+  | 'global' 'var' type_ref Identifier
 
   // typed constant with initialization
-  | 'global' 'const' type Identifier '=' rhs_expression
+  | 'global' 'const' type_ref Identifier '=' rhs_expression
 
   // untyped constant with initialization
   | 'global' 'const' Identifier '=' rhs_expression
@@ -67,13 +67,13 @@ package_variable_declaration_statement
   : 'package' 'var' Identifier '=' rhs_expression
 
   // typed variable with initialization
-  | 'package' 'var' type Identifier '=' rhs_expression
+  | 'package' 'var' type_ref Identifier '=' rhs_expression
 
   // typed variable no initialization
-  | 'package' 'var' type Identifier
+  | 'package' 'var' type_ref Identifier
 
   // typed constant with initialization
-  | 'package' 'const' type Identifier '=' rhs_expression
+  | 'package' 'const' type_ref Identifier '=' rhs_expression
 
   // untyped constant with initialization
   | 'package' 'const' Identifier '=' rhs_expression
@@ -92,13 +92,13 @@ file_variable_declaration_statement
   : 'var' Identifier '=' rhs_expression
 
   // typed variable with initialization
-  | 'var' type Identifier '=' rhs_expression
+  | 'var' type_ref Identifier '=' rhs_expression
 
   // typed variable no initialization
-  | 'var' type Identifier
+  | 'var' type_ref Identifier
 
   // typed constant with initialization
-  | 'const' type Identifier '=' rhs_expression
+  | 'const' type_ref Identifier '=' rhs_expression
 
   // untyped constant with initialization
   | 'const' Identifier '=' rhs_expression
@@ -145,25 +145,40 @@ by a lambda, in that case it will live until the lambda dies.
 *Example*
 
 ```language
-type a = struct {
-  float a
+function a() b {
+  return c
 }
 ```
 
 ```language
-type a = struct {
-  function new() { print("constructor")}
-  function delete() { print("destructor")}
+function a() b {
+  function c() d {
+    return x
+  }
+  return c
 }
-
-function simple_test() {
-  var aptr = new a();
-} // <-- aptr dies!
-
+```
+```language
 print("start")
 simple_test()
 print("end")
+```
 
+```language
+type a = struct {
+  function new() {
+    print("constructor")
+  }
+  function delete() {
+    print("destructor")
+  }
+}
+function simple_test() {
+  var aptr = new a()
+} // <-- aptr freed here
+print("start")
+simple_test()
+print("end")
 ```
 
 ```output
@@ -177,22 +192,22 @@ end
 
 ```language
 type a = struct {
-  function new() { print("constructor")}
-  function delete() { print("destructor")}
+  function new() {
+    print("constructor")
+  }
+  function delete() {
+    print("destructor")
+  }
 }
-
-type callback = function () string;
-
-function do_your_job() lend callback {
-  var aptr = new a();
-  function r() string {
+type callback = function () lend string
+function do_your_job() callback {
+  var aptr = new a()
+  function r() lend string {
     print("lambda start and return")
     return aptr
   }
-
   return r
 }
-
 print("start")
 var t = do_your_job()
 print("job started")

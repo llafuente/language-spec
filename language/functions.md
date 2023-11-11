@@ -5,24 +5,31 @@
 *Syntax*
 
 ```syntax
+return_stmt
+  : 'return' expression
+  ;
+
 function_decl
-  : 'function' Identifier '(' function_parameter_list ')' type+ function_body
+  : 'pure'? 'function' ('new'|'delete'|Identifier) '(' function_parameter_list? ')' type_ref? function_body
   ;
 
 function_body
-  : '{' function_statements* '}'
+  : '{' end_of_statement function_statements* '}'
   ;
 function_statements
-  : block_variable_declaration_statement
-  | expression
+  : block_variable_declaration_statement end_of_statement
+  | expression end_of_statement
+// TODO inside a function you can create a lambda but not a function!
+  | function_decl end_of_statement
+  | return_stmt end_of_statement
   ;
 
 function_parameter_list
-  : (function_parameter (',' function_parameter)*)?
+  : function_parameter (',' function_parameter)*
   ;
 
 function_parameter
-  : type Identifier ('=' (Constant | String_literal))?
+  : type_ref Identifier ('=' (Constant | String_literal))?
   ;
 ```
 
@@ -44,6 +51,8 @@ as last statement in the function body.
 
 6. The function `return` type shall not be a template unless that template is
 the type of at least one parameter.
+
+7. A pure function shall have no access to package, file and global variables.
 
 *Example*
 

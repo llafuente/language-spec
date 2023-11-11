@@ -6,7 +6,7 @@
 -->
 ```syntax
 Identifier
-    :   IDENTIFIER_NON_DIGIT
+    :   (IDENTIFIER_NON_DIGIT | '$')
         (   IDENTIFIER_NON_DIGIT
         |   DIGIT
         )*

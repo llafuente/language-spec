@@ -63,41 +63,28 @@ type_identifier
   : Identifier ('<' dollar_identifier_list '>')?
   ;
 
-
 type_decl
-  : 'type' type_identifier '=' type
+  : 'type' type_identifier '=' type_definition
   ;
 
-type
-  : 'function' '(' function_parameter_list ')' type       # function_type_decl
-  | type '[]'                                             # array_type_decl
-  | type '?'                                              # nullable_type_decl
-  | type '<' dollar_identifier_list '>'                   # template_type_decl
-  | struct_type_decl                                      # struct_type
-  | type ('|' type)+                                      # aggregate_type_decl
-  | Identifier                                            # identifier_type
+type_ref_list
+  : type_ref (',' type_ref)+
   ;
 
-/*
-function_type_decl
-  :
-  ;
-array_type_decl
-  : type '[]'
+type_ref
+  : 'lend'? 'own'? Identifier '<' type_ref_list '>'
+  | 'lend'? 'own'? Identifier
   ;
 
-nullable_type_decl
-  : type '?'
+type_definition
+  : Identifier ('|' Identifier)+                                     # aggregate_type_decl
+  | Identifier                                                       # identifier_type
+  | 'function' '(' function_parameter_list? ')' type_ref             # function_type_decl
+  | type_definition '[]'                                             # array_type_decl
+  | type_definition '?'                                              # nullable_type_decl
+  | type_definition '<' dollar_identifier_list '>'                   # template_type_decl
+  | struct_type_decl                                                 # struct_type
   ;
-
-template_type_decl
-  : type '<' dollar_identifier_list '>'
-  ;
-
-aggregate_type_decl
-  : type ('|' type)+
-  ;
-*/
 
 
 property_modifiers
@@ -107,19 +94,19 @@ property_modifiers
   ;
 
 struct_property_decl
-  : (property_modifiers)* type Identifier ('=' (Constant | String_literal))?
+  : (property_modifiers)* type_definition Identifier ('=' (Constant | String_literal))?
   | 'alias' Identifier Identifier
-  | 'get' type Identifier function_body
-  | 'set' type Identifier function_body
+  | 'get' type_definition Identifier function_body
+  | 'set' type_definition Identifier function_body
   | function_decl
   ;
 
 struct_property_list
-  : end_of_statement* (struct_property_decl end_of_statement)+ end_of_statement*
+  : (struct_property_decl end_of_statement)+
   ;
 
 struct_type_decl
-  : 'struct' ('extends' Identifier)? ('align' DIGIT_SEQUENCE)? '{' struct_property_list '}'
+  : 'struct' ('extends' Identifier)? ('align' DIGIT_SEQUENCE)? '{' end_of_statement? struct_property_list? '}'
   ;
 
 ```

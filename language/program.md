@@ -12,6 +12,7 @@ program_stms_list
 
 program_stms
   : type_decl
+  | function_decl
   | global_variable_declaration_statement
   | file_variable_declaration_statement
   | expression
@@ -20,7 +21,7 @@ program_stms
   ;
 
 end_of_statement
-  : ( '\r\n' | '\n' | ';')
+  : ( '\r\n' | '\n' | ';' | EOF )
   ;
 
 Whitespace
@@ -36,7 +37,8 @@ Newline
         -> skip
     ;
 
-WS : [ \t\r\n]+ -> skip;
+fragment
+WS : (' ' | '\t' | '\r' | '\n')* -> skip;
 
 Comment_line
     :   '//' ~[\r\n]*

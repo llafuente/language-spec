@@ -14,11 +14,12 @@ primary_expr
 
 postfix_expr
     // memberAccessExpression
-    : postfix_expr '[' expression ']'          # postfix_expr_braces
-    | postfix_expr '.' Identifier              # postfix_expr_dot
+    // TODO this should be a single expression
+    : postfix_expr '[' expression ']'              # postfix_expr_braces
+    | postfix_expr '.' Identifier                  # postfix_expr_dot
     // function call
-    | postfix_expr '(' argument_expr_list? ')' # postfix_expr_call
-    | primary_expr ( '++' | '--' )*            # postfix_expr_idncr
+    | postfix_expr '(' argument_expr_list? ')'     # postfix_expr_call
+    | primary_expr ( '++' | '--' )*                # postfix_expr_idncr
     // NOTE:  there is not -> operator
     ;
 
@@ -29,8 +30,13 @@ argument_expr_list
 
 // TODO expand the operator like @postfix_expr
 unary_expr
+    : 'new' type_ref '(' argument_expr_list? ')'
+    // TODO this should be a single expression
+    | 'new' type_ref '[' expression ']'
+    | 'delete' Identifier
+
     // NOTE:  there is not sizeof operator
-    : ('++' |  '--')* (postfix_expr | unary_operator cast_expr)
+    | ('++' |  '--')* (postfix_expr | unary_operator cast_expr)
     ;
 
 unary_operator
@@ -38,7 +44,7 @@ unary_operator
     ;
 
 cast_expr
-    :   'cast' '<' type '>' '(' cast_expr ')'
+    :   'cast' '<' type_ref '>' '(' cast_expr ')'
     |   unary_expr
     ;
 
