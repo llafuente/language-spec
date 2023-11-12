@@ -1,5 +1,7 @@
 # program
 
+*Syntax*
+
 ```syntax
 program
   : program_stms_list EOF
@@ -50,3 +52,9 @@ Comment_block
         -> skip
     ;
 ```
+
+*Semantics*
+
+1.
+
+*Constrains*

@@ -84,6 +84,7 @@ type_definition
   | type_definition '?'                                              # nullable_type_decl
   | type_definition '<' dollar_identifier_list '>'                   # template_type_decl
   | struct_type_decl                                                 # struct_type
+  | enum_type_decl                                                   # enum_type
   ;
 
 
@@ -107,6 +108,19 @@ struct_property_list
 
 struct_type_decl
   : 'struct' ('extends' Identifier)? ('align' DIGIT_SEQUENCE)? '{' end_of_statement? struct_property_list? '}'
+  ;
+
+enumerator
+  : Identifier '=' conditional_expr
+  | Identifier
+  ;
+
+enumerator_list
+  : (enumerator end_of_statement)+
+  ;
+
+enum_type_decl
+  : 'enum' '{' end_of_statement? enumerator_list  ? '}'
   ;
 
 ```
