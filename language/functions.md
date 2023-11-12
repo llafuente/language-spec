@@ -14,14 +14,20 @@ function_decl
   ;
 
 function_body
-  : '{' end_of_statement function_statements* '}'
+  : '{' end_of_statement (function_statements end_of_statement)* '}'
   ;
 function_statements
-  : block_variable_declaration_statement end_of_statement
-  | expression end_of_statement
+  : block_variable_declaration_statement
+  | expression
 // TODO inside a function you can create a lambda but not a function!
-  | function_decl end_of_statement
-  | return_stmt end_of_statement
+  | function_decl
+  | return_stmt
+  | if_stmt
+  | goto_stmt
+  | continue_stmt
+  | restart_stmt
+  | break_stmt
+  | loop_stmt
   ;
 
 function_parameter_list

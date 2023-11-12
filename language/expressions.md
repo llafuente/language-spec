@@ -212,6 +212,10 @@ If the type support the long operator, it will be used.
 
 ## Define custom operators
 
+<!--
+https://en.cppreference.com/w/cpp/language/operators
+-->
+
 You can define any operator in the language as functions with the name
 `operator?`, example: `operator+`.
 

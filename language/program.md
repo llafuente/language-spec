@@ -8,7 +8,6 @@ program
   ;
 
 program_stms_list
-  //: program_stms end_of_statement (program_stms end_of_statement)*
   : (program_stms end_of_statement)+
   ;
 
@@ -20,10 +19,17 @@ program_stms
   | expression
   | Comment_line
   | Comment_block
+  // for testing purposes
+  | if_stmt
+  | goto_stmt
+  | continue_stmt
+  | restart_stmt
+  | break_stmt
+  | loop_stmt
   ;
 
 end_of_statement
-  : ( '\r\n' | '\n' | ';' | EOF )
+  : (( '\r\n' | '\n' | ';')* | EOF )
   ;
 
 Whitespace

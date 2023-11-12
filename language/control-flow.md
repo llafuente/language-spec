@@ -20,19 +20,17 @@ The controlling expression shall have bool type, there won't be implicit convers
 *syntax*
 
 ```syntax
-single-if-statement =
-  ; nomenclature: if if-condition if-then-block
-  if expression block
+if_selection_stmt
+  : 'if' '(' expression ')' function_body
+  ;
 
-elseif-statement
-  else single-if-statement
-  elseif-statement
+else_selection_stmt
+  : 'else' function_body
+  ;
 
-else-statement
-  else block
-
-if-statement =
-  single-if-statement [elseif-statement] [else-statement]
+if_stmt
+  : if_selection_stmt ('else' if_selection_stmt)* else_selection_stmt?
+  ;
 ```
 
 *Semantics*
@@ -74,7 +72,7 @@ if x {
 
 *Syntax*
 
-```syntax
+```synta
 switch-statement
   case expression : statements
   default : statements
@@ -141,6 +139,7 @@ switch string_value {
 ```
 
 As mentioned `switch` use `operator ==` so for example this is how we support regex matching for strings
+
 ```language
 // interface
 // function operator ==(? input, ? check) bool {
@@ -159,8 +158,9 @@ function operator ==(string input, regex check) bool {
 *Syntax*
 
 ```syntax
-goto-statement
-  goto label-identifier
+goto_stmt
+  : 'goto' Identifier
+  ;
 ```
 
 
@@ -244,8 +244,9 @@ There are special statements inside loop with specific behaviour, explained belo
 *Syntax*
 
 ```syntax
-loop-statement =
-  loop expression [as literal[, literal] block
+loop_stmt
+  : 'loop' expression ('as' Identifier(',' Identifier))? function_body
+  ;
 ```
 
 
@@ -390,7 +391,7 @@ loop ? while <Exception> {
 
 *Syntax*
 
-```syntax
+```synta
 foreach-statement =
   foreach [identifier[, identifier]] in expression block
 ```
@@ -524,10 +525,9 @@ The compiler shall replace the `loop` statement with a `macro` call.
 *Syntax*
 
 ```syntax
-continue-statement=
-  continue label-identifier
-  continue number
-  continue
+continue_stmt
+  : 'continue' (Identifier|DECIMAL_CONSTANT)?
+  ;
 ```
 
 *Semantics*
@@ -580,10 +580,9 @@ Pick the first if id is not present
 *Syntax*
 
 ```syntax
-restart-statement=
-  restart label-identifier
-  restart number
-  restart
+restart_stmt
+  : 'restart' (Identifier|DECIMAL_CONSTANT)?
+  ;
 ```
 
 
@@ -608,10 +607,9 @@ Pick the first if id is not present
 *Syntax*
 
 ```syntax
-break-statement=
-  break label-identifier
-  break number
-  break
+break_stmt
+  : 'break' (Identifier|DECIMAL_CONSTANT)?
+  ;
 ```
 
 
@@ -628,3 +626,22 @@ The `break` statement tells a loop to stop what it’s doing and exit.
 The compiler shall traverse up searching a label with the
 following pattern: `*_loop_continue` and choose accordingly the given id.
 Pick the first if id is not present
+
+<a name="fallthrough"></a>
+### `fallthrough`
+
+*Syntax*
+
+```syntax
+fallthrough_stmt
+  : 'fallthrough'
+  ;
+```
+
+*Semantics*
+
+The `fallthrough` statement tells to continue with the next `switch-case`
+
+*Constraints*
+
+1. fallthrough shall be used only inside a switch case

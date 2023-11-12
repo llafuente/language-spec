@@ -28,7 +28,7 @@ Some types are immutable, that means that it's memory won't change after the
 first initialization. Those type creates a foundation to build those that can
 be muted. A good example are: `istring` or `iarray`.
 
-The language also exposes a heavy type introspection` `types information` at runtime.
+The language also exposes a heavy type introspection `types information` at runtime.
 And it also generate a fair amount of function to manipulate types.
 See: [Types at runtime](./introspection.md)
 
