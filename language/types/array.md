@@ -22,13 +22,8 @@ struct static_array<$t> {
 *syntax*
 
 ```syntax
-array-list =
-  empty
-  non-comma-expression , non-comma-expression
-  non-comma-expression
-
-array-literal =
-  [ array-list ]
+array_constant =
+  '[' rhs_expression_list ']'
 ```
 
 *Semantics*
@@ -51,19 +46,22 @@ No overflow shall happen.
 *Example*
 
 ```
-i8[] x = new[10];
-var y = new i8[10];
+var i8[] x = new[10] // start with 10 capacity
+var y = new i8[10] // start with 10 capacity
 
 // properties
 x.push(0)
 y.push(1)
-y.grow(15) ; // grow internal memory by 15
+y.grow(15)   // grow internal memory by 15
 print(x.cap) // stdout: 10
 print(y.cap) // stdout: 15
 print(x.len) // stdout: 1
 print(y.len) // stdout: 1
 y[7] = 99
 print(y.len) // stdout: 8
+print(y[0]) // stdout: 1
+print(y[1:6]) // stdout: [0,0,0,0,0,0]
+print(y[7]) // stdout: 99
 
 #assert type(x) == type(y)
 ```
@@ -86,9 +84,31 @@ struct array<$t> implements IndexIterator {
   size capacity
   alias cap capacity
 
+  get isEmpty {
+    return length == 0
+  }
+
+  get isFull {
+    return length == capacity
+  }
+
+  get first {
+    if (isEmpty) throw "array is empty"
+    return data[0]
+  }
+
+  get last {
+    if (isEmpty) throw "array is empty"
+    return data[length-1]
+  }
+
   // Type type // STUDY: maybe ?
 
   flexible_vector<$t> data
+
+  function insert($t element, size at) {
+    //fill ?
+  }
 }
 
 struct array<$t is pointer> implements IndexIterator {

@@ -16,8 +16,10 @@ primary_expr
 
 postfix_expr
     // memberAccessExpression
-    // TODO this should be a single expression
+    // TODO this should be a rhs_expression?
     : postfix_expr '[' expression ']'              # postfix_expr_braces
+    // TODO slice operator
+    //: postfix_expr '[' expression ':' expression ']'              # postfix_expr_slice
     | postfix_expr '.' Identifier                  # postfix_expr_dot
     // function call
     | postfix_expr '(' argument_expr_list? ')'     # postfix_expr_call
@@ -73,7 +75,6 @@ shift_expr
     ;
 
 relational_expr
-//    :   shift_expr (('<'|'>'|'<='|'>=') shift_expr)*
     : relational_expr '<' shift_expr  # relational_expr_lt
     | relational_expr '>' shift_expr  # relational_expr_gt
     | relational_expr '<=' shift_expr # relational_expr_lte
@@ -82,7 +83,6 @@ relational_expr
     ;
 
 equality_expr
-//    :   relational_expr (('=='| '!=') relational_expr)*
     : equality_expr '==' relational_expr # equality_expr_eq
     | equality_expr '!=' relational_expr # equality_expr_neq
     | relational_expr                    # equality_expr_fw
@@ -232,12 +232,111 @@ function operator+(point a, point b) point {
 If you try to define built-in operators you will get an error, for example
 
 ```language
-function operator+(i8 a,i8 b) point {
+function operator+(i8 a, readonly i8 b) point {
   return x + b
 }
 ```
 
 > Operator redefinition at line <file_x>1:1 original <file_y>:1:1
 
+#### Unsupported operators
+
+<!--
+  TODO reconsider ^ <-- could be power ?
+-->
+
+Here is the list of unsupported operators.
+
+* shift_expr: all
+* unary_expr: all
+* and_expr: all
+* exclusive_or_expr: all
+* inclusive_or_expr: all
+* logicaland_expr: all
+* logical_or_expr: all
+* conditional_expr: all
+* postfix_expr: `operator()`, `operator++`, `operator--`
+* assignment_expr: `operator<<=`, `operator >>=`, `operator&=`, `operator^=`, `operator|=`
+
+#### relational_expr operators
+
+`$t` and `$other` can be the same type.
+
+```language
+function operator< (readonly $t lhs, readonly $other rhs) bool { /* implement! */ }
+function operator> (readonly $t lhs, readonly $other rhs) bool { return rhs < lhs; } // default implementation when < is defined
+function operator<=(readonly $t lhs, readonly $other rhs) bool { return !(lhs > rhs); } // default implementation when < is defined
+function operator>=(readonly $t lhs, readonly $other rhs) bool { return !(lhs < rhs); } // default implementation when < is defined
+```
+
+#### multiplicative_expr operators
+
+`$t` and `$other` can be the same type.
+
+```language
+function operator*(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
+function operator/(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
+function operator%(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
+```
+
+#### additive_expr operators
+
+`$t` and `$other` can be the same type.
+
+```language
+function operator+(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
+function operator-(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }defined
+```
+
+#### equality_expr operators
+
+`$t` and `$other` can be the same type.
+
+```language
+function operator==(readonly $t lhs, readonly $other rhs) bool { /* implement! */ }
+function operator!=(readonly $t lhs, readonly $other rhs) bool { return !(lhs == rhs); } // default implementation when == is defined
+```
+
+#### assignment_expr operators
+
+`$t` and `$other` can be the same type.
+
+assignament_expr cannot be chained so no `return`
+
+```language
+function operator= ($t lhs, readonly $other rhs) {}
+function operator*= ($t lhs, readonly $other rhs) {}
+function operator/= ($t lhs, readonly $other rhs) {}
+function operator%= ($t lhs, readonly $other rhs) {}
+function operator+= ($t lhs, readonly $other rhs) {}
+function operator-= ($t lhs, readonly $other rhs) {}
+```
+
+#### cast_expr
+
+This is a very special operator because this allows the compiler to fit your
+type in many places. Use it with care.
+
+```language
+operatorcast($t lhs) $other {}
+```
 
 
+#### postfix_expr
+
+<!--
+Member access can be done two different ways, but both share the same principle.
+It's forbidden to lend memory.
+
+  TODO study: operator. lend memory
+  this is almost mandatory to implement runtime COM objects
+-->
+
+
+```language
+function operator[](readonly $t lhs, $other rhs) $another {}
+// operator slice
+// start == number.MIN means not defined example: arr[:10]
+function operator[:](readonly $t lhs, number start = number.MIN, number end = number.MIN) $another {}
+function operator.(readonly $t lhs, string rhs) lend $another {}
+```
