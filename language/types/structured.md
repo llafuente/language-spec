@@ -120,7 +120,7 @@ overwrite/override is used. This includes the constructor.
 ```language
 struct A {
   int value
-  constructor(_value) {
+  function new(_value) void {
     value = _value
   }
 
@@ -132,7 +132,7 @@ struct A {
 struct B extends A {
   int value2
 
-  override constructor(int _value, int _value2) {
+  override function new(int _value, int _value2) {
     override(_value)
     value2 = _value2
   }
@@ -235,7 +235,7 @@ struct dbtable {
 }
 
 var dbtable t("xxx-xxx-xxx", "yyy")
-t.id = "zzz-zzz-zzz" // fail: id property is readonly
+t.id = "zzz-zzz-zzz" // semantic error: id property is readonly
 t.name = "zzz-zzz-zzz" // ok
 
 t.id.grow(10) // it will also fail, as grow modify id

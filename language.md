@@ -1,20 +1,27 @@
 # Language
 
-Here is part of the pylosophy of the language.
+Here is part of the philosophy of the language.
 Our core basics.
 
-Configure the compiler is part of the language and not part of a toolchain.
+Unlike Groucho Marx: "Those are my principles, and if you don't like them...
+well, I have others" we love ours :)
 
-Code must be `grepable`
+Code must be `grep-able`
 
-Allow use to generate code at compile time.
+Allow use to generate code at compile time (meta-programming).
 
-Public function can be overriden with your implementation.
+Public functions can be overridden with your implementation. This enables fast
+bug-fixing and adding features to libraries.
 
-No toolchain. Compilation, testing, code coverage and documentation generation
-is in fact the language.
+No toolchain: just the compiler.
+Configuration, compilation, testing, code coverage, documentation generation,
+package manager... are in fact: language features so the compiler handle it.
 
-One statement or expression per line, semicolon is optional but this rule not.
+One statement per line, semicolon is optional but this rule not.
+
+No runtime overhead if possible, use meta-programming over rtti.
+
+Help developers trace their programs.
 
 <!--
 

@@ -28,7 +28,12 @@ postfix_expr
     ;
 
 argument_expr_list
-  : assignment_expr (',' assignment_expr)*
+  : conditional_expr (',' conditional_expr)*
+  // TODO send arguments by name
+  // a = 1, b = 2...
+  // send as object
+  // expand from array / struct
+  // a(@b) a(@{a: 1, b: 2})
   ;
 
 

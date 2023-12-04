@@ -1,28 +1,50 @@
 # pointers
 
-## raw_ptr<$type>
+## ptr<$type>
 
 *Semantics*
 
-C-like pointer / Raw pointers.
+Holds a reference to a single object in memory.
+
+C-like pointer. Unsafe by nature.
+
+*Constrains*
+
+1. A ptr shall not move. No operator+, operator-, operator++, operator--, operator[]
 
 ## vector<$type>
 
 *Semantics*
 
-Holds a reference to a list of object in memory.
+Holds a reference to a contiguous list of objects in memory.
+
+C-like pointer.
+
+Unsafe because there is no length/capacity stored.
 
 *Constrains*
 
 1. A `vector` can move.
 
-*Note*
+*Remarks*
 
-A vector is not an array, a vector just hold the list of objects in a contiguous memory but it's unsafe as it do not holds the capacity or length used.
+A `vector` is not an `array`.
 
 ## variant<$type>
 
-Holds a reference to a pointer and it's type
+Holds a reference to a value and it's type
+
+```language
+type variant = struct {
+  typeid v_type
+  ptr pointer
+
+  function to<$t>() $t {
+    if ($t == v_type) return cast<$t>(pointer)
+    throw "impossible cast at variant"
+  }
+}
+```
 
 ## optional<$type>
 
@@ -54,11 +76,13 @@ Assign rhs.
 
 *Semantics*
 
-Holds a reference to a single memory object.
+Holds a reference to a single memory type.
 
 *Constrains*
 
-1. `ref` shall not move, as its a single memory object.
+1. `ref` shall not move.
+
+2. When a ref is out of scope it will delete the memory if its the owner.
 
 ### Methods
 
@@ -72,11 +96,15 @@ Throws if the rhs is `nullptr`.
 
 
 ```language
-struct ref<$type> {
-  ptr<$type> pointer;
+struct ref<$t> {
+  raw_ptr<$t> pointer;
 
-  constructor(ptr<$type> p) {
-    operator = (p);
+  function new(ptr<$t> p) {
+    pointer = p;
+  }
+
+  default function new() lend uninitialized $t {
+    return unsafe_cast<$t>(*libc.malloc($t.size));
   }
 
   destructor() {
@@ -94,6 +122,37 @@ struct ref<$type> {
     pointer = p;
   }
 }
+```
+
+*Examples*
+
+```language
+var i32 value = 100
+var ref<i32> pi32 = value
+
+print(value) // 100
+print(pi32) // 100
+print(&pi32) // 0x????
+
+var address api32 = pi32
+print(api32) // 0x????
+
+pi32 = api32 // failure <--
+pi32 = unsafe_cast<>(api32) // ok-ish
+```
+
+
+```language
+type point = struct {
+  float x
+  float y
+}
+type ref_point = ref<point>
+
+var ref_point pp = new(0,0)
+
+#assert ref_point.size == ptr.size
+
 ```
 
 ## mref<$type>

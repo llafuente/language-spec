@@ -1,4 +1,7 @@
 # Array
+<!--
+  https://developer.apple.com/documentation/swift/array#2846730
+-->
 
 # static_array | sarray
 
@@ -77,9 +80,14 @@ interface IndexIterator<$t> {
   operator[](index position) $t
 }
 
+type array_void_callback = function($t element, size index) void
+type array_bool_callback = function($t element, size index) bool
+type array_i32_callback = function($t element, size index) i32
+
 struct array<$t> implements IndexIterator {
   size length
   alias len length
+  alias count length
 
   size capacity
   alias cap capacity
@@ -106,9 +114,148 @@ struct array<$t> implements IndexIterator {
 
   flexible_vector<$t> data
 
-  function insert($t element, size at) {
-    //fill ?
+  function randomElement() $t { /**/ }
+
+  // Adds a new element at the end of the array, the element will be copied.
+  // Returns current length
+  function append($t element) size { /**/ }
+  // Adds the elements of a sequence to the end of the array, the elements will be copied.
+  // NOTE $t shall not own memory
+  function append(array<$t> elements) $t { /**/ }
+  // Adds a new element at the end of the array, and return the element to be initialized
+  // Returns an uninitialized element
+  function append_new() uninitialized ref<$t> { /**/ }
+
+  alias append push
+
+  // Inserts a new element at the specified position
+  // Returns current length
+  function insert($t element, size at) size { /**/ }
+  // Inserts a new element at the specified position, if used it will destroy the object
+  // Returns an uninitialized element
+  function insert_new(size at) uninitialized ref<$t> { /**/ }
+
+  //
+
+  // Replaces all values in the array that match inValue with given element.
+  // Returns number of modified values
+  function replace($t inValue, $t element) size { /**/ }
+  // Replaces a range of elements with the elements in the specified collection.
+  // Returns number of modified values
+  function replace(range<size,size> rng, $t element) size { /**/ }
+
+  // Reserves enough space to store the specified number of elements.
+  function reserveCapacity(size)
+  alias grow reserveCapacity
+
+
+  // operators
+
+  // Creates a new collection by concatenating the elements of a sequence and a collection.
+  function operator+(array<$t> other) lend array<$t> { /**/ }
+  // Appends the elements of a sequence to a range-replaceable collection.
+  function operator+=(array<$t> other) { /**/ }
+
+#if $t implements comparable_eq
+  // Returns a Boolean value indicating whether two arrays contain the same elements in the same order.
+  function operator==(array<$t> other) bool { /**/ }
+  // Returns a Boolean value indicating whether two arrays contain the same elements in the same order.
+  function operator!=(array<$t> other) bool { /**/ }
+#endif
+
+  // Removes and returns the element at the specified position.
+  function remove(at: Int)
+  // Removes the elements in the specified subrange from the collection.
+  // Returns current length
+  function remove(range<int, int>) size {
+    // if $t is primitive -> call destructor
   }
+  // Removes all the elements that satisfy the given predicate.
+  function removeAll(array_bool_callback where)
+
+  function pop() lend $t
+  alias popLast pop
+
+#if $t implements comparable_eq
+  // Returns a Boolean value indicating whether the sequence contains the given element.
+  function contains($t element) bool { /**/ }
+  function contains(range<int,int> rng, $t element) bool { /**/ }
+
+  // Returns the first element of the sequence that match given element
+  function first($t element) $t { /**/ }
+  // Returns the first element in given range that match given element
+  function first(range<int,int> rng, $t element) $t { /**/ }
+  // Returns the first element of the sequence that satisfies the given predicate
+  function first(array_bool_callback where) $t { /**/ }
+
+  // Returns a the position indicating whether the elements of the sequence are the same as the elements in another sequence.
+  function indexOf(array<$t> element) size { /**/ }
+  function indexOf($t element) size { /**/ }
+  function indexOf(range<int,int> rng, $t element) size { /**/ }
+  alias index indexOf
+
+  function lastIndexOf($t element) size { /**/ }
+  function lastIndexOf(range<int,int> rng, $t element) size { /**/ }
+  alias index indexOf
+#endif
+
+  // Returns the minimum element in the sequence, using the given predicate as the comparison between elements.
+  function min(array_i32_callback where) $t { /**/ }
+#if $t implements comparable_lt
+  // Returns the minimum element in the sequence.
+  function min() $t { /**/ }
+#endif
+
+  // Returns the maximum element in the sequence, using the given predicate as the comparison between elements.
+  function max(array_i32_callback where) $t { /**/ }
+#if $t implements comparable_lt
+  // Returns the maximum element in the sequence.
+  function max() $t { /**/ }
+#endif
+
+
+  // Returns a subsequence by skipping elements while predicate returns true and returning the remaining elements.
+  function drop(array_bool_callback while) lend array<$t> { /**/ }
+  alias skip drop
+
+  // Returns an array containing the results of mapping the given closure over the sequence’s elements.
+  function map(function($t, size) $x where) array<$x>
+  // TODO
+  function reduce() {}
+
+  // Calls the given closure on each element in the sequence in the same order as a for-in loop.
+  function forEach(array_void_callback where) { /**/ }
+
+#if $t implements comparable_lt
+  // Sorts the collection in place.
+  function sort() { /**/ }
+  // Returns the elements of the sequence, sorted.
+  function sorted() lend array<t> { /**/ }
+  // Reverses the elements of the collection in place.
+#endif
+
+  function reverse() { /**/ }
+  // Returns the elements of the sequence, in reverse order.
+  function reversed() lend array<t> { /**/ }
+
+  // Shuffles the collection in place.
+  function shuffle()
+  // Returns the elements of the sequence, shuffled.
+  function shuffled() lend array<t>
+
+  // Exchanges the values at the specified indices of the collection.
+  function swapAt(size a, size b) void { /**/ }
+
+#if $t implements comparable_eq
+  // Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.
+  function split($t element) array<array<$t>> { /**/ }
+#endif
+
+  function join(string x) string { /**/ }
+
+
+  every(array_bool_callback callback) bool { /**/ }
+  some(array_bool_callback callback) bool { /**/ }
 }
 
 struct array<$t is pointer> implements IndexIterator {

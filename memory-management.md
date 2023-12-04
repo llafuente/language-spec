@@ -1,9 +1,10 @@
 # Memory management
 
-Language implements a Automatic memory management based on static annotation of
+Language implements an Automatic memory management based on static annotation of
 the memory. With just one premise: Memory must be owned by `one` in all moment,
-that implies a few limitations but we can get rid of memory leaks or
-runtime memory management.
+that implies a few limitations to avoid garbage collector.
+
+It also support real memory allocators.
 
 <a name="new"></a>
 ## `new`: allocate memory
@@ -39,11 +40,11 @@ Dynamically allocate memory in the heap.
 3. Allocate primitives without initializing will auto-initialize: numbers = `0`, `bool` = `false`, ptr-like = `nullptr`.
   ```language
   // auto-initialize
-  var x = new i8         // x = 0
-  var y = new i8(10)     // y = 10
+  var x = new i8         // x = 0, x has type ref<i8>
+  var y = new i8(10)     // y = 10, y has type ref<18>
 
   // manual-initialization
-  var z = new vector<i8>[20](20) // z[0..20] = 20
+  var z = new vector<i8>(20, 101) // z[0..20] = 101
   ```
 
 4. Allocate a `struct` without initializing shall raise an error (because it's uninitilized memory)
@@ -54,8 +55,9 @@ Dynamically allocate memory in the heap.
   }
 
   var p = new point() // default constructor, everything will be zero
-  var p2 = new point // p2 is holding uninitialized ref<point>, that's an error
-  var p3 = new point() // ok
+  // p is ref<point>
+  var p2 = new point // p2 has type uninitialized ref<point>, that's an error
+
   ```
 
 5. You can allocate memory that is not initialized, like an array
@@ -64,6 +66,7 @@ Dynamically allocate memory in the heap.
   var z3 = new i8[20](0)     // initilize the array and all values to zero
   ```
 
+6. A new expression has type: lend (allocated type).
 
 ### Customs allocators
 
@@ -85,32 +88,60 @@ Memory allocated inside a function that won't be lended, it will be deleted (fre
 
 ### Minimal code generation set
 
+```
+namespace heap<$type> implements allocator {
+  // single allocation
+  function alloc() uninitilized ptr<$type> {
+    return clib.malloc($type.size)
+  }
+  // single allocation and initialize
+  function ialloc(...) ptr<$type> {
+    return this.alloc(...)
+  }
+
+  function alloc_m(i32 elements) uninitilized vector<$type> {
+    return clib.malloc($type.size * elements)
+  }
+  function construct_m(i32 elements, ...) uninitilized vector<$type> {
+    var p,pp = this.alloc_m(elements)
+    for (int i = 0; i < size; ++i) {
+      pp(...)
+      ++pp
+    }
+    return p
+  }
+
+  function deallocate(ptr<$type> p) {
+    return clib.free(p)
+  }
+
+  function deallocate(vector<$type> p) {
+    return clib.free(p)
+  }
+}
+
+```
+
 ```language
-new type(a, b, c)
+var x = new i8(a, b, c)
 ```
 
 ```
-function heap_allocator<$type>(i32 bytes) uninitilized ptr<$type> {
-  return clib.malloc(bytes)
+var x = heap<i8>.ialloc(a, b, c)
+// x is ref<i8>
+```
+
+```language
+type point = struct {
+  float x
+  float y
 }
+var x = new point(10, 10) @pool
+```
 
-function heap_allocator_and_construct<$type>(elements, a, b, c): ptr<$type> {
-  if (elements == 1) {
-    return $type.constructor(heap_allocator<$type>($type.sizeof), a, b, c);
-  }
-
-  // TODO!! this implies a problem for compiler as memory and p contains uninitilized memory
-  var memory, p = heap_allocator<$type>(elements * $type.sizeof);
-
-  for (int i = 0; i < size; i += $type.sizeof) {
-    $type.constructor(p, a, b, c);
-    p+=$type.sizeof;
-  }
-
-  return memory;
-}
-
-
+```
+var x = pool<type>.ialloc(10, 10)
+// x is cdref<point>
 ```
 
 ```language

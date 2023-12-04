@@ -39,36 +39,38 @@ into meaningful lexemes/tokens.
 
 2. 2. Preprocessor
 
-2. 2. 1. For each `#Import`.
+2. 2. 1. Define constants (`#define`) and remove from AST
 
-2. 2. 1. 1. If it's a dependency, install it to desired version.
+2. 2. 2. Expand all constants
 
-2. 2. 1. 2. Start lexical Analysis at dependency entry point.
+2. 3. For each `import`.
 
-2. 2. 2. Expand up to 5 times the rest of preprocessor directives.
+2. 3. 1. If it's an external dependency (library), install desired version.
+
+2. 3. 2. Start lexical Analysis at dependency entry point / file.
 
 <a name="semantic-analysis"></a>
 ## Semantic Analysis
 
 1. Type all implicit declarations and declaration to static values.
 
-2. Infer varible declarations.
+2. Infer Variable declarations.
 
-2. 1. Variable shall take the type of the first assignament, but the size
+2. 1. Variable shall take the type of the first assignment, but the size
 shall be decided later.
 
 2. 2. The compiler shall display a semantic error if the type for the first
-assignament is unkown.
+assignment is unknown.
 
-3. Generate code for all functions/types templated.
+3. Substitute all possible templates.
 
-The compiler shall execute again step 1 for generated code.
+We will back to this step until no templates left.
 
 4. Expand metaprogramming.
 
 The compiler shall execute step 1 for generated code but only once.
 
-If the compiler reach this step twice it shall raise an error.
+If the compiler reach this step twice for the same piece of code it shall raise an error.
 
 Metaprogramming must not generate more metaprogramming.
 

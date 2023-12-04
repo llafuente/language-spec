@@ -269,10 +269,10 @@ because the length of the string is changes use another loop statement like:
 There is no way to increment a number different than one,
 use [`for`](#for) instead.
 
-The controlling expression shall have numeric, range or implement IndexIterator.
+The controlling expression shall have numeric, range or implement index_iterator.
 * `numeric`: it shall repeat `loop-body` given number of times.
 * `range`: it shall repeat `loop-body` starting and ending according to given range.
-* `IndexIterator` it shall loop its length. An for example `$value` will have `rune` type if a `string` is given.
+* `index_iterator` it shall loop its length. An for example `$value` will have `rune` type if a `string` is given.
 
 <!--
 * if expression is a struct
@@ -298,53 +298,8 @@ loop 1..i {
 
 `loop` it's in fact a `macro`.
 
-The compiler shall replace the `loop` statement with a `macro` call.
-
-```language
-// helper macro to loop from start to end, one by one
-#macro loop_range(#value start, #value end, #text index_name = "$index") block {
-  #uid L_UID
-
-#L_UID#_loop_restart:
-  // cache input
-  var index #L_UID#_$index = start
-  var index #L_UID#_$max = end
-
-#L_UID#_loop_start:
-  if #L_UID#_$index < #L_UID#_$max {
-    const #index_name# #L_UID#_$index
-
-    #block#
-
-#L_UID#_loop_continue:
-    $index = $index + 1
-
-    goto #L_UID#_loop_start:
-  }
-
-#L_UID#_loop_end: {}
-}
-
-// loop macro will generate code based on val type
-#macro loop(#value val, #text index_name = "$index", #text value_name = "$value") block {
-#if val is number
-  #if #value_name# != "$value"
-    #semantic_error "Invalid loop value, when looping a number there is no value."
-  #fi
-
-  #loop_range(1, val, #index_name#) #block#
-#else if val is range
-  #loop_range(val.start, val.end, #index_name#) #block#
-#else if val implements RangeIterator
-  #loop_range(1, val.length, #index_name#) {
-    var #value_name# val[#index_name#]
-    #block#
-  }
-#else
-  #type_error "Invalid loop expression expected type: array, string, number or range."
-#fi
-}
-```
+The compiler shall replace the `loop` statement with a `macro` call to
+[core/loop.language](../../core/loop.language)
 
 <!--
 ### Advanced usage of loop.
@@ -400,7 +355,7 @@ foreach-statement =
 
 `foreach` key has no performance impact.
 
-`foreach` key and value has, mostly with structs, because they will be copied to
+`foreach` key and value has, mostly with structs, because value will be copied
 in each iteration to the stack.
 
 *Semantics*
@@ -408,12 +363,15 @@ in each iteration to the stack.
 `foreach` shall repeat `foreach-body` for each value that given expression holds.
 
 It will create two magic variables:
+
 * `$index` of type index for the numeric index value
 * `$value` that will hold the value of given structure.
+
 Both magic variables can have custom names if provided.
 
 The input is safe to be modified, change, add or remove are allowed.
-*Note* Removing/changing current `$value` could make the value unusable depending on the implementations.
+*Note* Removing/changing current `$value` could make the value unusable
+depending on the implementations.
 
 *Constraints*
 
@@ -423,11 +381,11 @@ it's a pointer, then $value will modify the original.
 
 Notice: This have performance implications.
 
-The controlling expression need to implement `IndexIterator`
+The controlling expression need to implement `index_iterator`
 
 *Example*
 
-The following example illustrate both behaviours with pointer and value.
+The following example illustrate both behaviors with pointer and value.
 
 ```language
 struct point {
@@ -435,17 +393,22 @@ struct point {
   float y
 }
 
-// foreach by value
+// foreach by key and value
 
-var list = new point[10]
+var list = new array<point>(10)
 list.init_push()(10, 10)
+#assert(list.len == 1)
+#assert(list.cap == 10)
+#assert(list[0].x == 10)
+#assert(list[0].y == 10)
 
 foreach k,v in list {
   v.x = 100
 }
 
-#assert list[0].x == 10 // 10, because v is copied
+#assert(list[0].x == 10) // 10, because v is copied
 
+// foreach by key and modify value
 foreach k in list {
   list[k].x = 100
 }
@@ -477,40 +440,6 @@ foreach k,v in list {
 `loop` it's in fact a `macro`.
 
 The compiler shall replace the `loop` statement with a `macro` call.
-
-
-```
-// this macro
-#macro foreach(#value val, #text index_name = "$index", #text value_name = "$value") block {
-#if val implements IndexIterator
-
-  #uid L_UID
-
-#L_UID#_loop_restart:
-  var index #index_name# = 0
-
-#L_UID#_loop_check:
-  if (#index_name# > val.length) {
-    goto #L_UID#_loop_end
-  }
-
-  const #value_name# = val[#index_name#]
-
-  #block#
-
-#L_UID#_loop_continue:
-  ++#index_name#
-
-  goto #L_UID#_loop_check:
-
-
-#L_UID#_loop_end: {}
-
-
-#else
-  #type_error "Invalid foreach expression expected type: ${type(val)} to implement IndexIterator"
-}
-```
 
 <a name="for"></a>
 ### for
@@ -571,7 +500,7 @@ outterloop: loop 1..10 as $i {
 *Constraints*
 
 The compiler shall traverse up searching a label with the
-following pattern: `*_loop_end` and choose accordingly the given id.
+following pattern: `*_loop_continue` and choose accordingly the given id.
 Pick the first if id is not present
 
 <a name="restart"></a>
@@ -624,7 +553,7 @@ The `break` statement tells a loop to stop what it’s doing and exit.
 *Constraints*
 
 The compiler shall traverse up searching a label with the
-following pattern: `*_loop_continue` and choose accordingly the given id.
+following pattern: `*_loop_break` and choose accordingly the given id.
 Pick the first if id is not present
 
 <a name="fallthrough"></a>

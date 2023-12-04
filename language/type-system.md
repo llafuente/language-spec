@@ -72,8 +72,8 @@ type_ref_list
   ;
 
 type_ref
-  : 'lend'? 'own'? Identifier '<' type_ref_list '>'
-  | 'lend'? 'own'? Identifier
+  : 'lend'? 'own'? 'uninitialized'? Identifier '<' type_ref_list '>'
+  | 'lend'? 'own'? 'uninitialized'? Identifier
   ;
 
 type_definition

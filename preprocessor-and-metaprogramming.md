@@ -25,17 +25,18 @@ Implementation notes.
 *syntax*
 
 ```syntax
-#define identifier text ENDL
+define_decl
+  : '#define' IdentifierUp any_non_endl ENDL
+  ;
 ```
 
 *Semantics*
 
 Defines a direct text substitution. Unlike c/cpp does not have arguments.
 
-It's the preferred method to declare constant globals because it will
-be accessible inside packages.
+It's the way the main program configure packages.
 
-*constrains*
+*Constrains*
 
 1. The identifier must be uppercased.
 
@@ -51,17 +52,19 @@ be accessible inside packages.
 
 4. If a define is redefined a semantic-error shall be raised.
 
+4. Shall not be used inside functions
 
-*notes*
+
+*Remarks*
 
 There is no `#undef`, so package developers should append a unique prefix to
 theirs definitions.
 
-Example:
+*Example*
 
 ```language
 #define PI 3.1496
-#define HAL_PI (#PI# * 0.5)
+#define HALF_PI (#PI# * 0.5)
 ```
 
 ## `#macro`
@@ -69,14 +72,21 @@ Example:
 *syntax*
 
 ```syntax
-macro_argument = ( #text text_no_comma_no_endl | #value expression_rhs )
+macro_modifier
+  : '#text'
+  | '#value'
+  ;
 
-macro_argument_list = [ macro_modifier macro_input [, macro_argument_list] ]
+macro_argument_list
+  : macro_modifier Identifier (',' macro_argument_list)
+  ;
 
-#macro identifier '(' macro_argument_list ')' [ #block ] block
+macro_decl
+  : '#macro' Identifier '(' macro_argument_list? ')' '#block'? function_body
+  ;
 ```
 
-*semantics*
+*Semantics*
 
 Creates a function-like macro that can take arguments.
 
@@ -84,9 +94,9 @@ A macro can fetch next block of code and expanded inside it's own block see [`#b
 
 *Constraints*
 
-1. A `#macro` is inlined at macro-call.
+1. A `#macro` is always inlined at macro-call.
 
-2. A `#macro` contains the same statements as function-body.
+2. `#macro` body shall have the same statements as functions.
 
 <!--
 The compiler will choose when to expand depending on what inputs require the macro.
@@ -101,12 +111,11 @@ The compiler will choose when to expand depending on what inputs require the mac
 4. When expanding a macro will create a new block at call site to keep
 everything declared in the macro inside it's own scope.
 
-5. A macro function can't return. If used shall raise an syntax-error Using `return` inside `#macro` means that you
-will expand `return` at call site.
+5. A macro function shall not `return`. If used shall raise an syntax-error.
 
 This is an error.
 
-```language
+```language-err
 #macro ret() {
   return 0
 }
@@ -116,12 +125,11 @@ function test(): number {
 }
 ```
 
-6. A macro call can be rhs expression.
-
+6. A macro call shall not be part of a expression.
 
 This is an error.
 
-```language
+```language-err
 #macro expr() {
   1 + 1
 }
@@ -135,11 +143,11 @@ function test(): number {
 
 7. A macro function need to be syntax valid code by it's own.
 
-8. Inside a `#macro`: `#macro` is forbidden.
+8. Inside a `#macro`: `#macro`, `#define` are forbidden.
 
 9. A macro argument is everything not comma and parenthesis will be honored,
 no open parenthesis will be allowed without the closing match.
-these prevent unshielded commas.
+These prevent unshielded commas.
 
 *Examples*
 A macro can access variables outside its scope but no the other way around.
@@ -162,7 +170,7 @@ function sum(i8 a, i8 b) {
 <a name="macro-arguments"></a>
 ### arguments
 
-To expand the argument use `#` followed by the name of the argument and `#` again.
+To expand an argument use `#` followed by the name of the argument and `#` again.
 
 To stringify the argument use `##` followed by the name of the argument and `#` again.
 The string is double quote escaped.
@@ -187,10 +195,10 @@ This is the default method so `#text` it's optional.
 }
 
 // Usage
-#print_text(xxx.ccc)
-#print_text(any_valid_exression())
-#print_text(even-not-valid-staff-is-allowed ? .-)
-#print_text(someone do not space quotes ")
+#print_text(xxx.ccc)                                // ok
+#print_text(any_valid_exression())                  // ok
+#print_text(even-not-valid-staff-is-allowed ? .-)   // ok
+#print_text(someone do not space quotes ")          // ko
 ```
 
 Expansion:
@@ -327,7 +335,7 @@ block, that will be expanded inside the macro.
 
 *Example*:
 
-This is almost how we implement foreach internally in the language.
+This is almost how we implement `foreach` internally in the language.
 
 ```language
 // declaration
@@ -413,15 +421,17 @@ list := [1,2,3,4]
 *Syntax*
 
 ```syntax
-#forstruct identifier, identifier in expression block
+forstruct_stmt
+  : '#forstruct' Identifier ',' Identifier 'in' expression function_body
+  ;
 ```
 *Semantics*
 
-`#forstruct` will loop the struct properties.
+`#forstruct` will loop the `struct` properties.
 
 *Constraints*
 
-`#forstruct` shall be part of metaprogramming expansion. So a `#macro` containing
+1. `#forstruct` shall be part of metaprogramming expansion. So a `#macro` containing
 `#forstruct` shall be marked as metaprogramming to be expanded later.
 
 
@@ -457,8 +467,9 @@ print(1, "y", p.y)
 *syntax*
 
 ```syntax
-assert_expression = TODO
-'#' assert assert_expression ENDL
+asset_stmt
+  : '#assert' expression ',' string_literal ENDL
+  ;
 ```
 
 *Semantics*
@@ -469,25 +480,33 @@ Raise a compile time error if condition yield false.
 
 *Constraints*
 
-`#assert` shall be part of metaprogramming expansion. So a `#macro` containing
-`#assert` shall be marked as metaprogramming to be expanded later.
+1. `#assert` shall be part of metaprogramming expansion.
+
+2. expression type shall be bool.
 
 *Example*
 
 ```
-#assert x is_type_of Y
-#assert x implements Y
-#assert y is_instance_of Y
-#assert sizeof(x) > 16
+#assert x == 1
+#assert arr.length != 0
+#assert #PI# > 3.1
 ```
+## `#static_assert`
 
+```
+#assert typeof x == typeof y
+#static_assert sizeof(x) > 16
+#static_assert x implements comparable
+```
 
 ## `#exec`
 
 *syntax*
 
 ```syntax
-'#' exec text ENDL
+exec_stmt
+  : '#exec' non_endl
+  ;
 ```
 
 *Semantics*
@@ -502,13 +521,14 @@ in libraries.
 The output of the command won't be re-evaluated.
 
 
-
 ## `#uid`
 
 *Syntax*
 
 ```syntax
-'#' uid identifier ENDL
+uid_stmt
+  : '#uid' Identifier
+  ;
 ```
 
 *Semantics*
@@ -626,9 +646,11 @@ identifier_list = identifier , identifier_list
 
 *Semantics*
 
-This macro will repeat current line for each value sent.
+This macro will repeat current line for each text sent.
 
-If two line repeater are found in the same line both must have the same number
+*Constraints*
+
+1. If two line repeater are found in the same line both must have the same number
 of values because both will be expanded at the same time.
 
 *Example*
