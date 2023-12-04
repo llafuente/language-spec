@@ -7,13 +7,14 @@ Unlike many language, compiler is configured inside the source code.
 *syntax*
 
 ```syntax
-preprocessorSetStatement
-  | '#set' identifier literal
+preprocessor_set_statement
+  : '#set' identifier literal
+  ;
 ```
 
 *semantics*
 
-Sets a property.
+Sets a compiler property.
 
 *constraints*
 
@@ -23,13 +24,20 @@ Sets a property.
 
 3. If a property is already set a compiler error shall raise.
 
+*Example*
+
+```language
+var x = #set arrays.out_of_bounds true
+```
+
 # `#get`
 
 *syntax*
 
 ```syntax
-preprocessorGetExpression
-  | '#get' identifier
+preprocessor_get_expr
+  : '#get' identifier
+  ;
 ```
 
 *semantics*
@@ -40,13 +48,21 @@ Gets a property. It's value is always a string.
 
 1. Property shall exists or a compiler error shall raise.
 
+
+*Example*
+
+```language
+var x = #get arrays.out_of_bounds
+```
+
 # `#require`
 
 *syntax*
 
 ```syntax
-preprocessorRequireStatement
-  | '#require' identifier literal
+preprocessor_require_statement
+  : '#require' identifier literal
+  ;
 ```
 
 *semantics*
@@ -59,3 +75,13 @@ Enforce a property to be at a specific value
 
 2. If the property don't match the value compiler shall raise a configuration error.
 
+
+*Example*
+
+This will enforce a library to be windows only.
+
+```language
+package io.win32
+
+#require os win32
+```

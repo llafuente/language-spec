@@ -1,16 +1,18 @@
 # pointers
 
+<!-- https://web1.eng.famu.fsu.edu/~haik/met.dir/hcpp.dir/notes.dir/cppnotes/node68.html -->
+
 ## ptr<$type>
 
 *Semantics*
 
 Holds a reference to a single object in memory.
 
-C-like pointer. Unsafe by nature.
-
 *Constrains*
 
-1. A ptr shall not move. No operator+, operator-, operator++, operator--, operator[]
+1. A `ptr` shall not move. No operator+, operator-, operator++, operator--, operator[]
+
+2. Dot operator auto-dereference the pointer.
 
 ## vector<$type>
 
@@ -18,13 +20,15 @@ C-like pointer. Unsafe by nature.
 
 Holds a reference to a contiguous list of objects in memory.
 
-C-like pointer.
+This is the pure C-like pointer.
 
 Unsafe because there is no length/capacity stored.
 
 *Constrains*
 
-1. A `vector` can move.
+1. Full compatible c pointer.
+
+2. Dot operator auto-dereference the pointer.
 
 *Remarks*
 
@@ -32,7 +36,7 @@ A `vector` is not an `array`.
 
 ## variant<$type>
 
-Holds a reference to a value and it's type
+A variant is an especial pointer that holds a reference to a value and it's type.
 
 ```language
 type variant = struct {
@@ -84,11 +88,27 @@ Holds a reference to a single memory type.
 
 2. When a ref is out of scope it will delete the memory if its the owner.
 
+
+*Examples*
+
+```
+struct vector2 {
+  float x
+  float y
+}
+var ref<byte> pb // pointer to a single byte
+var ref<int> pi // pointer to a single int
+var ref<vector<i8>> pvector // pointer to a vector of i8s
+```
+
 ### Methods
 
-#### `operator .`
+#### `operator.`
 
-Dereference the object, and if it's null throws
+Dereference the object to access its fields.
+
+If compiler property `ref.null_check` is enabled, before deref it must check is not null or throw
+otherwise
 
 #### `operator = ref<$type>`
 
@@ -97,14 +117,14 @@ Throws if the rhs is `nullptr`.
 
 ```language
 struct ref<$t> {
-  raw_ptr<$t> pointer;
+  ptr<$t> pointer;
 
   function new(ptr<$t> p) {
     pointer = p;
   }
 
   default function new() lend uninitialized $t {
-    return unsafe_cast<$t>(*libc.malloc($t.size));
+    return unsafe_cast<$t>(libc.malloc($t.size));
   }
 
   destructor() {
@@ -112,7 +132,7 @@ struct ref<$t> {
   }
 
   operator . () $type {
-    return deref(pointer);
+    return __ptr_deref(pointer);
   }
 
   operator = (ref<$type> p) {

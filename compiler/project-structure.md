@@ -5,7 +5,7 @@ We have to distinguish two project types:
 * `program`: whose final product is a binary or library
 * `package`: whose final product is source code
 
-Any project have three main componentes:
+Any project have three main components:
 
 * Your code
 * Core packages (language provided)
@@ -24,7 +24,7 @@ production environments but a `package` shall have only one.
 ## `program` - `entry point file`
 
 * Configure compiler. It's the only place you can use `#set`.
-* Declare [global variables](variables.md#global-variables)
+* Declare [global variables](..\language/variables.md#global-variables)
 * `#import` dependencies with version
 * Shall declare function `main`
 
@@ -35,11 +35,11 @@ production environments but a `package` shall have only one.
 
   It should test your program functionality.
 
-  See [unit-testing](unit-testing.md)
+  See [unit-testing](..\language/unit-testing.md)
 
 Here is an example of an `entry point file`:
 
-```
+```language
 #import core 1.0.0
 #import requests 1.5.1
 
@@ -61,7 +61,7 @@ set architecture to x64, declare a few globals and define main function
 
 ## `package`: `entry point`
 
-* Declare [package variables](variables.md#package-variables)
+* Declare [package variables](..\language/variables.md#package-variables)
 * Import dependencies
 * Declare the function `init`
 

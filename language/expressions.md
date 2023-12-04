@@ -345,3 +345,22 @@ function operator[](readonly $t lhs, $other rhs) $another {}
 function operator[:](readonly $t lhs, number start = number.MIN, number end = number.MIN) $another {}
 function operator.(readonly $t lhs, string rhs) lend $another {}
 ```
+
+The operator. it's a very special operator that will call recursive the operator. of a given type.
+
+
+```language
+struct ref<$T> {
+  ptr<$T> p
+
+  operator.() {
+    return __deref(p)
+  }
+}
+
+struct point {
+  float x
+  float y
+}
+
+ref<point>

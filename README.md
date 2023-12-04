@@ -43,44 +43,42 @@
 
 [Type system](language/type-system.md)
 
-* [Numeric arithmetic](language/types/numeric-arithmetic.md)
-* [Enumerated](language/types/enumerated.md)
-* [Array](language/types/array.md)
-* [String](language/types/string.md)
+* Primitives
+  * [Numeric arithmetic](language/types/numeric-arithmetic.md)
+  * [Pointers](language/types/pointers.md)
+  * [Structured](language/types/structured.md)
+  * [Enumerated](language/types/enumerated.md)
+  * [Interface](language/types/interface.md)
+
+* Extended
+  * [Array](language/types/array.md)
+  * [Strings](language/types/strings.md)
+
+[Identifiers](language/identifiers.md)
+
+[Literals](language/literals.md)
 
 [Variables](language/variables.md)
 
 [Functions](language/functions.md)
 
+[Control flow](language/control-flow.md)
+
+[Expressions](language/expressions.md)
+
 [Introspection](language/introspection.md)
-
-<!--
-[5. Expressions](expressions.md)
-
-[6. Statements](statements.md)
-
-[4. Declarations](declarations.md)
--->
-
-
-
-
-----
-
-[Language pylosophy and introduction](language.md)
-
-[Project structure](project-structure.md)
-
-[Type system](type-system.md), [types](types.md) and [variables](variables.md)
-
-[Operators](operators.md)
-
-[Control flow](control-flow.md)
 
 [Preprocessor and metaprogramming](preprocessor-and-metaprogramming.md)
 
 [Memory management](memory-management.md)
 
+<!--
+[6. Statements](statements.md)
+
+[4. Declarations](declarations.md)
+-->
+
+---
 
 To build a toy compiler you can read:
 * [Compilation process details](compilation.md)
