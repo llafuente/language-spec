@@ -1,0 +1,52 @@
+import index_iterator
+
+// helper macro to loop from start to end, one by one
+#macro loop_range(#value start, #value end, #text index_name = "$index") block {
+  #uid L_UID
+
+// restart statement target
+#L_UID#_loop_restart:
+  // cache input
+  var size #L_UID#_$index = start
+  var size #L_UID#_$max = end
+
+#L_UID#_loop_start:
+  if #L_UID#_$index < #L_UID#_$max {
+    const #index_name# #L_UID#_$index
+
+    #block#
+
+// continue statement target
+#L_UID#_loop_continue:
+    ++#L_UID#_$index
+
+    goto #L_UID#_loop_start:
+  }
+// break statement target
+#L_UID#_loop_break: {}
+}
+
+// loop macro will generate code based on val type
+#macro loop(#value value, #text index_name = "$index", #text value_name = "$value") block {
+// loop <number> {}
+#if value is number
+  #if #value_name# != "$value"
+    #semantic_error "Invalid loop value, when looping a number there is no value."
+  #fi
+
+  #loop_range(0, value, #index_name#) #block#
+// loop <number>..<number> {}
+#else if value is range
+  #loop_range(value.start, value.end, #index_name#) #block#
+
+// loop arr {} <-- aka iterable
+#else if value implements index_iterator
+  #loop_range(0, value.length, #index_name#) {
+    // copy
+    var #value_name# value[#index_name#]
+    #block#
+  }
+#else
+  #static_assert "Invalid loop expression expected type: array, string, number or range."
+#fi
+}

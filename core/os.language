@@ -1,0 +1,22 @@
+package os
+
+/**
+
+  pid <number> A process ID
+  signal <string> | <number> The signal to send, either as a string or number. Default: 'SIGTERM'.
+  The process.kill() method sends the signal to the process identified by pid.
+
+  Signal names are strings such as 'SIGINT' or 'SIGHUP'. See Signal Events and kill(2) for more information.
+
+  This method will throw an error if the target pid does not exist. As a special case, a signal of 0 can be used to test for the existence of a process. Windows platforms will throw an error if the pid is used to kill a process group.
+
+  Even though the name of this function is process.kill(), it is really just a signal sender, like the kill system call. The signal sent may do something other than kill the target process.
+
+*/
+function kill(i32 pid, string signal = "SIGTERM") {
+
+}
+
+function send_signal(i32 pid, string signal) {
+  kill(pid, signal)
+}

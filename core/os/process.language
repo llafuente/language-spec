@@ -1,0 +1,312 @@
+/**
+ * Process contains a process execution definition and result.
+ */
+package os.process
+
+type process_std_callback = function(data: string)
+type process_exit_callback = function(int: exit_code, string signal)
+type process_notification = function()
+type process_ipc_callback = function(string message) // sendHandle ?
+
+type process_def = struct {
+  /**
+    True - std_out and std_err will be send to defined callbacks and appended to std_out and std_err.
+    False - std_out and std_err will be send to defined callbacks and freed (std_out and std_err will be null)
+    */
+  bool save_stds
+
+  /**
+    True - Process in preparation state
+    False - Process has been started
+    */
+  bool is_preparing = true
+  /**
+    True - Process has been started but it's not finished.
+    False - Process has finished.
+  */
+  bool is_executing = false
+  /**
+    The command to run
+
+    Maybe: Writable while defining the process
+  */
+  string cmd
+  /**
+    List of string arguments
+  */
+  string[] arguments
+  /**
+    Current working directory
+
+    maybe: Writable while defining the process
+  */
+  string cwd
+  /**
+    Environment variables
+
+    Empty: do not modify environments variables
+  */
+  string[] env
+  /**
+    Process exit code
+  */
+  i32 exit_code
+  /**
+    Pipe standard output to
+  */
+  write_stream std_out
+  /**
+    Pipe standard error to
+  */
+  write_stream std_err
+  /**
+    Pipe standard in from
+  */
+  read_stream std_in
+  /**
+    Process standard out, will be incomplete until process ends
+
+    if initialized it will save all std_out here by adding a handler to on_std_out
+  */
+  optional<string> std_out_data = optional.null
+  /**
+    Process standard out, will be incomplete until process ends
+
+    if initialized it will save all std_out here by adding a handler to on_std_out
+  */
+  optional<string> std_err_data = optional.null
+  /**
+    Callback that will be called with all chunks read at standard out
+  */
+  process_std_callback[] on_std_out
+  /**
+    Callback that will be called with all chunks read at standard err
+  */
+  process_std_callback[] on_std_err
+  /**
+    Prepare child to run independently of its parent process
+  */
+  bool detached = false
+  /**
+    If true, runs command inside of a shell
+  */
+  bool shell_required = false
+  /**
+    Path to the shell.
+
+    by default: os.shell_path (windows: env.ComSpec, linux: "/bin/sh")
+  */
+  string shell_cmd
+  /**
+    Hide the subprocess console window that would normally be created on Windows systems.
+  */
+  bool hidden
+  /**
+    # number - code - The exit code if the child exited on its own.
+    # string - signal - The signal by which the child process was terminated.
+
+    The 'exit' event is emitted after the child process ends.
+    * If the process exited, code is the final exit code of the process.
+    * If the process terminated due to receipt of a signal, signal is the string name of the signal
+
+    You need to check first if a signal ends the process
+
+    Example:
+
+    ```
+    if (signal.len) {
+      // signal
+    } else {
+      // exit code
+    }
+    ```
+
+  */
+  process_exit_callback[] on_exit
+  /**
+    The 'close' event is emitted after a process has ended and the stdio
+    streams of a child process have been closed. This is distinct from the
+    'exit' event, since multiple processes might share the same stdio streams.
+    The 'close' event will always emit after 'exit' was already emitted,
+    or 'error' if the child failed to spawn.
+  */
+  process_exit_callback[] on_close
+  /**
+    The 'error' event is emitted whenever
+    * The process could not be spawned.
+    * The process could not be killed.
+    * Sending a message to the child process failed.
+    * The child process was aborted via the signal option.
+  */
+  process_error_callback[] on_error
+  /**
+    Initialize ipc
+  */
+  bool ipc
+  /**
+    The 'disconnect' event is emitted after calling the subprocess.disconnect()
+    method in parent process or process.disconnect() in child process.
+
+    After disconnecting the subprocess.ips_connected property is false and
+    ipc_send_message() will fail.
+  */
+  process_notification[] on_ipc_disconnect
+  // sendHandle <Handle> A net.Socket or net.Server object, or undefined.
+  /**
+    * string - message - A parsed JSON object or primitive value.
+
+    The 'message' event is triggered when a child process uses process.send() to send messages.
+
+    The message goes through serialization and parsing. The resulting message might not be the same as what is originally sent.
+
+    If the serialization option was set to 'advanced' used when spawning the child process, the message argument can
+    contain data that JSON is not able to represent. See Advanced serialization for more details.
+  */
+  process_ipc_callback[] on_ipc_message
+
+
+  // process_notification[] on_start
+}
+
+/**
+  Start the process execution
+  * Sends stdin and close it
+  * Wait to finish.
+*/
+function exec(ref<process_def> pd, string stdin) lend ref<child_process> {
+
+}
+
+/**
+  Start the process execution
+*/
+function exec_async(ref<process_def> pd) lend ref<child_process> {
+
+}
+
+/**
+  Start the process execution
+*/
+function exec_interactive(ref<process_def> pd) lend ref<child_process> {
+
+}
+/**
+Redirect stdout, stderr and stdin of the child process to the parent process
+stdout, stderr and stdin.
+*/
+function inherit_stdio(ref<process_def> pd) lend ref<child_process> {
+}
+
+
+Redirect std out to file
+var pd = new process_def()
+pd.std_out = fs.writeOpen("./std_out.txt")
+
+
+/**
+Valid values:
+* fs.file.open("")
+* os.pipe.open()
+* myprocess.stdout
+* fs.file.open("null") ?? /dev/null
+*/
+
+/**
+  Create a new instance with the same process definition.
+*/
+function clone(ref<process_def> pd) lend ref<process_def> {
+}
+
+
+type child_process = struct {
+  /**
+    Back pointer to ProcessDefinition
+  */
+  ref<process_def> definition
+  /**
+    Process identifier
+  */
+  i32 pid
+
+  /**
+    Indicates the process IPC is opened.
+  */
+  bool ipc_connected
+
+  ? ipc_channel
+
+  function ipc_disconnect() {
+     this.ipc_connected = false
+  }
+
+  function ipc_send_message() {
+
+    for x in on_ipc_disconnect {
+      x()
+    }
+  }
+
+  /**
+    Send given to string via standard input
+  */
+  function send_std_in(string str) {
+  }
+  /**
+    closes stdin and set disconnected to true.
+  */
+  function close_std_in() {
+    this.disconnected = true
+  }
+
+  /**
+    Read standard output at most of buffer.capacity
+  */
+  function read_std_out(ref<string> buffer) {
+    // buffer.cap is the max to read
+    // remember to call on_std_out
+    // fill definition.std_out
+  }
+
+  /**
+    Read standard error at most of buffer.capacity
+  */
+  function read_std_err(ref<string> buffer) {
+    // buffer.cap is the max to read
+    // remember to call on_std_err
+    // fill definition.std_err
+  }
+  /**
+    Try to dry io buffers.
+
+    When buffer are full child processes halt on io.
+  */
+  function dry_io() {
+
+  }
+  /**
+    Waits process to end
+  */
+  function wait() {
+
+  }
+  /**
+    Method sends a signal to the child process.
+  */
+  function send_signal(string signal) {
+
+  }
+  // terminate
+  function kill(string signal) {
+
+  }
+  /**
+    Recursive kill
+
+    It will kill child process and then it will try to kill grandchildren... etc.
+
+    To effectively kill them there must be no gaps (end processes)
+   */
+  function rkill(string signal) {
+
+  }
+}

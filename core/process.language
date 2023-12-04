@@ -1,0 +1,50 @@
+package process
+
+static type process = struct {
+
+  string[] arguments
+  /**
+    Returns the PID of the process
+  */
+  get i32 pid {}
+  /**
+    Returns the PID of the parent of the current process
+  */
+  get i32 ppid {}
+  /**
+    Returns the absolute pathname of the executable.
+    Symbolic links, if any, are resolved
+  */
+  get string path {}
+  get string arch {}
+  get string[] env {}
+  /**
+    Returns the current working directory
+  */
+  get string cwd {}
+
+  /**
+    Changes the current working directory process or throws an exception if
+    doing so fails (for instance, if the specified directory does not exist).
+  */
+  function chdir(string cwd) {
+
+  }
+
+  /**
+    The process.abort() method causes the process to exit immediately.
+  */
+  function abort(i32 exit_code) {
+
+  }
+
+  //
+  // IPC
+  //
+
+  ? ipc_channel
+  bool ipc_connected
+  function ipc_disconnect() {
+
+  }
+}

@@ -1,0 +1,19 @@
+#macro enum_decl(type_name, typeid, values) {
+
+  // downcast to it's type
+  function cast(#type_name#) typeid {
+    return #type_name#
+  }
+  // cast to variant
+  function cast(#type_name#) variant {
+    return variant(this, #type_name#)
+  }
+  // variant.to_xxx()
+  function to_#type_name#(variant v) #type_name# {
+    // TODO this could be more intelligent using rtti
+    if (v.type == #type_name#) {
+      return v.data
+    }
+    throw "Invalid casting"
+  }
+}

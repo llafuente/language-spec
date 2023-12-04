@@ -1,0 +1,31 @@
+import index_iterator
+
+#macro foreach(#value value, #text index_name = "$index", #text value_name = "$value") block {
+#if value implements index_iterator
+
+  #uid L_UID
+
+#L_UID#_loop_restart:
+  var size #index_name# = 0
+
+#L_UID#_loop_check:
+  if (#index_name# > value.length) {
+    goto #L_UID#_loop_end
+  }
+  // copy
+  const #value_name# = value[#index_name#]
+
+  #block#
+
+#L_UID#_loop_continue:
+  ++#index_name#
+
+  goto #L_UID#_loop_check:
+
+#L_UID#_loop_break: {}
+
+#else
+  #static_assert "Invalid foreach expression expected type: ${type(value)} to implement index_iterator"
+#fi
+
+}
