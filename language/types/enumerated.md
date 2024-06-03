@@ -1,29 +1,76 @@
 # Enumerated
 
+## `enum`
+
 *Semantics*
 
-The enumerated type is a set of names (identifiers) that represent a value of
-a type. The type could be explicitly declared.
-
-
-The underlying type is:
-* for integers: uint32 or int32 depending of the presence of negative values
-* for strings: ptraddres
+An enumeration consists of a set of named constants (enumerators) that represent
+a value of a type. The type could be explicitly declared.
 
 
 *Constraints*
 
-1. An `enum` has three possible types
-* `const ptraddress`
-* `const i32`
-* `const u32`
+1. An `enum` has three possible types:
 
-Effectively all are integer, as ptradress is a number big enough to fit a pointer.
+* `const ptraddress`, a pointer to readonly-memory of the strings
 
-2. Enum comparison will be integer/ptraddress comparison.
-string values should be stored in a readonly memory so we can assume no change.
+* `const i32`, if any value is negative
 
-3. Enum are struct of an aggregated type.
+* `const u32`, all values are positive
+
+2. `enum` assignament shall ensure that only enumerators values are assigned.
+
+This is not mandatory for `mask`.
+
+This implies that if an `enum` has `ptraddress` shall not be assigned to a
+non constant string.
+
+User shall use: get_value_of
+
+```language
+type enconding = enum {
+  BIN = "Binary"
+  ASCII = "Ascii"
+}
+var enconding ienum = enconding.BIN
+var dynamic_str = "Ascii"
+ienum = enconding.get_value_of(dynamic_str)
+```
+
+And `i32`, `u32` enum shall not be assigned to a number.
+
+```language
+type bitmask = enum {
+  b1 = 0x001
+  b2 = 0x002
+  b3 = 0x004
+}
+
+// it will fail
+var bitmask bm = bitmask.b1 | bitmask.b2
+// the same will wotk for mask type instead of enum
+```
+
+```language
+type bitmask = mask {
+  b1 = 0x001
+  b2 = 0x002
+  b3 = 0x004
+}
+
+// it will works
+var bitmask bm = bitmask.b1 | bitmask.b2
+```
+
+4. If no values are defined, it will start at 0 and type will be `i32`.
+
+5. If one value is defined, the rest shall be defined.
+
+6. Enumerators shall be uppercased
+
+7. Enumerators shall be "namespaced" with the `enum` name. Enumerators shall not
+leak in global/file/package scope.
+
 
 *Example*
 
@@ -58,24 +105,16 @@ var s2 = string_encoding_str2[0]
 s1 = s2
 ```
 
-* NOTE: If no values are defined, it will start at 0 and type will be size.
-
-* ERROR: If one value is defined, the rest must be defined.
-
-* ERROR: Identifiers must be uppercased.
-
-  REASON: This avoid collision with type properties.
-
 <!--
   https://en.wikipedia.org/wiki/Enumerated_type
 -->
-## Properties
+### Type properties
 
 * `name` - constant string - The enumerated name.
 
 * `length` - constant number - How many elements are defined
 
-* `values` - constant &lt;string|number&gt;[] - Array with all the values
+* `values` - constant &lt;ref&lt;string&gt;|number&gt;[] - Array with all the values
 
 * `identifiers` - constant string[] - Array with all identifiers name
 
@@ -83,18 +122,42 @@ s1 = s2
 `type` - Type representation
 -->
 
-## Methods
+### Type methods
 
 * `to_string()` - Dump the name
 
-## Operators
+* `get_value_of(string)` - get the value of given string
+
+* `is_valid(enum) bool` - Returns true if given value is one of the defined, false otherwise.
+
+### Operators
 
 ```
-operator [](size position) // It will return the value of the identifier at given position
+operator [](size position) enum // It will return the value of the identifier at given position
 ```
 
+## mask
 
+*Semantics*
 
+A `mask` is a special `enum` that allow assignment to any value.
+
+*Constraints*
+
+1. Same as enum removing assignment.
+
+*Example*
+
+```language
+type open_file_flags = mask {
+  WRITE = 0x00001000
+  READ = 0x00000200
+  APPEND = 0x00004000
+  // ...
+}
+create_append = open_file_flags.WRITE | open_file_flags.APPEND
+io.open_file("./xxx", create_append)
+```
 
 # Proposal enum -> struct
 
@@ -110,17 +173,20 @@ type string_encoding_str = enum {
 }
 
 
-#macro declare_enum(#type enum_t, #text enum_name) {
+#macro declare_enum(#type enum_t, #list enumerators, #list enumerators_values) {
 
   type #enum_name# = struct {
     value = "xxx" | "yyy" | "zzz"
 
-    #foreach_enumerator k,v in enum_t
-      static #K# = #v#
+    #foreach k,v in enumerators_values
+      static #enumerators[k]# = #v#
     #endforeach
     static length = ?
     static name = #enum_name#
     static values = [
+      #foreach _,v in enumerators_values
+        #v#,
+      #endforeach
     ]
   }
 

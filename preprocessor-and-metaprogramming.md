@@ -75,6 +75,8 @@ theirs definitions.
 macro_modifier
   : '#text'
   | '#value'
+  | '#list'
+  | '#value_list'
   ;
 
 macro_argument_list
