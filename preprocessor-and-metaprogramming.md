@@ -110,20 +110,44 @@ Package developers should append a unique prefix to allow package configuration.
 *syntax*
 
 ```syntax
-macro_modifier
+preprocessor_macro_argument_modifier
   : '#text'
   : '#string'
   : '#expression'
   | '#value'
   ;
 
-macro_argument_list
-  : macro_modifier Identifier (',' macro_argument_list)
+preprocessor_macro_argument_list
+  : preprocessor_macro_argument_modifier Identifier (',' preprocessor_macro_argument_list)
   ;
 
 preprocessor_macro_decl
-  : '#macro' Identifier '(' macro_argument_list? ')' '#block'? function_body
+  : '#macro' Identifier '(' preprocessor_macro_argument_list? ')' '#block'? function_body
   ;
+
+// TODO
+non_comma_parenthesis
+  : [a-Z]
+  | [0-9]
+  | operators
+  ;
+
+preprocessor_macro_call_argument
+  : '(' non_comma_parenthesis ')'
+
+preprocessor_macro_call_argument_list
+  : preprocessor_macro_call_argument (',' preprocessor_macro_call_argument_list)
+  ;
+
+preprocessor_macro_call_stmt
+  : '#' Identifier '(' preprocessor_macro_call_argument_list? ')' block?
+  ;
+
+// see: postfix_expr_macro_call
+// preprocessor_macro_call_expr
+//   : '#' Identifier '(' preprocessor_macro_call_argument_list? ')' block?
+//   ;
+
 ```
 
 *Semantics*
@@ -212,6 +236,37 @@ function add(i8 a, i8 b) {
 }
 
 print(add(10, 10)) // stdout: 20
+```
+
+A macro can be called postfix.
+
+```language
+var list = [1, 2, 3, 4]
+
+list.#foreach(value) {
+  print(value)
+}
+```
+
+```language
+#macro add(value, value2) {
+  value += value2
+}
+
+struct point {
+  float x
+  float y
+
+  function operator+=(auto ref<point> other) {
+    x += other.x
+    y += other.y
+  }
+}
+
+var p1 = point(0,0)
+var p2 = point(20,10)
+
+p1.#add(p2)
 ```
 
 <a name="macro-arguments"></a>

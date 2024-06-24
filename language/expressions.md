@@ -17,13 +17,14 @@ primary_expr
 postfix_expr
     // memberAccessExpression
     // TODO this should be a rhs_expression?
-    : postfix_expr '[' expression ']'              # postfix_expr_braces
+    : postfix_expr '[' expression ']'                                                  # postfix_expr_braces
     // TODO slice operator
-    //: postfix_expr '[' expression ':' expression ']'              # postfix_expr_slice
-    | postfix_expr '.' Identifier                  # postfix_expr_dot
+    //: postfix_expr '[' expression ':' expression ']'                                 # postfix_expr_slice
+    | postfix_expr '.' Identifier                                                      # postfix_expr_dot
+    | postfix_expr '.' '#' Identifier '(' preprocessor_macro_call_argument_list? ')'   # postfix_expr_macro_call
     // function call
-    | postfix_expr '(' argument_expr_list? ')'     # postfix_expr_call
-    | primary_expr ( '++' | '--' )*                # postfix_expr_idncr
+    | postfix_expr '(' argument_expr_list? ')'                                         # postfix_expr_call
+    | primary_expr ( '++' | '--' )*                                                    # postfix_expr_idncr
     // NOTE:  there is not -> operator
     ;
 
