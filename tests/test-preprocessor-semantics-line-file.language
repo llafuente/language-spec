@@ -1,0 +1,11 @@
+/**
+START_TEST
+flags:
+
+stdout:
+11 test-preprocessor-semantics-line-file.language
+stdin:
+
+END_OF_TEST
+*/
+print(#line#, #file#)

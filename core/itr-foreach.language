@@ -1,6 +1,6 @@
 import index_iterator
 
-#macro foreach(#value value, #text index_name = "$index", #text value_name = "$value") block {
+#macro foreach(#value value, #identifier index_name = "$index", #identifier value_name = "$value") block {
 #if value implements index_iterator
 
   #uid L_UID
@@ -25,7 +25,7 @@ import index_iterator
 #L_UID#_loop_break: {}
 
 #else
-  #static_assert "Invalid foreach expression expected type: ${type(value)} to implement index_iterator"
+  #static_assert `Invalid foreach expression expected type: ${type(value)} to implement index_iterator`
 #fi
 
 }

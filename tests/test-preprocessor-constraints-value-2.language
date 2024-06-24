@@ -1,0 +1,38 @@
+/**
+START_TEST
+flags:
+
+stdout:
+0
+1
+2
+3
+stderr:
+0
+current value = 0
+1
+current value = 1
+2
+current value = 2
+final value = 2
+stdin:
+
+END_OF_TEST
+*/
+var counter = 0
+
+function add() {
+	return ++counter
+}
+
+#macro use_counter(#value xxx) {
+	print(#xxx#)
+	print("current value =", #xxx#)
+}
+
+
+#use_counter(add())
+#use_counter(add.call())
+#use_counter(++counter)
+
+print(`final value = ${counter}`)

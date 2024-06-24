@@ -1,0 +1,27 @@
+import index_iterator
+
+#macro for(#expression start, #expression control = "", #expression increment = "") block {
+
+#uid L_UID
+
+#L_UID#_loop_restart:
+#start#
+
+#L_UID#_loop_continue:
+#increment#
+
+#if control is empty
+  #block#
+
+  goto #L_UID#_loop_continue:
+#else
+if (#control#) {
+  #block#
+
+  goto #L_UID#_loop_continue:
+}
+#fi
+
+#L_UID#_loop_break: {}
+
+}

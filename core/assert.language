@@ -1,4 +1,4 @@
-#macro assert(#text expr, #text message) {
+#macro assert(#expression expr, #string message) {
   if (!(expr)) {
     throw #message# "\nat #file#:#line# @ #function#()"
   }

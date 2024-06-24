@@ -1,0 +1,18 @@
+import index_iterator
+
+#macro dowhile(#expression control) block {
+
+#uid L_UID
+
+#L_UID#_loop_restart:
+
+#L_UID#_loop_continue:
+  #block#
+
+if (#control#) {
+  goto #L_UID#_loop_continue:
+}
+
+#L_UID#_loop_break: {}
+
+}

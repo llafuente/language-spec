@@ -1,3 +1,7 @@
+<!--
+  TODO
+    handling varargs ?
+-->
 # Preprocessor and Metaprogramming
 
 Preprocessor and metaprograming both share the same purpose, to generate code,
@@ -19,6 +23,39 @@ Both have the same syntax and should be understood as a whole.
 Implementation notes.
 
 * Max recursion for any macro declaration is 5.
+
+*syntax*
+
+```syntax
+
+preprocessor_str
+  : '##' identifierUp '#'
+  ;
+preprocessor_echo
+  : '#' identifierUp '#'
+  ;
+
+preprocessor_expressions
+  : preprocessor_str
+  : preprocessor_echo
+  | preprocessor_repeat_expr
+  ;
+
+preprocessor_stmts
+  : define_decl
+  | preprocessor_macro_decl
+  | forargs_stmt
+  | forstruct_stmt
+  | asset_stmt
+  | exec_stmt
+  | uid_stmt
+  | error_stmt
+  | warning_stmt
+  | type_error_stmt
+  | semantic_error_stmt
+  ;
+```
+
 
 ## `#define`
 
@@ -48,17 +85,18 @@ It's the way the main program configure packages.
 
 `#define` at package entry point it's available in every file in that package.
 
-`#define` at block scope can be used outside the block.
+`#define` at block scope can't be used outside the block.
 
 4. If a define is redefined a semantic-error shall be raised.
 
-4. Shall not be used inside functions
+<!--
+5. Shall not be used inside functions
+-->
 
 
 *Remarks*
 
-There is no `#undef`, so package developers should append a unique prefix to
-theirs definitions.
+Package developers should append a unique prefix to allow package configuration.
 
 *Example*
 
@@ -74,16 +112,16 @@ theirs definitions.
 ```syntax
 macro_modifier
   : '#text'
+  : '#string'
+  : '#expression'
   | '#value'
-  | '#list'
-  | '#value_list'
   ;
 
 macro_argument_list
   : macro_modifier Identifier (',' macro_argument_list)
   ;
 
-macro_decl
+preprocessor_macro_decl
   : '#macro' Identifier '(' macro_argument_list? ')' '#block'? function_body
   ;
 ```
@@ -96,19 +134,25 @@ A macro can fetch next block of code and expanded inside it's own block see [`#b
 
 *Constraints*
 
-1. A `#macro` is always inlined at macro-call.
+1. A `#macro` is always inlined at call site.
 
-2. `#macro` body shall have the same statements as functions.
+2. `#macro` body shall have the same statements as function body, expect for `#define`
 
 <!--
 The compiler will choose when to expand depending on what inputs require the macro.
 -->
 
-2. Each macro arguments can declares can how to handle input:
+2. Each macro arguments can declares how to handle input:
+
 * [`#text`](#macro-text) (default)
+
+* [`#string`](#macro-string)
+
+* [`#expression`](#macro-expression)
+
 * [`#value`](#macro-value)
 
-3. If a macro fetch the next block of code must use it inside.
+3. If a macro fetch the next block (#block is used) the #block# shall be used inside the macro or a semantic-error shall raise.
 
 4. When expanding a macro will create a new block at call site to keep
 everything declared in the macro inside it's own scope.
@@ -145,28 +189,29 @@ function test(): number {
 
 7. A macro function need to be syntax valid code by it's own.
 
-8. Inside a `#macro`: `#macro`, `#define` are forbidden.
-
 9. A macro argument is everything not comma and parenthesis will be honored,
 no open parenthesis will be allowed without the closing match.
 These prevent unshielded commas.
 
 *Examples*
+
 A macro can access variables outside its scope but no the other way around.
 
 ```language
-#macro m_sum() {
+#macro macro_add() {
   var x = 10
   c = a + b
 }
 
-function sum(i8 a, i8 b) {
+function add(i8 a, i8 b) {
   var c
-  #m_sum()
+  #macro_add()
   // print(x) <-- // this is a semantic error, variable not found
 
   return c
 }
+
+print(add(10, 10)) // stdout: 20
 ```
 
 <a name="macro-arguments"></a>
@@ -180,7 +225,7 @@ The string is double quote escaped.
 <a name="macro-text"></a>
 ### `#text` argument
 
-*semantics*
+*Semantics*
 
 `#text` is a macro argument modifier that tell that fetch the entire expression
 as text.
@@ -204,6 +249,7 @@ This is the default method so `#text` it's optional.
 ```
 
 Expansion:
+
 ```
 {
   print("xxx.ccc")
@@ -224,18 +270,53 @@ Expansion:
 
 ```
 
+*Constraints*
+
+1. `block`, `text`, `value`, `list` and  as identifier are fobidden
+
+2. Fully uppercased idenfitier are forbidden.
+
+<a name="macro-string"></a>
+### `#string` argument
+
+*Semantics*
+
+`#string` is a macro argument modifier that enforce the argument to be a valid string.
+
+It's intention is to give better error message, as it's the same as #text with a type check.
+
+```language
+#macro xxx(#string message) {
+  print(#message#)
+}
+
+xxx("print this message!")
+
+var x = false;
+xxx(`do not print ${x} messages!")
+
+```
+
+<a name="macro-expression"></a>
+### `#expression` argument
+
+*Semantics*
+
+`#expression` is a macro argument modifier that enforce the argument to be a valid expression.
+
 <a name="macro-value"></a>
 ### `#value` argument
 
-*semantics*
+*Semantics*
 
 `#value` is a macro argument modifier that make the expression to be evaluated
 and assigned to a local variable.
 
 *Constraints*
 
-1. Given expression must be a valid rhs
+1. Given expression must be a valid rhs expression
 
+<!-- test-preprocessor-constraints-value-2.language -->
 2. Expression shall be evaluated only once at the top of the expansion.
 
 
@@ -252,6 +333,7 @@ and assigned to a local variable.
 ```
 
 *Expansion*
+
 ```
 // declaration
 // usage
@@ -266,6 +348,7 @@ and assigned to a local variable.
 ```
 
 *Output*
+
 ```
 i8 = 17
 float = 17.2
@@ -275,14 +358,14 @@ float = 17.2
 
 ```language
 // Declaration
-#macro safe_sum(#text result, #value lhs, #value rhs, #text overflow) {
+#macro safe_add(#text result, #value lhs, #value rhs, #text overflow) {
 
   if (lhs >= 0) {
-    if (type(lhs).max - lhs < rhs) {
+    if (typeof(lhs).max - lhs < rhs) {
       overflow = true;
     }
   } else {
-    if (rhs < type(rhs).min - lhs) {
+    if (rhs < typeof(rhs).min - lhs) {
       overflow = true;
     }
   }
@@ -295,7 +378,7 @@ var b: i8 = 120;
 var r: i8 = 0;
 var overflowed = false;
 
-#safe_sum(r, a, b, overflowed)
+#safe_add(r, a, b, overflowed)
 print ("value", r, "overflowed?", overflowed)
 ```
 
@@ -328,10 +411,10 @@ print ("value", r, "overflowed?", overflowed)
 <a name="macro-block"></a>
 ### `#block`
 
-*semantics*
+*Semantics*
 
-`#block` is a macro modifier that force the a macro call to be followed by a
-block, that will be expanded inside the macro.
+`#block` is a macro modifier that force to defined a block at call site, this block of code
+will be expanded inside the macro.
 
 *Constrains*
 
@@ -341,23 +424,23 @@ This is almost how we implement `foreach` internally in the language.
 
 ```language
 // declaration
-#macro foreach_v(#value value, #value itr_able) #block {
+#macro foreach_v(#text val, #value itr_able) #block {
   #assert typeof(#itr_able#) implements Iterable
 
   #itr_able#.reset()
   for (int i = 0; i < #itr_able#.length; ++i) {
-    #value# := #itr_able#[i]
+    #val# := #itr_able#[i]
     #block#
     #itr_able#.next()
   }
 }
 
-#macro foreach_kv(#value key, #value value, #value itr_able) #block {
+#macro foreach_kv(#text key, #text val, #value itr_able) #block {
   #assert typeof(#itr_able#) implements Iterable
 
   #itr_able#.reset()
   for (int i = 0; i < #itr_able#.length; ++i) {
-    key, value := #itr_able#.get_key_value(i);
+    #key#, #val# := #itr_able#.get_key_value(i);
     #block#
     #itr_able#.next()
   }
@@ -418,13 +501,47 @@ list := [1,2,3,4]
 
 ```
 
+## `#forargs`
+
+```syntax
+forargs_stmt
+  : '#forargs' Identifier ',' Identifier function_body
+  ;
+```
+
+*Semantics*
+
+`#forargs` will loop the macro function `arguments`.
+
+*Constraints*
+
+1. The first identifier is the arguments text
+
+2. The second identifier is the arguments value
+
+
+*Example*
+
+```language
+
+#macro print(...) {
+  #forargs i, k {
+    print(#k#)
+  }
+}
+
+
+print(10, 11, 12)
+```
+
+
 ## `#forstruct`
 
 *Syntax*
 
 ```syntax
 forstruct_stmt
-  : '#forstruct' Identifier ',' Identifier 'in' expression function_body
+  : '#forstruct' Identifier ',' Identifier 'in' Identifier function_body
   ;
 ```
 *Semantics*
@@ -463,7 +580,14 @@ print(0, "x", p.x)
 print(1, "y", p.y)
 ```
 
+<!--
+  TODO review nomemclature!
+  this is a macro, so must be const-expression
+  #assert -> static assert in cpp
 
+  this is runtime, can be anything!
+  assert -> assert in cpp
+-->
 ## `#assert`
 
 *syntax*
@@ -491,12 +615,13 @@ Raise a compile time error if condition yield false.
 ```
 #assert x == 1
 #assert arr.length != 0
-#assert #PI# > 3.1
 ```
+
 ## `#static_assert`
 
 ```
-#assert typeof x == typeof y
+#static_assert #PI# > 3.1
+#static_assert typeof x == typeof y
 #static_assert sizeof(x) > 16
 #static_assert x implements comparable
 ```
@@ -515,12 +640,13 @@ exec_stmt
 
 Execute given command:
 * if exit code is 0: It will include its standard output in the current output
-* if exit code is not 0: It will stop compilation and display an error.
+* if exit code is not 0: It will stop compilation and display stderr and stdout as an error.
 
-This is only available in main program code. For security reasons it disallowed
-in libraries.
+*Constraints*
 
-The output of the command won't be re-evaluated.
+1. It's only aviable at program code. Disallowed for packages.
+
+2. The output of the command won't be re-evaluated. Any preprocessor or metaprogramming is disallowed.
 
 
 ## `#uid`
@@ -529,16 +655,20 @@ The output of the command won't be re-evaluated.
 
 ```syntax
 uid_stmt
-  : '#uid' Identifier
+  : '#uid' IdentifierUp
   ;
 ```
 
 *Semantics*
 
-It generates a unique number per expansion.
+It generates a unique identifier, can be used as prefix or sufix.
 
+*Constrains*
+
+1. Values shall be unique at current compilation.
 
 *Example*
+
 ```language
 #uid BLOCK_UID
 
@@ -551,39 +681,30 @@ if (true) {
 end_#BLOCK_UID#:
 ```
 
-
+<!-- test-preprocessor-semantics-line-file.language -->
 ## `#line`
-
-*Syntax*
-
-```syntax
-'#' line
-```
 
 *Semantics*
 
 Display current line
 
+*Constraints*
 
+1. Inside a macro function, display the caller line.
+
+<!-- test-preprocessor-semantics-line-file.language -->
 ## `#file`
-
-*Syntax*
-
-```syntax
-'#' file
-```
 
 *Semantics*
 
 Display current file
 
+*Constraints*
+
+1. Inside a macro function, display the caller file.
+
+
 ## `#date` [*TODO*: format]
-
-*Syntax*
-
-```syntax
-'#' date
-```
 
 *Semantics*
 
@@ -595,7 +716,7 @@ Date format can be configured using compiler flag `PREPROCESSOR_DATE_FORMAT`
 
 *Example*
 ```language
-#set preprocessor.date.format YYYY-mm-DD
+#set PREPROCESSOR_DATE_FORMAT YYYY-mm-DD
 
 print(##date)
 ```
@@ -605,7 +726,8 @@ print(##date)
 *Syntax*
 
 ```syntax
-'#' error text ENDL
+error_stmt
+  : '#' error text ENDL
 ```
 
 *Semantics*
@@ -618,7 +740,8 @@ Display the error message and abort compilation.
 *Syntax*
 
 ```syntax
-'#' warning text ENDL
+warning_stmt
+  : '#' warning text ENDL
 ```
 
 *Semantics*
@@ -630,30 +753,56 @@ Display the warning message but continue compilation.
 *Syntax*
 
 ```syntax
-'#' type_error text ENDL
+type_error_stmt
+  : '#' type_error text ENDL
 ```
 
 *Semantics*
 
 Display a type error message and abort compilation.
 
+## `#semantic_error msg`
+
+*Syntax*
+
+```syntax
+semantic_error_stmt
+  : '#' semantic_error text ENDL
+```
+
+*Semantics*
+
+Display a type semantic message and abort compilation.
+
+
 ### #repeat (line repeater)
 
 *Syntax*
 
 ```syntax
-identifier_list = identifier , identifier_list
-'#' repeat '(' identifier_list ')'
+identifier_list
+  : identifier , identifier_list
+  ;
+
+preprocessor_repeat_expr
+  : '#' repeat '(' identifier_list ')'
 ```
 
 *Semantics*
 
-This macro will repeat current line for each text sent.
+This macro will repeat current line for each text sent and it will replace itself for each value.
 
 *Constraints*
 
-1. If two line repeater are found in the same line both must have the same number
-of values because both will be expanded at the same time.
+1. If two line repeater are found in the same line:
+
+1. 1. Both must have the same number of values or a semantic error shall raise.
+
+1. 2. Both will be expanded at the same time.
+
+*Remarks*
+
+It only accept identifiers, not expressions.
 
 *Example*
 
@@ -740,9 +889,8 @@ Invalid macro arguments count: expected 1 found 2 at line 6
 ```
 
 ```error
-End of file reached with an unclosed string started at line 7:1
+End of line reached with an open string started at line 6:30
 ```
-
 
 ```language
 // Declaration
@@ -757,11 +905,8 @@ End of file reached with an unclosed string started at line 7:1
 
 ```error
 Syntax error unclosed string started at line 3:10
-while expanding print_text at line 5.
-
-
-{
-  print("this is a mess)
+#macro print_text(#text t) {
+  print("#t#)
         ^
 }
 ```
