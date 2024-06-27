@@ -1,0 +1,21 @@
+/**
+START_TEST
+flags:
+
+stdout:
+1
+2
+stderr:
+
+stdin:
+
+END_OF_TEST
+*/
+var i = 0;
+while(++i) {
+	print(i)
+	if (i == 1) {
+		continue
+	}
+	break
+}

@@ -1,0 +1,15 @@
+/**
+START_TEST
+flags:
+
+stdout:
+
+stderr:
+a is redeclared
+stdin:
+
+END_OF_TEST
+*/
+function a() {
+	var a = 10
+}

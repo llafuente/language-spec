@@ -1,0 +1,17 @@
+/**
+START_TEST
+flags:
+
+stdout:
+
+stderr:
+x is redeclared
+stdin:
+
+END_OF_TEST
+*/
+function a(float x) {
+	function() {
+		var x
+	}
+}

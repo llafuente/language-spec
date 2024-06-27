@@ -1,3 +1,7 @@
+<!--
+TODO review c - 6.9.2 External object definitions
+-->
+
 # Variables
 
 A variables is the name that it's associated with a value in a computer program.
@@ -32,7 +36,7 @@ global_variable_declaration_statement
   // typed constant with initialization
   | 'global' 'const' type_ref Identifier '=' rhs_expression
 
-  // untyped constant with initialization
+  // infer constant with initialization
   | 'global' 'const' Identifier '=' rhs_expression
   ;
 ```

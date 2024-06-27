@@ -1,3 +1,8 @@
+<!--
+  c - 6.9.1 Function definition
+-->
+
+
 # `function`
 
 ## Declaration
@@ -35,30 +40,85 @@ function_parameter_list
   ;
 
 function_parameter
-  : type_ref Identifier ('=' (Constant | String_literal))?
+  : auto? type_ref Identifier ('=' (Constant | String_literal))?
   ;
 ```
 
 
 *Semantics*
 
-*Constraints*
+1. The declarator in a function definition specifies the name of the function being defined
+and the identifiers and types of its parameters.
 
-1. A function shall return `i32` by default if user don't specify a return type.
+*function identifier/name constraints*
 
-2. If Empty `return` is found the compiler will add `0` as value.
+1. If used on lhs expression a semantic-error shall raise.
 
-3. If no `return` statement the compiler will add a `return 0` statements
+> Cannot assign to %identifier% because it is a function.
+
+> The left-hand side of an assignment expression must be a variable or a property access.
+
+2. If used as rhs expression.
+
+2. 1. It will be resolve as function pointer if literal expression is used.
+
+2. 2. It will be resolve as type otherwise.
+
+3. If used as type reference it will be resolved to the type.
+
+4. `type(identifier)` will resolve to the pointer to the type.
+
+5. Function identifier/name shall not be redeclared inside the function body
+or at the same level.
+
+> Cannot redeclare %identifier% declared at %file%:%line%:%column%
+
+```language
+function xxx() {           // declaration
+}
+
+function yyy() xxx {       // point 3
+  return xxx               // point 2
+}
+
+xxx = 10                   // point 1 stderr: A function name shall not be used in lhs expression
+var x = xxx                // point 2
+print(xxx.arguments)       // point 2 stdout: []
+print(xxx.return_type)     // point 2 stdout: i32
+print(type(xxx))           // point 4 stdout: function xxx() i32
+print(type(xxx).arguments) // point 4 stdout: []
+
+```
+
+
+*Return type constraints*
+
+1. If no specified and no `return` statement to infer from a return type
+`i32` shall be used.
+
+2. If empty `return` (no expression) a `return 0` shall be used.
+
+3. If a function don't have `return` statement a `return 0` shall be added
 as last statement in the function body.
 
-4. A void function shall not be assigned at function call.
+4. If return type is void, function call shall not be assigned or a
+semantic-error shall raised.
 
-5. Parameters types shall be implicit (no inference)
+*Parameters contraints*
 
-6. The function `return` type shall not be a template unless that template is
-the type of at least one parameter.
+1. All parameter shall define an identifier and type shall be implicit (no inference)
 
-7. A pure function shall have no access to package, file and global variables.
+2. If a function define a template the template must be used in at least
+one parameter.
+
+<!--
+  test-functions-parameters-contraints-3-a.language
+  test-functions-parameters-contraints-3-b.language
+-->
+
+3. No parameter identifier shall not be redeclared inside the function body
+
+> Cannot redeclare %identifier% declared at %file%:%line%:%column%
 
 *Example*
 
@@ -67,6 +127,14 @@ function sum(i32 a, i32 b) i32 {
   return a + b;
 }
 ```
+
+*Function constraints*
+
+1. A pure function shall have no access to package, file or global variables
+unless it's a constant or a semantic-error shall raise
+
+> A pure function shall no read or write any non-constant variable.
+
 
 ## functions as Type
 
@@ -88,11 +156,10 @@ function sort(i32[] arr, isort callback) {
 // inline declaration
 type xxx = function(i32 a, i32 b) i32
 
-[1, 2, 3].sort(isort)
+print([1, 2, 3].sort(isort))
 
-print(type isort)
-
-
+// equivalent ?
+#assert type isort === type xxx
 ```
 
 
@@ -101,7 +168,7 @@ print(type isort)
 
 *Semantics*
 
-`function-exit` refer to all possible ways to quit current function:
+`function-exit` refer to all possible ways to quit a function.
 
 * `return` (implicit or explicit)
 
@@ -113,7 +180,7 @@ print(type isort)
 
 *Constraints*
 
-1. All parameters must have a type.
+1. All parameters must have a explicit type.
 
 
 ### function parameter modifiers
@@ -122,11 +189,26 @@ print(type isort)
 
 *Semantics*
 
-The parameter memory can be not be modified
+The parameter memory can be modified
 
 *Constrains*
 
 1. The parameter itself shall not be modified
+
+
+```language
+function xxx(writable ref<i32> a) i32 {
+  a = 10;
+  // fail
+  a = new ref<i32>(11); // a contents are writable but a is constant
+}
+
+xxx(10) // fail, as 10 is not writable, also not a pointer
+var ref<i32> i = new ref<i32>(10);
+xxx(i) // fail, as 10 is not writable, also not a pointer
+
+```
+
 
 #### readonly (const)
 
@@ -136,13 +218,15 @@ Parameter (and it's memory) shall not be modified.
 
 *Constrains*
 
-1. The variable shall not be in a `left hand side` assigned.
+1. The variable shall not be in a `left hand side` assignament.
 
-2. A method that modified the value shall no be called.
+2. Any property of an object shall not be in a `left hand side` assignament.
 
-3. Another function that modified the value shall not be called.
+3. A method that modified the value shall no be called.
 
-4. A readonly parameters shall not be casted to a non-readable type.
+4. Another function that modified the value shall not be called.
+
+5. A readonly parameters shall not be casted to a non-readable type.
 
 *Example*
 
@@ -151,27 +235,36 @@ struct point {
   float x;
   float y;
 
+  // real function signature: setX(writable point this, float x)
   setX(float x) {
     this.x = x
   }
+  // real function signature: setY(writable point this, float y)
   setY(float y) {
     this.y = y
   }
 }
 
 // ok
-function sum_func1(readonly p1 point, readonly p2 point) point {
+function func_add_ok(readonly p1 point, readonly p2 point) point {
   return point {x: p1.x + p2.x, y: p1.y + p2.y };
 }
 
 // Constrains 1
+function sum_func1(readonly p1 point, float x, float y) point {
+  p1 = point{x: x, y: y}
+
+  return p1
+}
+
+// Constrains 2
 function sum_func2(readonly p1 point, readonly p2 point) point {
   p1.x += p2.x
   p1.y += p2.y
   return p1
 }
 
-// Constrains 2
+// Constrains 3
 function reset(readonly p1 point) {
   p1.setX(0)
   p1.setY(0)
@@ -187,6 +280,12 @@ function add(p1 point, readonly p2 point) point {
 function new_sum(readonly p1 point, p2 point) point {
   return p1.add(p2)
 }
+
+
+var point = func_add_ok(point{x: 0, y: 1}, point{x: 2, y: 0})
+
+
+
 
 ```
 

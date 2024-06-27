@@ -1,0 +1,16 @@
+/**
+START_TEST
+flags:
+
+stdout:
+
+stderr:
+
+stdin:
+
+END_OF_TEST
+*/
+function callback2(float x) {
+	return function(float x) {
+	}
+}

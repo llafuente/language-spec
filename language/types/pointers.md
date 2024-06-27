@@ -8,6 +8,8 @@
 
 Holds a reference to a single object in memory.
 
+<!-- Operator. will dereference the pointer and expand type properties. -->
+
 *Constrains*
 
 1. A `ptr` shall not move. No operator+, operator-, operator++, operator--, operator[]
@@ -29,6 +31,8 @@ Unsafe because there is no length/capacity stored.
 1. Full compatible c pointer.
 
 2. Dot operator auto-dereference the pointer.
+
+3. operator[] returns a ptr
 
 *Remarks*
 
