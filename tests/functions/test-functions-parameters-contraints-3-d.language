@@ -5,7 +5,7 @@ flags:
 stdout:
 
 stderr:
-
+x is redeclared at
 stdin:
 
 END_OF_TEST

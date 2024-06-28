@@ -1,7 +1,7 @@
 /**
 START_TEST
 flags:
-
+-run
 stdout:
 i = 0 times = 1
 i = 1 times = 2

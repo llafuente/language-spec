@@ -1,0 +1,55 @@
+The std::allocator class template is the default Allocator used by all standard library containers if no user-specified allocator is provided. The default allocator is stateless, that is, all instances of the given allocator are interchangeable, compare equal and can deallocate memory allocated by any other instance of the same allocator type.
+
+/*
+Defines the structure that holds all function to allocate and decallocate memory
+*/
+struct allocator<$t> {
+	// XXX REVIEW this is fun to parse ?! even possible!?
+	// function () return type name <-- so strange!
+	
+	/*
+	Allocates uninitialized continuos memory of given size
+	*/	
+	function (size s) lend uninitialized ref<$t> alloca
+
+	/*
+	Allocates aligned uninitialized continuos memory of given size
+	*/
+	function (size s, size alignament) lend uninitialized ref<$t> aalloca
+
+	/*
+	Allocates continuos memory of given size initialized to zero
+	
+	Type system should test if the memory requires to be initialized based on the $t
+	$t is primitive, zero is valid
+	$t is struct, zero is invalid, force to call constructor before use
+	*/
+	function (size s) lend uninitialized ref<$t> calloca
+
+	/*
+	Deallocates memory
+
+	Remarks:
+		Eats memory because it doesn't lend anything!
+	*/
+	function (own ref<$t> ptr) void dealloca
+}
+
+interface allocable {
+	allocator _allocator = null
+}
+
+global allocator<i8> global_allocator = {
+	function (size s) lend uninitialized ref<i8> {
+		return libc.malloc(s)
+	},
+	function (size s, size alignament) lend uninitialized ref<i8> {
+		return libc.malloc(s) // TODO
+	},
+	function (size s) lend uninitialized ref<i8> {
+		return libc.calloc(s)
+	},
+	function (own ref<i8> ptr) void {
+		libc.free(ptr)
+	}
+}

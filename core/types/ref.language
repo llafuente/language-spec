@@ -1,0 +1,15 @@
+struct ref<$t> {
+	i64 ptr
+
+	clone() {
+		
+	}
+
+	operator.() $t {
+		return cast<$t>(intrinsics_pointer_deref(this.ptr))
+	}
+	
+	operator=(ref<$t> other) ref<$t> {
+		return cast<$t>(intrinsics_pointer_deref(this.ptr)) = cast<$t>(intrinsics_pointer_deref(this.ptr))
+	}
+}

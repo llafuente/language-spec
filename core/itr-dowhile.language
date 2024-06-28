@@ -1,5 +1,3 @@
-import index_iterator
-
 #macro dowhile(#expression control) block {
 
 #uid L_UID

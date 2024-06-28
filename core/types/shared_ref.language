@@ -1,0 +1,160 @@
+// https://en.cppreference.com/w/cpp/memory/shared_ptr
+// https://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared
+// https://doc.rust-lang.org/book/ch15-04-rc.html
+// https://doc.rust-lang.org/src/alloc/rc.rs.html#317-320
+// https://doc.rust-lang.org/std/ops/trait.Deref.html
+
+import ref
+
+struct _shared_ref_data<$t> {
+	$t data
+	size strong_count = 1
+	size weak_count = 0
+	allocator _allocator = null
+
+	operator delete() {
+		if (_allocator != null) {
+			_allocator.dealloca(this)
+		}
+	}
+}
+
+
+struct _shared_ref_common<$t, $allocator is allocator = none> {
+	// noone owns this memory, exclusively
+	type data_type = _shared_ref_data<$t>
+	type data_ref_type = ref<data_type>
+
+	data_ref_type pointer
+
+	function count() size {
+		return pointer.strong_count
+	}
+
+	function weak_count() size {
+		return pointer.weak_count
+	}
+}
+
+/*
+Smart pointer that holds a owning reference to an object.
+Memory won't be freed until all strong and weak references are deleted.
+Memory is valid while strong references exists.
+*/
+struct shared_ref<$t, $allocator is allocator = null> extends _shared_ref_common<$t, $allocator> {
+	new() uninitialized ref<$t> {
+		pointer = ($allocator == null ? global_allocator : $allocator).alloca(data_type.size)
+		pointer._allocator = $allocator
+		return @pointer.data
+	}
+
+	delete() {
+		--pointer.strong_count
+		if (pointer.weak_count == 0 && pointer.strong_count == 0) {
+			delete pointer
+		}
+	}
+
+	clone () {
+		var x = new weak_ref<$t>(this)
+		x.data = pointer.data
+		++pointer.strong_count
+	}
+
+	operator .() {
+		return pointer.data
+	}
+
+
+	operator =(auto ref<shared_ref<$t>> other) {
+		if (pointer != null) { // can this happens ?
+			this.delete()
+		}
+		pointer = other.pointer
+		++pointer.strong_count
+	}
+
+	operator =(auto ref<weak_ref<$t>> other) {
+		if (pointer != null) { // can this happens ?
+			this.delete()
+		}
+		pointer = other.pointer
+		++pointer.strong_count
+	}
+}
+/*
+Smart pointer that holds a non-owning ("weak") reference to an object that is managed by shared_ref.
+
+To access shared data safe dereference operator (?.) shall be used.
+
+*/
+struct weak_ref<$t> extends _shared_ref_common<$t, None>
+	new(auto ref<sharef_ref<$t>> sr) {
+		pointer = sr.pointer
+		++pointer.weak_count
+	}
+
+	new(auto ref<weak_ref<$t>> wr) {
+		pointer = wr.pointer
+		++pointer.weak_count
+	}
+
+	delete() {
+		--pointer.weak_count
+		if (pointer.weak_count == 0 && pointer.strong_count == 0) {
+			delete pointer
+		}
+	}
+
+	clone () {
+		var x = new weak_ref<$t>(this)
+		x.data = pointer.data
+		++pointer.weak_count
+	}
+
+	operator?.() {
+		return pointer.data
+	}
+
+	operator =(auto ref<shared_ref<$t>> other) {
+		if (pointer != null) { // can this happens ?
+			this.delete()
+		}
+		pointer = other.pointer
+		++pointer.weak_count
+	}
+
+	operator =(auto ref<weak_ref<$t>> other) {
+		if (pointer != null) { // can this happens ?
+			this.delete()
+		}
+
+		pointer = other.pointer
+		++pointer.weak_count
+	}
+
+	function expired() {
+		return !this.valid()
+	}
+
+	function valid() {
+		return pointer.strong_count != 0
+	}
+
+	function lock() shared_ref<$t>? {
+		if (pointer.strong_count != 0) {
+			var p = cast<shared_ref<$t>>pointer.allocator.alloca(shared_ref<$t>.sizeof)
+			p.pointer = pointer
+			++pointer.strong_count
+			return p
+		}
+
+		return null
+	}
+}
+
+#assert shared_ref<i64>.size == ref.size
+#assert shared_ref<i32>.size == ref.size
+
+#assert _shared_ref_data<i32>.size == size.size + i32.size
+#assert _shared_ref_data<i64>.size == size.size + i64.size
