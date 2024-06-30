@@ -8,10 +8,10 @@ expressions
 */
 
 primary_expr
-    : Identifier
-    | String_literal
-    | Constant
-    | '(' expression ')'
+    : Identifier              # primary_expr_identifier
+    | String_literal          # primary_expr_string_literal
+    | Constant                # primary_expr_constant
+    | '(' expression ')'      # primary_expr_group
     ;
 
 postfix_expr
@@ -19,13 +19,15 @@ postfix_expr
     // TODO this should be a rhs_expression?
     : postfix_expr '[' expression ']'                                                  # postfix_expr_braces
     // TODO slice operator
-    //: postfix_expr '[' expression ':' expression ']'                                 # postfix_expr_slice
+    | postfix_expr '[' expression ':' expression ']'                                   # postfix_expr_slice
+    | postfix_expr '?.' Identifier                                                     # postfix_expr_safe_dot
+    | postfix_expr '!.' Identifier                                                     # postfix_expr_self_dot
     | postfix_expr '.' Identifier                                                      # postfix_expr_dot
-    | postfix_expr '.' '#' Identifier '(' preprocessor_macro_call_argument_list? ')'   # postfix_expr_macro_call
     // function call
     | postfix_expr '(' argument_expr_list? ')'                                         # postfix_expr_call
+    | postfix_expr '.' '#' Identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
+    | preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
     | primary_expr ( '++' | '--' )*                                                    # postfix_expr_idncr
-    // NOTE:  there is not -> operator
     ;
 
 argument_expr_list
@@ -40,7 +42,7 @@ argument_expr_list
 
 // TODO expand the operator like @postfix_expr
 unary_expr
-    : 'new' type_ref '(' argument_expr_list? ')'
+    : unaryNewExpression
     // TODO this should be a single expression
     | 'new' type_ref '[' expression ']'
     | 'delete' Identifier
@@ -59,7 +61,6 @@ cast_expr
     ;
 
 multiplicative_expr
-//    :   castExpression (('*'|'/'|'%') castExpression)*
     :   multiplicative_expr '*' cast_expr # multiplicative_expr_mult
     |   multiplicative_expr '/' cast_expr # multiplicative_expr_div
     |   multiplicative_expr '%' cast_expr # multiplicative_expr_mod
@@ -135,6 +136,23 @@ rhs_expression
   : conditional_expr
   ;
 
+operators
+  : assignment_operator
+  | '||'
+  | '&&'
+  | '|'
+  | '^'
+  | '&'
+  | '==' | '!='
+  | '<' | '>' | '<=' | '>='
+  | '<<' | '>>'
+  | '-' | '+'
+  | '*' | '/' | '%'
+  | '<' | '>'
+  | unary_operator
+  | '--' | '++'
+  ;
+
 ```
 
 ## Operators
@@ -143,7 +161,7 @@ rhs_expression
 
 | Category               | Operator                                                  | Associativity |
 |------------------------|-----------------------------------------------------------|---------------|
-| Postfix                | () [] . ++ - -                                            | Left to right |
+| Postfix                | () [] !. ?. . ++ - -                                      | Left to right |
 | Unary                  | +  -  !  ~  ++  -- &amp; typeof new delete                | Right to left |
 | Multiplicative         | *  /  %                                                   | Left to right |
 | Additive               | +  -                                                      | Left to right |
@@ -262,6 +280,7 @@ Here is the list of unsupported operators.
 * logical_or_expr: all
 * conditional_expr: all
 * postfix_expr: `operator()`, `operator++`, `operator--`
+    * `operator!.` self operator shall not be overriden, as this will remove access to an object that overrides dot.
 * assignment_expr: `operator<<=`, `operator >>=`, `operator&=`, `operator^=`, `operator|=`
 
 #### relational_expr operators
@@ -310,12 +329,12 @@ function operator!=(readonly $t lhs, readonly $other rhs) bool { return !(lhs ==
 assignament_expr cannot be chained so no `return`
 
 ```language
-function operator= ($t lhs, readonly $other rhs) {}
-function operator*= ($t lhs, readonly $other rhs) {}
-function operator/= ($t lhs, readonly $other rhs) {}
-function operator%= ($t lhs, readonly $other rhs) {}
-function operator+= ($t lhs, readonly $other rhs) {}
-function operator-= ($t lhs, readonly $other rhs) {}
+function operator = ($t lhs, readonly $other rhs) {}
+function operator *= ($t lhs, readonly $other rhs) {}
+function operator /= ($t lhs, readonly $other rhs) {}
+function operator %= ($t lhs, readonly $other rhs) {}
+function operator += ($t lhs, readonly $other rhs) {}
+function operator -= ($t lhs, readonly $other rhs) {}
 ```
 
 #### cast_expr
@@ -324,7 +343,7 @@ This is a very special operator because this allows the compiler to fit your
 type in many places. Use it with care.
 
 ```language
-operatorcast($t lhs) $other {}
+operator cast($t lhs) $other {}
 ```
 
 
@@ -340,14 +359,16 @@ It's forbidden to lend memory.
 
 
 ```language
-function operator[](readonly $t lhs, $other rhs) $another {}
+function operator [](readonly $t lhs, $other rhs) $another {}
 // operator slice
 // start == number.MIN means not defined example: arr[:10]
-function operator[:](readonly $t lhs, number start = number.MIN, number end = number.MIN) $another {}
+// function operator [:](readonly $t lhs, number start = number.MIN, number end = number.MIN) $another {}
 function operator.(readonly $t lhs, string rhs) lend $another {}
 ```
 
 The operator. it's a very special operator that will call recursive the operator. of a given type.
+
+dot operator is meant
 
 
 ```language
@@ -365,3 +386,4 @@ struct point {
 }
 
 ref<point>
+```

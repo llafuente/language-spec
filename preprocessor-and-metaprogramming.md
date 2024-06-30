@@ -28,31 +28,31 @@ Implementation notes.
 
 ```syntax
 
-preprocessor_str
-  : '##' identifierUp '#'
+preprocessorStr
+  : '##' IdentifierUp '#'
   ;
-preprocessor_echo
-  : '#' identifierUp '#'
+preprocessorEcho
+  : '#' IdentifierUp '#'
   ;
 
 preprocessor_expressions
-  : preprocessor_str
-  : preprocessor_echo
-  | preprocessor_repeat_expr
+  : preprocessorStr
+  | preprocessorEcho
+  | preprocessorRepeatExpr
   ;
 
 preprocessor_stmts
-  : define_decl
-  | preprocessor_macro_decl
+  : defineDecl
+  | preprocessorMacroDecl
   | forargs_stmt
   | forstruct_stmt
-  | asset_stmt
-  | exec_stmt
-  | uid_stmt
-  | error_stmt
-  | warning_stmt
-  | type_error_stmt
-  | semantic_error_stmt
+  | assertStmt
+  | execStmt
+  | uidStmt
+  | errorStmt
+  | warningStmt
+  | typeErrorStmt
+  | semantic_errorStmt
   ;
 ```
 
@@ -62,8 +62,9 @@ preprocessor_stmts
 *syntax*
 
 ```syntax
-define_decl
-  : '#define' IdentifierUp any_non_endl ENDL
+defineDecl
+  // REVIEW why do not accept "non-newline?!" ~[\r\n]*
+  : '#define' Identifier 
   ;
 ```
 
@@ -110,42 +111,43 @@ Package developers should append a unique prefix to allow package configuration.
 *syntax*
 
 ```syntax
-preprocessor_macro_argument_modifier
+preprocessorMacroArgumentModifier
   : '#text'
-  : '#string'
-  : '#expression'
+  | '#string'
+  | '#expression'
   | '#value'
   ;
 
-preprocessor_macro_argument_list
-  : preprocessor_macro_argument_modifier Identifier (',' preprocessor_macro_argument_list)
+preprocessorMacroArgumentList
+  : preprocessorMacroArgumentModifier Identifier (',' preprocessorMacroArgumentList)
   ;
 
-preprocessor_macro_decl
-  : '#macro' Identifier '(' preprocessor_macro_argument_list? ')' '#block'? function_body
+preprocessorMacroDecl
+  : '#macro' Identifier '(' preprocessorMacroArgumentList? ')' '#block'? function_body
   ;
 
 // TODO
-non_comma_parenthesis
-  : [a-Z]
-  | [0-9]
-  | operators
+nonCommaParenthesis
+  : (NON_DIGIT | DIGIT | operators)+
   ;
 
-preprocessor_macro_call_argument
-  : '(' non_comma_parenthesis ')'
-
-preprocessor_macro_call_argument_list
-  : preprocessor_macro_call_argument (',' preprocessor_macro_call_argument_list)
+preprocessorMacroCallArgument
+  : '(' nonCommaParenthesis ')'
   ;
 
-preprocessor_macro_call_stmt
-  : '#' Identifier '(' preprocessor_macro_call_argument_list? ')' block?
+preprocessorMacroCallArgumentList
+  : preprocessorMacroCallArgument (',' preprocessorMacroCallArgumentList)*
   ;
+
+preprocessorMacroCallExpr
+  : '#' Identifier '(' preprocessorMacroCallArgumentList? ')' blockStmt?
+  ;
+
+// see: preprocessorMemberMacroCallExpr
 
 // see: postfix_expr_macro_call
 // preprocessor_macro_call_expr
-//   : '#' Identifier '(' preprocessor_macro_call_argument_list? ')' block?
+//   : '#' Identifier '(' preprocessorMacroCallArgumentList? ')' blockStmt?
 //   ;
 
 ```
@@ -648,8 +650,8 @@ print(1, "y", p.y)
 *syntax*
 
 ```syntax
-asset_stmt
-  : '#assert' expression ',' string_literal ENDL
+assertStmt
+  : '#assert' expression ',' StringLiteral
   ;
 ```
 
@@ -686,8 +688,8 @@ Raise a compile time error if condition yield false.
 *syntax*
 
 ```syntax
-exec_stmt
-  : '#exec' non_endl
+execStmt
+  : '#exec' CCHAR_SEQUENCE
   ;
 ```
 
@@ -709,7 +711,7 @@ Execute given command:
 *Syntax*
 
 ```syntax
-uid_stmt
+uidStmt
   : '#uid' IdentifierUp
   ;
 ```
@@ -781,8 +783,9 @@ print(##date)
 *Syntax*
 
 ```syntax
-error_stmt
-  : '#' error text ENDL
+errorStmt
+  : '#' 'error' CCHAR_SEQUENCE
+  ;
 ```
 
 *Semantics*
@@ -795,8 +798,9 @@ Display the error message and abort compilation.
 *Syntax*
 
 ```syntax
-warning_stmt
-  : '#' warning text ENDL
+warningStmt
+  : '#' 'warning' CCHAR_SEQUENCE
+  ;
 ```
 
 *Semantics*
@@ -808,8 +812,9 @@ Display the warning message but continue compilation.
 *Syntax*
 
 ```syntax
-type_error_stmt
-  : '#' type_error text ENDL
+typeErrorStmt
+  : '#' 'type_error' CCHAR_SEQUENCE
+  ;
 ```
 
 *Semantics*
@@ -821,8 +826,9 @@ Display a type error message and abort compilation.
 *Syntax*
 
 ```syntax
-semantic_error_stmt
-  : '#' semantic_error text ENDL
+semantic_errorStmt
+  : '#' 'semantic_error' CCHAR_SEQUENCE
+  ;
 ```
 
 *Semantics*
@@ -835,12 +841,9 @@ Display a type semantic message and abort compilation.
 *Syntax*
 
 ```syntax
-identifier_list
-  : identifier , identifier_list
+preprocessorRepeatExpr
+  : '#' 'repeat' '(' identifierList ')'
   ;
-
-preprocessor_repeat_expr
-  : '#' repeat '(' identifier_list ')'
 ```
 
 *Semantics*

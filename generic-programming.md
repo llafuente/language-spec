@@ -7,23 +7,29 @@
 *Syntax*
 
 ```syntax
-DollarIdentifier =
+dollarIdentifier
   : '$' Identifier
   ;
 
-template_constraint =
+dollarIdentifierList
+  : dollarIdentifier (',' dollarIdentifier)*
+  ;
+
+
+templateConstraint
   : 'is' type_ref
   | 'implements' type_ref
   | 'extends' type_ref
-
-template_constraints =
-  : template_constraint (',' template_constraint)+
   ;
 
-template_decl =
-  : 'template' DollarIdentifier template_constraints?
+templateConstraints
+  : templateConstraint (',' templateConstraint)+
+  ;
+
+templateDecl
+  : 'template' dollarIdentifier templateConstraints?
   // template specification ?
-  // template dollar-identifier dollar-identifier template-constraints
+  // template dollarIdentifier dollarIdentifier template-constraints
   ;
 ```
 

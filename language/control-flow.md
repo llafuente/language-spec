@@ -1,9 +1,29 @@
+<!-- 
+  c: 6.8.4 Selection statements
+  swift: https://docs.swift.org/swift-book/LanguageGuide/ControlFlow.html -->
+
 # Control flow
-<!--
-  https://docs.swift.org/swift-book/LanguageGuide/ControlFlow.html
--->
 
 ## Selection statements
+
+*Syntax*
+
+
+```syntax
+selectionStmt
+  : ifStmt
+  | switchStmt
+  | gotoStmt
+  | loopStmt
+  | foreachStmt
+  | continueStmt
+  | restartStmt
+  | breakStmt
+  | fallthroughStmt
+  ;
+```
+
+*Semantics*
 
 A selection statement selects among a set of statements depending on the value of a controlling expression.
 
@@ -20,16 +40,17 @@ The controlling expression shall have bool type, there won't be implicit convers
 *syntax*
 
 ```syntax
-if_selection_stmt
-  : 'if' '(' expression ')' function_body
+ifSelectionStmt
+  // REVIEW syntax require block here ?
+  : 'if' expression function_body
   ;
 
-else_selection_stmt
+elseSelectionStmt
   : 'else' function_body
   ;
 
-if_stmt
-  : if_selection_stmt ('else' if_selection_stmt)* else_selection_stmt?
+ifStmt
+  : ifSelectionStmt ('else' ifSelectionStmt)* elseSelectionStmt?
   ;
 ```
 
@@ -72,13 +93,17 @@ if x {
 
 *Syntax*
 
-```synta
-switch-statement
-  case expression : statements
-  default : statements
+```syntax
+switchCaseStmt
+  // REVIEW syntax require block here ?
+  : 'case' Constant ':' statement
+  | 'default' ':' statement
+  ;
 
-switch-statement
-  switch ( expression ) { switch-statement }
+switchStmt
+  // REVIEW syntax remove parenthesis like in if
+  : 'switch' expression '{' switchCaseStmt* '}'
+  ;
 ```
 
 
@@ -158,7 +183,7 @@ function operator ==(string input, regex check) bool {
 *Syntax*
 
 ```syntax
-goto_stmt
+gotoStmt
   : 'goto' Identifier
   ;
 ```
@@ -244,7 +269,7 @@ There are special statements inside loop with specific behaviour, explained belo
 *Syntax*
 
 ```syntax
-loop_stmt
+loopStmt
   : 'loop' expression ('as' Identifier(',' Identifier))? function_body
   ;
 ```
@@ -346,9 +371,10 @@ loop ? while <Exception> {
 
 *Syntax*
 
-```synta
-foreach-statement =
-  foreach [identifier[, identifier]] in expression block
+```syntax
+foreachStmt
+  : 'foreach' ( Identifier (',' Identifier)?)? 'in' expression '{' statement '}'
+  ;
 ```
 
 `foreach` will loop a structure.
@@ -454,8 +480,8 @@ The compiler shall replace the `loop` statement with a `macro` call.
 *Syntax*
 
 ```syntax
-continue_stmt
-  : 'continue' (Identifier|DECIMAL_CONSTANT)?
+continueStmt
+  : 'continue' (Identifier | DECIMAL_CONSTANT)?
   ;
 ```
 
@@ -509,8 +535,8 @@ Pick the first if id is not present
 *Syntax*
 
 ```syntax
-restart_stmt
-  : 'restart' (Identifier|DECIMAL_CONSTANT)?
+restartStmt
+  : 'restart' ( Identifier | DECIMAL_CONSTANT )?
   ;
 ```
 
@@ -536,8 +562,8 @@ Pick the first if id is not present
 *Syntax*
 
 ```syntax
-break_stmt
-  : 'break' (Identifier|DECIMAL_CONSTANT)?
+breakStmt
+  : 'break' ( Identifier | DECIMAL_CONSTANT )?
   ;
 ```
 
@@ -562,7 +588,7 @@ Pick the first if id is not present
 *Syntax*
 
 ```syntax
-fallthrough_stmt
+fallthroughStmt
   : 'fallthrough'
   ;
 ```

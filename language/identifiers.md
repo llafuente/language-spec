@@ -12,8 +12,15 @@ Identifier
         )*
     ;
 
-identifier_list
-    :   Identifier? (',' Identifier?)*
+IdentifierUp
+    :   (IDENTIFIERUP_NON_DIGIT | '$')
+        (   IDENTIFIERUP_NON_DIGIT
+        |   DIGIT
+        )*
+    ;
+
+identifierList
+    :   Identifier? (',' Identifier)*
     ;
 fragment
 IDENTIFIER_NON_DIGIT
@@ -21,6 +28,18 @@ IDENTIFIER_NON_DIGIT
     |   UNIVERSAL_CHARACTER_NAME
     //|   // other implementation_defined characters...
     ;
+fragment
+IDENTIFIERUP_NON_DIGIT
+    :   NON_DIGITUP
+    |   UNIVERSAL_CHARACTER_NAME
+    //|   // other implementation_defined characters...
+    ;
+
+fragment
+NON_DIGITUP
+    :   [A-Z_]
+    ;
+
 fragment
 NON_DIGIT
     :   [a-zA-Z_]

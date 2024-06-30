@@ -8,7 +8,7 @@ Unlike many language, compiler is configured inside the source code.
 
 ```syntax
 preprocessor_set_statement
-  : '#set' identifier literal
+  : '#set' Identifier CCHAR_SEQUENCE
   ;
 ```
 
@@ -36,7 +36,7 @@ var x = #set arrays.out_of_bounds true
 
 ```syntax
 preprocessor_get_expr
-  : '#get' identifier
+  : '#get' Identifier
   ;
 ```
 
@@ -61,7 +61,7 @@ var x = #get arrays.out_of_bounds
 
 ```syntax
 preprocessor_require_statement
-  : '#require' identifier literal
+  : '#require' Identifier CCHAR_SEQUENCE
   ;
 ```
 

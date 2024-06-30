@@ -25,8 +25,17 @@ struct static_array<$t> {
 *syntax*
 
 ```syntax
-array_constant =
-  '[' rhs_expression_list ']'
+arrayItem
+  : expression
+  ;
+
+arrayItemList
+  : arrayItem (',' arrayItemList)?
+  ;
+
+arrayDecl
+  : '[' arrayItemList ']'
+  ;
 ```
 
 *Semantics*

@@ -27,12 +27,7 @@ function_statements
 // TODO inside a function you can create a lambda but not a function!
   | function_decl
   | return_stmt
-  | if_stmt
-  | goto_stmt
-  | continue_stmt
-  | restart_stmt
-  | break_stmt
-  | loop_stmt
+  | selectionStmt
   ;
 
 function_parameter_list
@@ -40,7 +35,7 @@ function_parameter_list
   ;
 
 function_parameter
-  : auto? type_ref Identifier ('=' (Constant | String_literal))?
+  : 'auto'? type_ref Identifier ('=' (Constant | String_literal))?
   ;
 ```
 

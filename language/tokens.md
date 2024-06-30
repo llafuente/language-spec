@@ -33,4 +33,8 @@ RightBracket_TK : ']';
 LeftBrace_TK : '{';
 RightBrace_TK : '}';
 
+// WS : [ \t\f]+                        -> channel(HIDDEN);
+WS : [ \t\f]+                        -> skip;
+WHITESPACE : ' ' -> skip ;
+
 ```

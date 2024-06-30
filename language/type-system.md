@@ -51,29 +51,32 @@ Most of the types start as Inmutables like
 -->
 
 ```syntax
-dollar_identifier
-  : '$' Identifier
-  ;
-
-dollar_identifier_list
-  : dollar_identifier (',' dollar_identifier)*
-  ;
-
 type_identifier
-  : Identifier ('<' dollar_identifier_list '>')?
+  : Identifier ('<' dollarIdentifierList '>')?
   ;
 
-type_decl
-  : 'type' type_identifier '=' type_definition
+XtypeDecl
+  : 'type' Identifier
+  ;
+
+typeDecl
+  : 'type' type_identifier '=' Identifier
+  | 'type' type_identifier '=' type_definition
   ;
 
 type_ref_list
   : type_ref (',' type_ref)+
   ;
 
+type_modifiers
+  : 'lend'
+  | 'own'
+  | 'uninitialized'
+  ;
+
 type_ref
-  : 'lend'? 'own'? 'uninitialized'? Identifier '<' type_ref_list '>'
-  | 'lend'? 'own'? 'uninitialized'? Identifier
+  : type_modifiers* Identifier '<' type_ref_list '>'
+  | type_modifiers* Identifier
   ;
 
 type_definition
@@ -82,7 +85,7 @@ type_definition
   | 'function' '(' function_parameter_list? ')' type_ref             # function_type_decl
   | type_definition '[]'                                             # array_type_decl
   | type_definition '?'                                              # nullable_type_decl
-  | type_definition '<' dollar_identifier_list '>'                   # template_type_decl
+  | type_definition '<' dollarIdentifierList '>'                   # template_type_decl
   | struct_type_decl                                                 # struct_type
   | enum_type_decl                                                   # enum_type
   ;
@@ -107,7 +110,7 @@ struct_property_list
   ;
 
 struct_type_decl
-  : 'struct' ('extends' Identifier)? ('align' DIGIT_SEQUENCE)? '{' end_of_statement? struct_property_list? '}'
+  : 'struct' ('extends' Identifier)? ('align' DIGIT_SEQUENCE)? '{' end_of_statement? struct_property_list '}'
   ;
 
 enumerator
@@ -120,7 +123,7 @@ enumerator_list
   ;
 
 enum_type_decl
-  : 'enum' '{' end_of_statement? enumerator_list  ? '}'
+  : 'enum' '{' end_of_statement? enumerator_list '}'
   ;
 
 ```

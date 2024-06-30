@@ -8,24 +8,35 @@ import ref
 
 struct _shared_ref_data<$t> {
 	$t data
+	allocator.dealloca _dealloca
 	size strong_count = 1
 	size weak_count = 0
-	allocator _allocator = null
 
 	operator delete() {
-		if (_allocator != null) {
-			_allocator.dealloca(this)
-		}
+		_dealloca(this)
 	}
 }
 
 
-struct _shared_ref_common<$t, $allocator is allocator = none> {
+struct _shared_ref_common<$t> {
 	// noone owns this memory, exclusively
 	type data_type = _shared_ref_data<$t>
 	type data_ref_type = ref<data_type>
 
 	data_ref_type pointer
+
+	/*
+	Points the same data ?
+	*/
+	operator == (auto ref<weak_ref<$t>> other) bool {
+		return @pointer.data == @other.data
+	}
+	/*
+	Points the same data ?
+	*/
+	operator == (auto ref<shared_ref<$t>> other) bool {
+		return @pointer.data == @other.data
+	}
 
 	function count() size {
 		return pointer.strong_count
@@ -38,13 +49,18 @@ struct _shared_ref_common<$t, $allocator is allocator = none> {
 
 /*
 Smart pointer that holds a owning reference to an object.
+
 Memory won't be freed until all strong and weak references are deleted.
+
 Memory is valid while strong references exists.
 */
-struct shared_ref<$t, $allocator is allocator = null> extends _shared_ref_common<$t, $allocator> {
+struct shared_ref<$t> extends _shared_ref_common<$t> {
+	/*
+	Default constructor
+	*/
 	new() uninitialized ref<$t> {
-		pointer = ($allocator == null ? global_allocator : $allocator).alloca(data_type.size)
-		pointer._allocator = $allocator
+		pointer = default_allocator.alloca(data_type.size)
+		pointer._dealloca = default_allocator.dealloca
 		return @pointer.data
 	}
 
@@ -60,21 +76,27 @@ struct shared_ref<$t, $allocator is allocator = null> extends _shared_ref_common
 		x.data = pointer.data
 		++pointer.strong_count
 	}
-
-	operator .() {
+	/*
+	Fowards member access operator to hold data type.
+	*/
+	operator .() $t {
 		return pointer.data
 	}
 
-
-	operator =(auto ref<shared_ref<$t>> other) {
+	/*
+	Copy constructor from shared_ref
+	*/
+	operator = (auto ref<shared_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}
 		pointer = other.pointer
 		++pointer.strong_count
 	}
-
-	operator =(auto ref<weak_ref<$t>> other) {
+	/*
+	Copy constructor from weak_ref
+	*/
+	operator = (auto ref<weak_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}
@@ -115,16 +137,20 @@ struct weak_ref<$t> extends _shared_ref_common<$t, None>
 	operator?.() {
 		return pointer.data
 	}
-
-	operator =(auto ref<shared_ref<$t>> other) {
+	/*
+	Copy constructor from shared_ref
+	*/
+	new (auto ref<shared_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}
 		pointer = other.pointer
 		++pointer.weak_count
 	}
-
-	operator =(auto ref<weak_ref<$t>> other) {
+	/*
+	Copy constructor from weak_ref
+	*/
+	new (auto ref<weak_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}

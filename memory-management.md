@@ -15,12 +15,9 @@ It also support real memory allocators.
 *Syntax*
 
 ```syntax
-// single heap instance
-// Allocate memory, returns a pointer to that memory. Memory will be own by a local variable if pool is not defined.
-new [shared] type [ '(' function_arguments ')' [at identifier]]
-// multiple heap instances
-// Allocate memory, returns a pointer to that memory. Memory will be own by a local variable if pool is not defined.
-new [shared] type '[' expression ']' '(' function_arguments ')' [at identifier]
+unaryNewExpression
+  : 'new' type_ref '(' argument_expr_list? ')' ('(' argument_expr_list? ')')* ('at' Identifier)?
+  ;
 ```
 
 *Semantics*

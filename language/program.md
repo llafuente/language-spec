@@ -4,38 +4,40 @@
 
 ```syntax
 program
-  : program_stms_list EOF
+  : programStmsList? EOF
   ;
 
-program_stms_list
-  : (program_stms end_of_statement)+
+programStmsList
+  : (programStms end_of_statement)*
   ;
 
-program_stms
-  : type_decl
+programStms
+  : statement
+  ;
+
+statement
+  : CommentLine
+  | CommentBlock
+  | XtypeDecl
+  ;
+
+  /*
   | function_decl
   | global_variable_declaration_statement
   | file_variable_declaration_statement
   | expression
-  | Comment_line
-  | Comment_block
   // for testing purposes
-  | if_stmt
-  | goto_stmt
-  | continue_stmt
-  | restart_stmt
-  | break_stmt
-  | loop_stmt
+  | selectionStmt
+  ;
+  */
+
+blockStmt
+  : '{' statement '}'
   ;
 
 end_of_statement
   : (( '\r\n' | '\n' | ';')* | EOF )
   ;
-
-Whitespace
-    :   [ \t]+
-        -> skip
-    ;
 
 // TODO REVIEW fragment ?
 Newline
@@ -45,17 +47,21 @@ Newline
         -> skip
     ;
 
-fragment
-WS : (' ' | '\t' | '\r' | '\n')* -> skip;
+// fragment
+// WS : [ \t\f]+                        -> channel(HIDDEN);
+//WS        : [ \t\f]+                -> channel(HIDDEN);
+//WHITESPACE: [ \t\f]+                -> channel(HIDDEN);
+//Whitespace: [ \t\f]+                -> channel(HIDDEN);
 
-Comment_line
-    :   '//' ~[\r\n]*
-        -> skip
+
+CommentLine
+    :   '//' ~[\r\nEOF]*
+//        -> skip
     ;
 
-Comment_block
+CommentBlock
     :   '/*' .*? '*/'
-        -> skip
+//        -> skip
     ;
 ```
 

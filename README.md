@@ -62,6 +62,8 @@
 
 [Functions](language/functions.md)
 
+[Statements and blocks](language/statements-and-blocks.md)
+
 [Control flow](language/control-flow.md)
 
 [Expressions](language/expressions.md)

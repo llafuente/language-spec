@@ -17,7 +17,7 @@ Constant
   | Floating_constant
   // TODO study enumeration must be named, so it's a member access
   // | enumeration_literal
-  | Character_constant
+  | StringLiteral
   ;
 
 fragment
@@ -171,7 +171,7 @@ DIGIT_SEQUENCE
   :   DIGIT+
 ;
 
-Character_constant
+StringLiteral
     :   '\'' CCHAR_SEQUENCE '\''
     |   'L\'' CCHAR_SEQUENCE '\''
     |   'u\'' CCHAR_SEQUENCE '\''
