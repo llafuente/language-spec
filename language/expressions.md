@@ -7,11 +7,19 @@
 expressions
 */
 
-primary_expr
-    : Identifier              # primary_expr_identifier
+// TODO specific string numeric octal binary hex etc...
+constant
+    : 'true'                  # primary_expr_true_literal
+    | 'false'                 # primary_expr_false_literal
+    | 'null'                  # primary_expr_null_literal
     | String_literal          # primary_expr_string_literal
     | Constant                # primary_expr_constant
-    | '(' expression ')'      # primary_expr_group
+    | identifier              # primary_expr_identifier
+    ;
+
+primary_expr
+    : constant                # constantPrimaryExpr
+    | '(' expression ')'      # groupPrimaryExpr
     ;
 
 postfix_expr
@@ -20,12 +28,12 @@ postfix_expr
     : postfix_expr '[' expression ']'                                                  # postfix_expr_braces
     // TODO slice operator
     | postfix_expr '[' expression ':' expression ']'                                   # postfix_expr_slice
-    | postfix_expr '?.' Identifier                                                     # postfix_expr_safe_dot
-    | postfix_expr '!.' Identifier                                                     # postfix_expr_self_dot
-    | postfix_expr '.' Identifier                                                      # postfix_expr_dot
+    | postfix_expr '?.' identifier                                                     # postfix_expr_safe_dot
+    | postfix_expr '!.' identifier                                                     # postfix_expr_self_dot
+    | postfix_expr '.' identifier                                                      # postfix_expr_dot
     // function call
     | postfix_expr '(' argument_expr_list? ')'                                         # postfix_expr_call
-    | postfix_expr '.' '#' Identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
+    | postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
     | preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
     | primary_expr ( '++' | '--' )*                                                    # postfix_expr_idncr
     ;
@@ -43,10 +51,7 @@ argument_expr_list
 // TODO expand the operator like @postfix_expr
 unary_expr
     : unaryNewExpression
-    // TODO this should be a single expression
-    | 'new' type_ref '[' expression ']'
-    | 'delete' Identifier
-
+    | unaryDeleteExpression
     // NOTE:  there is not sizeof operator
     | ('++' |  '--')* (postfix_expr | unary_operator cast_expr)
     ;
@@ -56,7 +61,7 @@ unary_operator
     ;
 
 cast_expr
-    :   'cast' '<' type_ref '>' '(' cast_expr ')'
+    :   'cast' '<' typeDefinition '>' '(' cast_expr ')'
     |   unary_expr
     ;
 

@@ -16,7 +16,7 @@ It also support real memory allocators.
 
 ```syntax
 unaryNewExpression
-  : 'new' type_ref '(' argument_expr_list? ')' ('(' argument_expr_list? ')')* ('at' Identifier)?
+  : 'new' typeDefinition '(' argument_expr_list? ')' ('(' argument_expr_list? ')')* ('at' Identifier)?
   ;
 ```
 
@@ -162,7 +162,7 @@ for (size int $i = 0; $i < 10; ++$i) {
   ++ptr
 }
 ```
-
+<!--
 ## `grow`: reallocate memory
 
 *Semantics*
@@ -176,6 +176,7 @@ Allocate memory and copy its contents.
 `grow` will check those conditions at runtime, and it will throw an error if it's not possible to grow.
 
 It checks if the shared_pointer is unique, grow can only be used on shared_pointers.
+-->
 
 ## `delete`: deallocate memory
 
@@ -184,6 +185,12 @@ Deallocate memory.
 The first rule is you can't delete what you don't own.
 
 `delete` memory from a pool is forbidden, you must `delete` the pool.
+
+```syntax
+unaryDeleteExpression
+  : 'delete' postfix_expr
+  ;
+```
 
 ## Memory annotation
 

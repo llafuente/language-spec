@@ -52,79 +52,80 @@ Most of the types start as Inmutables like
 
 ```syntax
 type_identifier
-  : Identifier ('<' dollarIdentifierList '>')?
+  : identifier ('<' dollarIdentifierList '>')?
   ;
 
-XtypeDecl
-  : 'type' Identifier
-  ;
+primitive
+  : I8_TK | I16_TK | I32_TK | I64_TK | U8_TK | U16_TK | U32_TK | U64_TK | F32_TK | F64_TK | FLOAT_TK | INT_TK | SIZE_TK | BOOL_TK | PTRDIFF_TK | ADDRESS_TK | VOID_TK;
 
-typeDecl
-  : 'type' type_identifier '=' Identifier
-  | 'type' type_identifier '=' type_definition
-  ;
+type
+  : primitive
+  | dollarIdentifier
+  | identifier;
 
-type_ref_list
-  : type_ref (',' type_ref)+
-  ;
-
-type_modifiers
+typeModifiers
   : 'lend'
   | 'own'
   | 'uninitialized'
   ;
 
-type_ref
-  : type_modifiers* Identifier '<' type_ref_list '>'
-  | type_modifiers* Identifier
+
+// REVIEW typeDefinitionList ?
+typeDefinition
+  : typeModifiers* type '[' ']'                                       #     arrayType
+  | typeModifiers* type '?'                                           #  nullableType
+  | typeModifiers* type '<' typeDefinition (',' typeDefinition)* '>'  # templatedType
+  | typeModifiers* type                                               #    singleType
   ;
 
-type_definition
-  : Identifier ('|' Identifier)+                                     # aggregate_type_decl
-  | Identifier                                                       # identifier_type
-  | 'function' '(' function_parameter_list? ')' type_ref             # function_type_decl
-  | type_definition '[]'                                             # array_type_decl
-  | type_definition '?'                                              # nullable_type_decl
-  | type_definition '<' dollarIdentifierList '>'                   # template_type_decl
-  | struct_type_decl                                                 # struct_type
-  | enum_type_decl                                                   # enum_type
+typeDecl
+  // aliasing existing type
+  : 'type' type_identifier '=' 'struct' ('extends' typeDefinition)* '{' end_of_statement? structProperty* '}'             #    structTypeDecl
+  | 'type' type_identifier '=' 'enum' '{' end_of_statement? enumeratorList? '}'                                           #      enumTypeDecl
+  | 'type' type_identifier '=' (typeDefinition ('|' typeDefinition)+)                                                     # aggregateTypeDecl
+  | 'type' type_identifier '=' typeDefinition                                                                             #     aliasTypeDecl
   ;
 
-
-property_modifiers
+// TODO do not repeat at parser level ?
+structPropertyModifiers
   : 'hoist'
   | 'readonly'
   | 'own'
   ;
 
-struct_property_decl
-  : (property_modifiers)* type_definition Identifier ('=' (Constant | String_literal))?
-  | 'alias' Identifier Identifier
-  | 'get' type_definition Identifier function_body
-  | 'set' type_definition Identifier function_body
-  | function_decl
+structPropertyDecl
+  : (structPropertyModifiers)* typeDefinition identifier ('=' constant)?
+  | 'alias' identifier identifier
+  | functionDecl
+/*
+  : (structPropertyModifiers)* typeDefinition identifier ('=' constant)?
+  | 'get' typeDefinition identifier function_body
+  | 'set' typeDefinition identifier function_body
+*/
   ;
 
-struct_property_list
-  : (struct_property_decl end_of_statement)+
+structProperty
+  : structPropertyDecl end_of_statement
+  | comments end_of_statement
   ;
 
-struct_type_decl
-  : 'struct' ('extends' Identifier)? ('align' DIGIT_SEQUENCE)? '{' end_of_statement? struct_property_list '}'
-  ;
 
 enumerator
-  : Identifier '=' conditional_expr
-  | Identifier
+  //: identifier '=' conditional_expr
+  : identifier
   ;
 
-enumerator_list
+enumeratorList
   : (enumerator end_of_statement)+
+  | comments
   ;
 
-enum_type_decl
-  : 'enum' '{' end_of_statement? enumerator_list '}'
+/*
+typeDefinition
+  | 'function' '(' function_parameter_list? ')' type_ref             # function_type_decl
+  | enum_type_decl                                                   # enum_type
   ;
 
+*/
 ```
 

@@ -7,19 +7,10 @@
 *Syntax*
 
 ```syntax
-dollarIdentifier
-  : '$' Identifier
-  ;
-
-dollarIdentifierList
-  : dollarIdentifier (',' dollarIdentifier)*
-  ;
-
-
 templateConstraint
-  : 'is' type_ref
-  | 'implements' type_ref
-  | 'extends' type_ref
+  : 'is' typeDefinition
+  | 'implements' typeDefinition
+  | 'extends' typeDefinition
   ;
 
 templateConstraints

@@ -123,7 +123,7 @@ preprocessorMacroArgumentList
   ;
 
 preprocessorMacroDecl
-  : '#macro' Identifier '(' preprocessorMacroArgumentList? ')' '#block'? function_body
+  : '#macro' Identifier '(' preprocessorMacroArgumentList? ')' '#block'? functionBody
   ;
 
 // TODO
@@ -562,7 +562,7 @@ list := [1,2,3,4]
 
 ```syntax
 forargs_stmt
-  : '#forargs' Identifier ',' Identifier function_body
+  : '#forargs' Identifier ',' Identifier functionBody
   ;
 ```
 
@@ -598,7 +598,7 @@ print(10, 11, 12)
 
 ```syntax
 forstruct_stmt
-  : '#forstruct' Identifier ',' Identifier 'in' Identifier function_body
+  : '#forstruct' Identifier ',' Identifier 'in' Identifier functionBody
   ;
 ```
 *Semantics*
@@ -841,6 +841,10 @@ Display a type semantic message and abort compilation.
 *Syntax*
 
 ```syntax
+identifierList
+    :   Identifier? (',' Identifier)*
+    ;
+
 preprocessorRepeatExpr
   : '#' 'repeat' '(' identifierList ')'
   ;

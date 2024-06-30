@@ -10,32 +10,41 @@
 *Syntax*
 
 ```syntax
-return_stmt
-  : 'return' expression
+returnStmt
+  //TODO : 'return' expression
+  : 'return'
   ;
 
-function_decl
-  : 'pure'? 'function' ('new'|'delete'|Identifier) '(' function_parameter_list? ')' type_ref? function_body
+// TODO NOTE some are only valid inside struct, maybe we should move it
+functionDecl
+  : 'pure'? 'function' identifier '(' functionParameterList? ')' typeDefinition? functionBody
+  | ('new'|'delete'|'clone') '(' functionParameterList? ')' typeDefinition? functionBody
+  | 'operator' ('+') '(' functionParameterList? ')' typeDefinition? functionBody
   ;
 
-function_body
-  : '{' end_of_statement (function_statements end_of_statement)* '}'
+functionBody
+  : '{' end_of_statement? (functionBodyStmt end_of_statement)* '}'
   ;
-function_statements
-  : block_variable_declaration_statement
+
+functionBodyStmt
+  : comments
+  | functionDecl
+  | returnStmt
   | expression
+/*
+  : block_variable_declaration_statement
 // TODO inside a function you can create a lambda but not a function!
-  | function_decl
-  | return_stmt
+  | functionDecl
   | selectionStmt
+*/
   ;
 
-function_parameter_list
-  : function_parameter (',' function_parameter)*
+functionParameterList
+  : functionParameter (',' functionParameter)*
   ;
 
-function_parameter
-  : 'auto'? type_ref Identifier ('=' (Constant | String_literal))?
+functionParameter
+  : 'autocast'? typeDefinition identifier ('=' constant)?
   ;
 ```
 

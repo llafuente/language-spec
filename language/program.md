@@ -15,10 +15,16 @@ programStms
   : statement
   ;
 
+comments
+  : SINGLE_LINE_COMMENT
+  | BLOCK_COMMENT
+  ;
+
 statement
-  : CommentLine
-  | CommentBlock
-  | XtypeDecl
+  : comments
+  | typeDecl
+  | functionDecl
+  | expression
   ;
 
   /*
@@ -35,34 +41,26 @@ blockStmt
   : '{' statement '}'
   ;
 
-end_of_statement
-  : (( '\r\n' | '\n' | ';')* | EOF )
+end_of_statement: (NEWLINE_TK | SEMICOLON_TK)* | EOF;
+
+identifier: IdentifierLow | IdentifierUp ;
+
+dollarIdentifier
+  : '$' identifier
   ;
 
-// TODO REVIEW fragment ?
-Newline
-    :   (   '\r' '\n'?
-        |   '\n'
-        )
-        -> skip
-    ;
-
-// fragment
-// WS : [ \t\f]+                        -> channel(HIDDEN);
-//WS        : [ \t\f]+                -> channel(HIDDEN);
-//WHITESPACE: [ \t\f]+                -> channel(HIDDEN);
-//Whitespace: [ \t\f]+                -> channel(HIDDEN);
+dollarIdentifierList
+  : dollarIdentifier (',' dollarIdentifier)*
+  ;
 
 
-CommentLine
-    :   '//' ~[\r\nEOF]*
-//        -> skip
-    ;
+preprocessorMacroCallArgumentList
+  : '$'
+  ;
 
-CommentBlock
-    :   '/*' .*? '*/'
-//        -> skip
-    ;
+preprocessorMacroCallExpr
+  : '$'
+  ;
 ```
 
 *Semantics*
