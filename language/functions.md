@@ -17,9 +17,44 @@ returnStmt
 
 // TODO NOTE some are only valid inside struct, maybe we should move it
 functionDecl
-  : 'pure'? 'function' identifier '(' functionParameterList? ')' typeDefinition? functionBody
-  | ('new'|'delete'|'clone') '(' functionParameterList? ')' typeDefinition? functionBody
-  | 'operator' ('+') '(' functionParameterList? ')' typeDefinition? functionBody
+  : functionDef functionBody
+  ;
+
+functionDef
+  : 'pure'? 'function' identifier '(' functionParameterList? ')' typeDefinition?
+  ;
+
+memoryFunctionDecl
+  : memoryFunctionDef functionBody
+  ;
+memoryFunctionDef
+  : ('new'|'delete'|'clone') '(' functionParameterList? ')' typeDefinition?
+  ;
+
+operatorFunctionDecl
+  : operatorFunctionDef functionBody
+  ;
+
+operatorFunctionDef
+  : 'operator' overloadableOperators '(' functionParameterList? ')' typeDefinition?
+  ;
+
+overloadableOperators
+  : '+'
+  | '-'
+  | '*'
+  | '/'
+  | '^'
+  | '='
+  | '+='
+  | '-='
+  | '*='
+  | '/='
+  | '^='
+  | '.'
+  | '?.'
+  | '[' ']'
+  | '++'
   ;
 
 functionBody
@@ -34,8 +69,13 @@ labeledStatement
   : identifier ':' functionBodyStmt
   ;
 
+blockStatement
+  : '{' end_of_statement? functionBodyStmtList '}'
+  ;
+
 functionBodyStmt
   : labeledStatement
+  | blockStatement
   | comments
   | typeDecl
   | functionDecl
@@ -43,6 +83,7 @@ functionBodyStmt
   | selectionStmts
   // function exclusive
   | returnStmt
+  | blockVariableDeclStmt
   ;
 
 functionParameterList

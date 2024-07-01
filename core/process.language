@@ -1,43 +1,128 @@
+// https://docs.python.org/3/library/os.html
+// https://nodejs.org/api/process.html
+
 package process
 
-static type process = struct {
+// static 
+type ioProcess = struct {
+  w_stream stdout
+  file_descriptor stdout_fn
 
+  w_stream stderr
+  file_descriptor stderr_fn
+
+  r_stream stdin
+  file_descriptor stdin_fn
+}
+
+// static
+type posixProcess = struct {
+  /**
+    Sets effective group ID
+
+    See: https://man7.org/linux/man-pages/man2/setegid.2.html
+  */
+  // If a group name is specified, this method blocks while resolving the associated a numeric ID.
+  function setegid(i32 id) {}
+  /**
+    Sets effective user ID
+
+    See: https://man7.org/linux/man-pages/man2/seteuid.2.html
+  */
+  function seteuid(i32 id) {}
+  /**
+    Sets group identity
+
+    See: https://man7.org/linux/man-pages/man2/setgid.2.html
+  */
+  function setgid(i32 id) {}
+  /**
+    Set user identity
+
+    See: https://man7.org/linux/man-pages/man2/setuid.2.html
+  */
+  function setuid(i32 id) {}
+
+  function initgroups(i32 user, i32 extraGroup) {}
+}
+
+// static
+type process = struct {
+  ioProcess io = {}
+  posixProcess posix = {}
+
+  /**
+    Property that contains the command-line arguments passed when the process was launched,
+
+    It contains only the arguments.
+  */
   string[] arguments
+
   /**
     Returns the PID of the process
   */
   get i32 pid {}
+
   /**
     Returns the PID of the parent of the current process
   */
   get i32 ppid {}
+
   /**
     Returns the absolute pathname of the executable.
     Symbolic links, if any, are resolved
   */
   get string path {}
+  alias exePath path
+
   get string arch {}
+
+  /*
+    Property that contains the user environment
+
+    Modifications to this property do not modify process environment but it does for it's children.
+  */
   get string[] env {}
+
   /**
     Returns the current working directory
   */
   get string cwd {}
 
   /**
+    Holds the value that will be used if the process ends normally
+  */
+  i32 exitCode = 0
+
+  /**
+    Processes the specified function at exit
+  */
+  // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/atexit?view=msvc-170
+  event atExit = {}
+
+  /**
     Changes the current working directory process or throws an exception if
     doing so fails (for instance, if the specified directory does not exist).
   */
-  function chdir(string cwd) {
-
-  }
+  function chdir(string cwd) {}
 
   /**
     The process.abort() method causes the process to exit immediately.
+
+    Remarks: atExit won't be honored
   */
-  function abort(i32 exit_code) {
+  function abort(i32 exit_code) {}
 
-  }
+  /**
+    The process.exit() method causes the process to exit.
 
+    Remarks: We attempt to free resources and atExit will be honored
+  */
+  function exit(i32 exit_code) {}
+
+  function memory_usage() i32 {}
+
+  /*
   //
   // IPC
   //
@@ -45,6 +130,11 @@ static type process = struct {
   ? ipc_channel
   bool ipc_connected
   function ipc_disconnect() {
-
   }
+
+  // other processes
+  // kill(pid[, signal])
+  // exec(pid[, signal])
+  // spawn(pid[, signal])
+  */
 }

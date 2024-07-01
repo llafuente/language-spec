@@ -26,15 +26,20 @@ struct static_array<$t> {
 
 ```syntax
 arrayItem
-  : expression
+  : rhsExpr
   ;
 
 arrayItemList
   : arrayItem (',' arrayItemList)?
   ;
 
-arrayDecl
-  : '[' arrayItemList ']'
+arrayInitializer
+  : '[' arrayItemList ','? ']'
+  ;
+
+// TODO
+arrayConstantInitializer
+  : '[' arrayItemList ','? ']'
   ;
 ```
 

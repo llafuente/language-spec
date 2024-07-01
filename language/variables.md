@@ -23,21 +23,21 @@ We list all the options below.
 *syntax*
 
 ```syntax
-global_variable_declaration_statement
+globalVariableDeclStmt
   // infer variable with initialization
-  : 'global' 'var' Identifier '=' rhs_expression
+  : 'global' 'var' identifier '=' rhsExpr
 
   // typed variable with initialization
-  | 'global' 'var' type_ref Identifier '=' rhs_expression
+  | 'global' 'var' typeDefinition identifier '=' rhsExpr
 
   // typed variable no initialization
-  | 'global' 'var' type_ref Identifier
+  | 'global' 'var' typeDefinition identifier
 
   // typed constant with initialization
-  | 'global' 'const' type_ref Identifier '=' rhs_expression
+  | 'global' 'const' typeDefinition identifier '=' rhsExpr
 
   // infer constant with initialization
-  | 'global' 'const' Identifier '=' rhs_expression
+  | 'global' 'const' identifier '=' rhsExpr
   ;
 ```
 
@@ -66,21 +66,21 @@ it's access.
 Declaration is bound to the top of the file.
 
 ```syntax
-package_variable_declaration_statement
+packageVariableDeclStmt
   // infer variable with initialization
-  : 'package' 'var' Identifier '=' rhs_expression
+  : 'package' 'var' identifier '=' rhsExpr
 
   // typed variable with initialization
-  | 'package' 'var' type_ref Identifier '=' rhs_expression
+  | 'package' 'var' typeDefinition identifier '=' rhsExpr
 
   // typed variable no initialization
-  | 'package' 'var' type_ref Identifier
+  | 'package' 'var' typeDefinition identifier
 
   // typed constant with initialization
-  | 'package' 'const' type_ref Identifier '=' rhs_expression
+  | 'package' 'const' typeDefinition identifier '=' rhsExpr
 
   // untyped constant with initialization
-  | 'package' 'const' Identifier '=' rhs_expression
+  | 'package' 'const' identifier '=' rhsExpr
   ;
 ```
 
@@ -91,21 +91,21 @@ package_variable_declaration_statement
 *Syntax*
 
 ```syntax
-file_variable_declaration_statement
+fileVariableDeclStmt
   // infer variable with initialization
-  : 'var' Identifier '=' rhs_expression
+  : 'var' identifier '=' rhsExpr
 
   // typed variable with initialization
-  | 'var' type_ref Identifier '=' rhs_expression
+  | 'var' typeDefinition identifier '=' rhsExpr
 
   // typed variable no initialization
-  | 'var' type_ref Identifier
+  | 'var' typeDefinition identifier
 
   // typed constant with initialization
-  | 'const' type_ref Identifier '=' rhs_expression
+  | 'const' typeDefinition identifier '=' rhsExpr
 
   // untyped constant with initialization
-  | 'const' Identifier '=' rhs_expression
+  | 'const' identifier '=' rhsExpr
   ;
 ```
 
@@ -133,8 +133,8 @@ var ten = 10
 *Syntax*
 
 ```syntax
-block_variable_declaration_statement
-  : file_variable_declaration_statement
+blockVariableDeclStmt
+  : fileVariableDeclStmt
   ;
 ```
 

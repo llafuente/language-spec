@@ -57,8 +57,8 @@ var parser = [];
 	// "./preprocessor-and-metaprogramming.md",
 	// "./compiler\\compiler-configuration.md",
 	"./language\\control-flow.md",
-	// "./language\\variables.md",
-	// "./language\\types\\array.md",
+	"./language\\variables.md",
+	"./language\\types\\array.md",
 ].forEach((file) => {
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
@@ -74,7 +74,20 @@ writeFileSync("./LanguageParser.g4", `parser grammar LanguageParser;
 
 
 // < core\os\process.language
-var fd_stdin = openSync('./language.language', 'r');
-const antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
+
+let fd_stdin = openSync('./language.language', 'r');
+// var fd_stdin = openSync('./tests/syntax/struct-initializer.language', 'r');
+let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
   stdio: [fd_stdin, 1, 2]
 });
+
+/*
+//let fd_stdin = openSync('./core/process.language', 'r');
+//let fd_stdin = openSync('./core/os.language', 'r');
+//let fd_stdin = openSync('./core/index_iterator.language', 'r');
+let fd_stdin = openSync('./core/types/allocator.language', 'r');
+let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'packageProgram', '-gui'], {
+  stdio: [fd_stdin, 1, 2]
+});
+
+*/

@@ -11,16 +11,16 @@
 *Example*
 
 ```language
-struct Vector2 {
+type Vector2 = struct {
   f32 x
   f32 y
 }
 
-struct Vector3 extends Vector2 {
+type Vector3 = struct extends Vector2 {
   f32 z
 }
 
-struct Quaternion extends Vector3 {
+type Quaternion = struct extends Vector3 {
   f32 w
 }
 ```
@@ -120,7 +120,7 @@ overwrite/override is used. This includes the constructor.
 ```language
 struct A {
   int value
-  function new(_value) void {
+  new(_value) void {
     value = _value
   }
 
@@ -187,7 +187,7 @@ This ease composition patterns.
 *Example*
 
 ```language
-struct Vector3 {
+type Vector3 = struct {
   float x
   float y
   float z
@@ -198,7 +198,7 @@ struct Vector3 {
     z += b.z
   }
 }
-struct Player {
+type Player = struct {
   hoist Vector3 position;
 }
 
@@ -291,7 +291,7 @@ Replace a inherited method but the overridden method shall be call in function b
 *Example*
 
 ```language
-struct v2 {
+type v2 = struct {
   float x
   float y
   constructor(float x, float y) {
@@ -300,7 +300,7 @@ struct v2 {
   }
 }
 
-struct v3 extends v2 {
+type v3 struct extends v2 {
   float z
 
   override constructor(float x, float y, float z) {
@@ -331,7 +331,7 @@ struct v2 {
   float y
 
   function toString() string {
-    return __CLASS__ + "{" + this.x + ", " + this.y + "}"
+    return ##function# + "{" + this.x + ", " + this.y + "}"
   }
 }
 
@@ -339,7 +339,43 @@ struct v3 extends v2 {
   float z
 
   overwrite function toString() string {
-    return __CLASS__ + "{" + this.x + ", " + this.y + ", " + this.z + "}"
+    return ##function# + "{" + this.x + ", " + this.y + ", " + this.z + "}"
   }
 }
 ```
+
+<!--
+
+
+## `covers` EXPERIMENTAL
+
+*Semantics*
+
+It covers a type so every operator will be fowarded unless `!.` is used.
+
+*Constraints*
+
+1. If `covers` is used `extends` shall be forbidden
+
+2. `overwrite` and `override` shall be mutually exclusives.
+
+
+*Example*
+
+```language
+type shared_pointer<$t> = struct covers $t {
+  ref<shared_pointer_data<$t>>
+
+  function toString() string {
+    return ##function# + "{" + this.x + ", " + this.y + "}"
+  }
+
+  // forward
+  operator . ($any v) {
+    return pointer.data.operator.(v)
+  } 
+}
+```
+
+
+-->

@@ -1,19 +1,24 @@
-type index_iterator<template $t> = interface {
+// https://rosettacode.org/wiki/Loops/Foreach
+
+package iterators
+
+type index_iterator<$t> = interface {
   size length
-  function operator[](size i) $t {}
+  operator[](size i) $t
 }
 
 type iterator<$t> = interface {
-  operator ++() this
-  alias continue ++
-  alias next ++
+  function next() this
+  // continue
+  // alias operator ++ next
 
-  operator *() $t
-  alias value *
-  alias get *
+  function value() $t
+  // alias operator* value
+  // REVIEW TODO get is a token :**
+  // alias get *
 
-  function restart()
-  alias reset restart
+  // restart
+  function reset()
 
   function isFirst() bool
   function isLast() bool
@@ -22,7 +27,5 @@ type iterator<$t> = interface {
 }
 
 type safe_iterator<$t> = interface {
-  get_safe_iterator() lend ref<iterator<$t>> {
-
-  }
+  function get_safe_iterator() lend ref<iterator<$t> >
 }

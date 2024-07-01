@@ -9,16 +9,18 @@ expressions
 
 // TODO specific string numeric octal binary hex etc...
 constant
-    : 'true'                  # primary_expr_true_literal
-    | 'false'                 # primary_expr_false_literal
-    | 'null'                  # primary_expr_null_literal
-    | String_literal          # primary_expr_string_literal
-    | Constant                # primary_expr_constant
-    | identifier              # primary_expr_identifier
+    : 'true'                  # trueLiteralExpr
+    | 'false'                 # falseLiteralExpr
+    | 'null'                  # nullLiteralExpr
+    | String_literal          # stringLiteralExpr
+    | Constant                # constantExpr
+    | identifier              # identifierExpr
     ;
 
 primary_expr
     : constant                # constantPrimaryExpr
+    | arrayInitializer        # arrayInitializer2
+    | structInitializer       # structInitializer2
     | '(' expression ')'      # groupPrimaryExpr
     ;
 
@@ -32,18 +34,27 @@ postfix_expr
     | postfix_expr '!.' identifier                                                     # postfix_expr_self_dot
     | postfix_expr '.' identifier                                                      # postfix_expr_dot
     // function call
-    | postfix_expr '(' argument_expr_list? ')'                                         # postfix_expr_call
+    | postfix_expr '(' argumentExprList? ')'                                           # postfix_expr_call
     | postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
     | preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
     | primary_expr ( '++' | '--' )*                                                    # postfix_expr_idncr
     ;
 
-argument_expr_list
-  : conditional_expr (',' conditional_expr)*
-  // TODO send arguments by name
-  // a = 1, b = 2...
+namedArgument
+    : identifier '=' conditional_expr
+    ;
+
+orderedArgument
+    : conditional_expr
+    ;
+
+
+argumentExprList
+  : (namedArgument | orderedArgument) (',' (namedArgument | orderedArgument))*
+  // TODO 
   // send as object
-  // expand from array / struct
+  // expand from struct / variable
+  // use spread operator? ...b ...{}
   // a(@b) a(@{a: 1, b: 2})
   ;
 
@@ -137,7 +148,7 @@ expression
     : assignment_expr (',' assignment_expr)*
     ;
 
-rhs_expression
+rhsExpr
   : conditional_expr
   ;
 

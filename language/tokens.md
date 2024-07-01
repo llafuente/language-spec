@@ -7,6 +7,7 @@ TYPE_TK : 'type';
 STRUCT_TK : 'struct';
 ENUM_TK : 'enum';
 EXTENDS_TK : 'extends';
+INTERFACE_TK : 'interface';
 
 // constants
 TRUE_TK : 'true';
@@ -36,11 +37,12 @@ HOIST_TK : 'hoist';
 READONLY_TK : 'readonly';
 
 
-// declaration
+// variables
 
 VAR_TK : 'var';
 CONST_TK : 'const';
 GLOBAL_TK : 'global';
+PACKAGE_TK : 'package';
 
 // functions
 

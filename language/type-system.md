@@ -81,6 +81,7 @@ typeDefinition
 typeDecl
   // aliasing existing type
   : 'type' type_identifier '=' 'struct' ('extends' typeDefinition)* '{' end_of_statement? structProperty* '}'             #    structTypeDecl
+  | 'type' type_identifier '=' 'interface' ('extends' typeDefinition)* '{' end_of_statement? interfaceProperty* '}'       # interfaceTypeDecl
   | 'type' type_identifier '=' 'enum' '{' end_of_statement? enumeratorList? '}'                                           #      enumTypeDecl
   | 'type' type_identifier '=' (typeDefinition ('|' typeDefinition)+)                                                     # aggregateTypeDecl
   | 'type' type_identifier '=' typeDefinition                                                                             #     aliasTypeDecl
@@ -94,14 +95,44 @@ structPropertyModifiers
   ;
 
 structPropertyDecl
-  : (structPropertyModifiers)* typeDefinition identifier ('=' constant)?
+  // TODO anonymousFunction
+  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  // TODO REVIEW aliasing operator?
   | 'alias' identifier identifier
   | functionDecl
-/*
-  : (structPropertyModifiers)* typeDefinition identifier ('=' constant)?
-  | 'get' typeDefinition identifier function_body
-  | 'set' typeDefinition identifier function_body
-*/
+  | memoryFunctionDecl
+  | operatorFunctionDecl
+  | structGetterDecl
+  | structSetterDecl
+  ;
+
+interfacePropertyDecl
+  // TODO keep assignament ? it clash with the redefined one ?
+  // TODO constrains to not initialize again ?
+  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  | 'alias' identifier identifier
+  | functionDef
+  | memoryFunctionDef
+  | operatorFunctionDef
+  | structGetterDef
+  | structSetterDef
+  ;
+
+
+structGetterDecl
+  : structGetterDef functionBody
+  ;
+
+structGetterDef
+  : 'get' typeDefinition identifier
+  ;
+
+structSetterDecl
+  : structSetterDef functionBody
+  ;
+
+structSetterDef
+  : 'set' typeDefinition identifier
   ;
 
 structProperty
@@ -109,6 +140,10 @@ structProperty
   | comments end_of_statement
   ;
 
+interfaceProperty
+  : interfacePropertyDecl end_of_statement
+  | comments end_of_statement
+  ;
 
 enumerator
   //: identifier '=' conditional_expr
@@ -118,6 +153,25 @@ enumerator
 enumeratorList
   : (enumerator end_of_statement)+
   | comments
+  ;
+
+structProperyInitializer
+  // REVIEW json support is ok, '=' maybe the best as function arguments
+  : identifier ':' rhsExpr # namedStructProperyInitializer
+  | rhsExpr                # orderStructProperyInitializer
+  ;
+
+structProperyInitializerList
+  : structProperyInitializer (',' structProperyInitializer)*
+  ;
+
+structInitializer
+  : '{' structProperyInitializerList? '}'
+  ;
+
+// TODO
+structConstantInitializer
+  : '{' structProperyInitializerList? '}'
   ;
 
 /*

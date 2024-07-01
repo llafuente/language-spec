@@ -7,14 +7,14 @@
 ```syntax
 IdentifierLow
     :   IDENTIFIERLOW_NON_DIGIT
-        (   IDENTIFIERLOW_NON_DIGIT
+        (   IDENTIFIER_NON_DIGIT
         |   DIGIT
         )*
     ;
 
 IdentifierUp
     :   IDENTIFIERUP_NON_DIGIT
-        (   IDENTIFIERUP_NON_DIGIT
+        (   IDENTIFIER_NON_DIGIT
         |   DIGIT
         )*
     ;
@@ -27,6 +27,11 @@ IDENTIFIERLOW_NON_DIGIT
 fragment
 IDENTIFIERUP_NON_DIGIT
     :   NON_DIGITUP
+    |   UNIVERSAL_CHARACTER_NAME
+    ;
+
+IDENTIFIER_NON_DIGIT
+    :   NON_DIGIT
     |   UNIVERSAL_CHARACTER_NAME
     ;
 
