@@ -1,0 +1,6 @@
+type x = struct {
+  iterator<$t> t
+  ref<iterator<$t>> t
+  // this shall work!
+  lend ref<iterator<$t>> t
+}

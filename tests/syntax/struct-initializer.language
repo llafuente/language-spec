@@ -1,0 +1,11 @@
+type v2 = struct {
+	float x
+	float y
+}
+
+// initializer
+var a = v2(10, 10)    // default constructor
+var v2 b = { 10, 10 } // default constructor - cish
+var v2 c = { x: 10, y: 10 } // ordered json
+var v2 d = { y: 10, x: 10 } // unordered json
+var e = v2(x = 10, y = 10)    // default constructor gived names

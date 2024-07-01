@@ -1,0 +1,28 @@
+/**
+START_TEST
+flags:
+
+stdout:
+
+stderr:
+Redeclaration of type 'point'
+
+---- type_duplication.language
+27: struct point {
+    ^----
+---- type_duplication.language
+24: struct point {
+    ^----
+----
+stdin:
+
+END_OF_TEST
+*/
+// https://learn.microsoft.com/en-us/dotnet/csharp/misc/cs0101
+
+struct point {
+	float x
+}
+struct point {
+	float y
+}

@@ -1,0 +1,24 @@
+/**
+START_TEST
+flags:
+
+stdout:
+
+stderr:
+The parameter name 'a' at position 2 is a duplicate of parameter 1
+
+----
+19: function(int a, int a) {
+                    ^----
+----
+19: function(int a, int a) {
+             ^----
+----
+stdin:
+
+END_OF_TEST
+*/
+// https://learn.microsoft.com/en-us/dotnet/csharp/misc/cs0100
+function(int a, int a) {
+	
+}

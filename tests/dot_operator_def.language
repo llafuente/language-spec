@@ -1,0 +1,21 @@
+struct point {
+	float x
+	float y
+
+	new (float x, float y) {
+		this.x
+		this.y
+	}
+}
+
+struct agg_point {
+	point start
+
+	new (float x, float y) {
+		start.new(x, y)
+	}
+
+	operator.() {
+		return start
+	}
+}

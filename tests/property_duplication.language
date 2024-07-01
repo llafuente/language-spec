@@ -1,0 +1,29 @@
+/**
+START_TEST
+flags:
+
+stdout:
+
+stderr:
+Redeclaration of property 'x'
+
+----
+29: struct point {
+		float x
+		float x
+    	^----
+----
+28: struct point {
+		float x
+    	^----
+----
+stdin:
+
+END_OF_TEST
+*/
+// https://learn.microsoft.com/en-us/dotnet/csharp/misc/cs0101
+
+struct point {
+	float x
+	float x
+}
