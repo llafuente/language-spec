@@ -69,6 +69,8 @@ WHILE_TK : 'while';
 CONTINUE_TK : 'continue';
 RESTART_TK : 'restart';
 BREAK_TK : 'break';
+IN_TK : 'in';
+DEFAULT_TK : 'default';
 
 // memory
 CLONE_TK : 'clone';

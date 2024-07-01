@@ -16,7 +16,7 @@ It also support real memory allocators.
 
 ```syntax
 unaryNewExpression
-  : 'new' typeDefinition '(' argument_expr_list? ')' ('(' argument_expr_list? ')')* ('at' Identifier)?
+  : 'new' typeDefinition '(' argument_expr_list? ')' ('(' argument_expr_list? ')')* ('at' identifier)?
   ;
 ```
 

@@ -10,7 +10,7 @@
 
 
 ```syntax
-selectionStmt
+selectionStmts
   : ifStmt
   | switchStmt
   | gotoStmt
@@ -42,11 +42,11 @@ The controlling expression shall have bool type, there won't be implicit convers
 ```syntax
 ifSelectionStmt
   // REVIEW syntax require block here ?
-  : 'if' expression function_body
+  : 'if' expression functionBody
   ;
 
 elseSelectionStmt
-  : 'else' function_body
+  : 'else' functionBody
   ;
 
 ifStmt
@@ -95,14 +95,13 @@ if x {
 
 ```syntax
 switchCaseStmt
-  // REVIEW syntax require block here ?
-  : 'case' Constant ':' statement
-  | 'default' ':' statement
+  // REVIEW syntax require block here ? also required colon ?
+  : 'case' expression ':'  functionBodyStmtList
+  | 'default' ':' functionBodyStmtList
   ;
 
 switchStmt
-  // REVIEW syntax remove parenthesis like in if
-  : 'switch' expression '{' switchCaseStmt* '}'
+  : 'switch' expression '{' end_of_statement? switchCaseStmt* '}'
   ;
 ```
 
@@ -184,7 +183,7 @@ function operator ==(string input, regex check) bool {
 
 ```syntax
 gotoStmt
-  : 'goto' Identifier
+  : 'goto' identifier
   ;
 ```
 
@@ -270,7 +269,7 @@ There are special statements inside loop with specific behaviour, explained belo
 
 ```syntax
 loopStmt
-  : 'loop' expression ('as' Identifier(',' Identifier))? function_body
+  : 'loop' (identifier (',' identifier)? 'in')?  expression functionBody
   ;
 ```
 
@@ -297,7 +296,7 @@ use [`for`](#for) instead.
 The controlling expression shall have numeric, range or implement index_iterator.
 * `numeric`: it shall repeat `loop-body` given number of times.
 * `range`: it shall repeat `loop-body` starting and ending according to given range.
-* `index_iterator` it shall loop its length. An for example `$value` will have `rune` type if a `string` is given.
+* `safe_iterator` it shall loop the structure cloning if necessary.
 
 <!--
 * if expression is a struct
@@ -306,16 +305,52 @@ The controlling expression shall have numeric, range or implement index_iterator
  * It loop each property and value is `as` has two literals (separated by commas).
 -->
 
-*Example*
+*Example: number*
+
+It will print from 0 to 10
+
+```language
+loop 10 {
+  print($index)
+}
+```
+
+*Example: number*
+
+It will print from 0 to -10
+
+```language
+loop -10 {
+  print($index)
+}
+```
+
+
+*Example: range*
 
 The following example will print 1 to 10 and continue.
-It won't fall into infinite loops, as `loop` is safe of this common pitfall.
+It won't fall into infinite loop because the expression is cached at start.
+
 ```language
 var i = 10
 loop 1..i {
   ++i
   print($index)
 }
+```
+
+*Example: safe_iterator*
+
+The following example will print all keys and elements in the array and remove one (last)
+At the end the array will be empty but loop is safe :)
+
+```language
+var arr = [1, 2, 3, 4, 5]
+loop arr {
+  print($index, $value)
+  arr.pop()
+}
+print(arr)
 ```
 
 <a name="loop-implementation"></a>
@@ -373,7 +408,7 @@ loop ? while <Exception> {
 
 ```syntax
 foreachStmt
-  : 'foreach' ( Identifier (',' Identifier)?)? 'in' expression '{' statement '}'
+  : 'foreach' (identifier (',' identifier)? 'in')? expression functionBody
   ;
 ```
 
@@ -481,7 +516,7 @@ The compiler shall replace the `loop` statement with a `macro` call.
 
 ```syntax
 continueStmt
-  : 'continue' (Identifier | DECIMAL_CONSTANT)?
+  : 'continue' (identifier | DECIMAL_CONSTANT)?
   ;
 ```
 
@@ -497,25 +532,25 @@ A label can be used instead to clarify.
 *Example*
 
 ```language
-loop 1..10 as $i {
-  loop 1..10 as $j {
-    if $j < 10 {
+loop i in 1..10 {
+  loop j in 1..10 {
+    if j < 10 {
       continue // it will continue $j loop
     }
   }
 }
 
-loop 1..10 as $i {
-  loop 1..10 as $j {
-    if $j < 10 {
+loop i in 1..10 {
+  loop i in 1..10 {
+    if j < 10 {
       continue 2 // it will continue $i loop
     }
   }
 }
 
-outterloop: loop 1..10 as $i {
-  loop 1..10 as $j {
-    if $j < 10 {
+outterloop: loop i in 1..10 {
+  loop 1..10 as j {
+    if j < 10 {
       continue outterloop // this is clearer and allowed :)
     }
   }
@@ -536,7 +571,7 @@ Pick the first if id is not present
 
 ```syntax
 restartStmt
-  : 'restart' ( Identifier | DECIMAL_CONSTANT )?
+  : 'restart' ( identifier | DECIMAL_CONSTANT )?
   ;
 ```
 
@@ -563,7 +598,7 @@ Pick the first if id is not present
 
 ```syntax
 breakStmt
-  : 'break' ( Identifier | DECIMAL_CONSTANT )?
+  : 'break' ( identifier | DECIMAL_CONSTANT )?
   ;
 ```
 

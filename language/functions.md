@@ -23,20 +23,26 @@ functionDecl
   ;
 
 functionBody
-  : '{' end_of_statement? (functionBodyStmt end_of_statement)* '}'
+  : end_of_statement? '{' functionBodyStmtList '}' end_of_statement?
+  ;
+
+functionBodyStmtList
+  : end_of_statement? (functionBodyStmt end_of_statement)*
+  ;
+
+labeledStatement
+  : identifier ':' functionBodyStmt
   ;
 
 functionBodyStmt
-  : comments
+  : labeledStatement
+  | comments
+  | typeDecl
   | functionDecl
-  | returnStmt
   | expression
-/*
-  : block_variable_declaration_statement
-// TODO inside a function you can create a lambda but not a function!
-  | functionDecl
-  | selectionStmt
-*/
+  | selectionStmts
+  // function exclusive
+  | returnStmt
   ;
 
 functionParameterList

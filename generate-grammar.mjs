@@ -56,7 +56,7 @@ var parser = [];
 	// "./generic-programming.md",
 	// "./preprocessor-and-metaprogramming.md",
 	// "./compiler\\compiler-configuration.md",
-	// "./language\\control-flow.md",
+	"./language\\control-flow.md",
 	// "./language\\variables.md",
 	// "./language\\types\\array.md",
 ].forEach((file) => {

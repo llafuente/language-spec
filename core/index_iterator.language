@@ -2,3 +2,27 @@ type index_iterator<template $t> = interface {
   size length
   function operator[](size i) $t {}
 }
+
+type iterator<$t> = interface {
+  operator ++() this
+  alias continue ++
+  alias next ++
+
+  operator *() $t
+  alias value *
+  alias get *
+
+  function restart()
+  alias reset restart
+
+  function isFirst() bool
+  function isLast() bool
+
+
+}
+
+type safe_iterator<$t> = interface {
+  get_safe_iterator() lend ref<iterator<$t>> {
+
+  }
+}
