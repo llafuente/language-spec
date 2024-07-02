@@ -8,6 +8,7 @@
 * enum
 * extends
 * interface
+* is
 
 ## primitives
 

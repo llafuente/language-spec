@@ -8,6 +8,7 @@ STRUCT_TK : 'struct';
 ENUM_TK : 'enum';
 EXTENDS_TK : 'extends';
 INTERFACE_TK : 'interface';
+IS_TK : 'is';
 
 // constants
 TRUE_TK : 'true';

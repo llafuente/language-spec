@@ -69,12 +69,28 @@ typeModifiers
   | 'uninitialized'
   ;
 
+templateDefinitionList
+  : templateDefinition (',' templateDefinition)*
+  ;
+
+// TODO semantic error if a tempalte is inside a template...
+templateDefinition
+  : typeDefinition ( templateIs | templateExtends )*
+  ;
+
+templateIs
+  : 'is' (primitive | identifier | 'struct' | 'enum')
+  ;
+
+templateExtends
+  : 'extends' (primitive | identifier)
+  ;
 
 // REVIEW typeDefinitionList ?
 typeDefinition
   : typeModifiers* type '[' ']'                                       #     arrayType
   | typeModifiers* type '?'                                           #  nullableType
-  | typeModifiers* type '<' typeDefinition (',' typeDefinition)* '>'  # templatedType
+  | typeModifiers* type '<' templateDefinitionList '>'  # templatedType
   | typeModifiers* type                                               #    singleType
   ;
 
@@ -110,7 +126,7 @@ interfacePropertyDecl
   // TODO keep assignament ? it clash with the redefined one ?
   // TODO constrains to not initialize again ?
   : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
-  | 'alias' identifier identifier
+  | propertyAlias
   | functionDef
   | memoryFunctionDef
   | operatorFunctionDef
@@ -118,6 +134,9 @@ interfacePropertyDecl
   | structSetterDef
   ;
 
+propertyAlias
+  : 'alias' identifier identifier
+  ;
 
 structGetterDecl
   : structGetterDef functionBody
