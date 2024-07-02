@@ -4,33 +4,33 @@
 
 ## General
 
-[Scope](general/scope.md)
+[Scope](spec/general/scope.md)
 
-[Normative references](general/normative-references.md)
+[Normative references](spec/general/normative-references.md)
 
-[Glossary](general/glossary.md)
+[Glossary](spec/general/glossary.md)
 
-[Conformance](general/conformance.md)
+[Conformance](spec/general/conformance.md)
 
 ## Compiler
 
-[Compilation phases](compiler/compilation-phases.md)
+[Compilation phases](spec/compiler/compilation-phases.md)
 
 * Lexical Analysis
 * Syntax Analysis
 * Semantic Analysis
 * Code generation
 
-[The source file](compiler/the-source-file.md)
+[The source file](spec/compiler/the-source-file.md)
 
 * Structure (order)
 * Character sets
 * Trigraph sequences
 * Multibyte characters
 
-[Project structure](compiler/project-structure.md)
+[Project structure](spec/compiler/project-structure.md)
 
-[Configuration](compiler/compiler-configuration.md)
+[Configuration](spec/compiler/compiler-configuration.md)
 
 * `#get`
 * `#set`
@@ -41,38 +41,38 @@
 
 ## Language
 
-[Type system](language/type-system.md)
+[Type system](spec/language/type-system.md)
 
 * Primitives
-  * [Numeric arithmetic](language/types/numeric-arithmetic.md)
-  * [Pointers](language/types/pointers.md)
-  * [Structured](language/types/structured.md)
-  * [Enumerated](language/types/enumerated.md)
-  * [Interface](language/types/interface.md)
+  * [Numeric arithmetic](spec/language/types/numeric-arithmetic.md)
+  * [Pointers](spec/language/types/pointers.md)
+  * [Structured](spec/language/types/structured.md)
+  * [Enumerated](spec/language/types/enumerated.md)
+  * [Interface](spec/language/types/interface.md)
 
 * Extended
-  * [Array](language/types/array.md)
-  * [Strings](language/types/strings.md)
+  * [Array](spec/language/types/array.md)
+  * [Strings](spec/language/types/strings.md)
 
-[Identifiers](language/identifiers.md)
+[Identifiers](spec/language/identifiers.md)
 
-[Literals](language/literals.md)
+[Literals](spec/language/literals.md)
 
-[Variables](language/variables.md)
+[Variables](spec/language/variables.md)
 
-[Functions](language/functions.md)
+[Functions](spec/language/functions.md)
 
-[Statements and blocks](language/statements-and-blocks.md)
+[Statements and blocks](spec/language/statements-and-blocks.md)
 
-[Control flow](language/control-flow.md)
+[Control flow](spec/language/control-flow.md)
 
-[Expressions](language/expressions.md)
+[Expressions](spec/language/expressions.md)
 
-[Introspection](language/introspection.md)
+[Introspection](spec/language/introspection.md)
 
-[Preprocessor and metaprogramming](preprocessor-and-metaprogramming.md)
+[Preprocessor and metaprogramming](spec/preprocessor-and-metaprogramming.md)
 
-[Memory management](memory-management.md)
+[Memory management](spec/memory-management.md)
 
 <!--
 [6. Statements](statements.md)

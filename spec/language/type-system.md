@@ -4,27 +4,32 @@
   https://en.wikipedia.org/wiki/Strong_and_weak_typing
 -->
 
+This language is:
+
+* `weakly typed`
+* `static typed`
+
 The language is `weakly typed` because it has `unsafe_cast` and pointer
 arithmetic. Any of those techniques allow to see a value in different and
 maybe erroneous ways. But it's the programmer the one that need to allow it.
 There is no implicit conversions that allow this behavior, everything
 must be marked with `unsafe_cast`.
 
-It's also `static typed`, a variable must have only one type during it's life.
+It's also `static typed` so types will be evaluated at compile time and a
+variable shall have only one type during it's life.
 
 There is no runtime overhead for type safety everything it's check at compile
 time with the exception of:
 * `tagged unions`, the compiler require to honor the
 guard property every time before accessing any value.
-* `variant` a variant a a pointer with its `typeid`
+* `variant` a variant a a pointer with its `typeid` and can be in fact anything
 
 Implicit conversion are disallowed if data precision will be lost or data
 corruption may occur.
 That means casting from `i8` to `i16` it's allowed, the other way around is not.
-Also signed to unsigned, and the other way around, is disallowed and must
-be explicit cast.
+Also signed to unsigned casting is disallowed.
 
-Some types are immutable, that means that it's memory won't change after the
+Some types are immutable (readonly), that means that it's memory won't change after the
 first initialization. Those type creates a foundation to build those that can
 be muted. A good example are: `istring` or `iarray`.
 
