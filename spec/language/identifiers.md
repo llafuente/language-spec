@@ -52,16 +52,6 @@ NON_DIGITUP
 
 
 fragment
-NON_ZERO_DIGIT
-    :   [1-9]
-    ;
-
-fragment
-DIGIT
-    :   [0-9]
-    ;
-
-fragment
 UNIVERSAL_CHARACTER_NAME
     :   '\\u' HEX_QUAD
     |   '\\U' HEX_QUAD
@@ -72,11 +62,6 @@ UNIVERSAL_CHARACTER_NAME
 
 fragment
 HEX_QUAD
-    :   HEXADECIMAL_DIGIT HEXADECIMAL_DIGIT HEXADECIMAL_DIGIT HEXADECIMAL_DIGIT
-    ;
-
-fragment
-HEXADECIMAL_DIGIT
-    :   [0-9a-fA-F]
+    :   HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     ;
 ```

@@ -101,7 +101,7 @@ switchCaseStmt
   ;
 
 switchStmt
-  : 'switch' expression '{' end_of_statement? switchCaseStmt* '}'
+  : 'switch' expression '{' endOfStmt? switchCaseStmt? '}'
   ;
 ```
 
@@ -516,7 +516,7 @@ The compiler shall replace the `loop` statement with a `macro` call.
 
 ```syntax
 continueStmt
-  : 'continue' (identifier | DECIMAL_CONSTANT)?
+  : 'continue' (identifier | numberLiteral)?
   ;
 ```
 
@@ -571,7 +571,7 @@ Pick the first if id is not present
 
 ```syntax
 restartStmt
-  : 'restart' ( identifier | DECIMAL_CONSTANT )?
+  : 'restart' ( identifier | numberLiteral )?
   ;
 ```
 
@@ -598,7 +598,7 @@ Pick the first if id is not present
 
 ```syntax
 breakStmt
-  : 'break' ( identifier | DECIMAL_CONSTANT )?
+  : 'break' ( identifier | numberLiteral )?
   ;
 ```
 

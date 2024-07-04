@@ -101,9 +101,9 @@ typeDefinition
 
 typeDecl
   // aliasing existing type
-  : 'type' type_identifier '=' 'struct' ('extends' typeDefinition)* '{' end_of_statement? structProperty* '}'             #    structTypeDecl
-  | 'type' type_identifier '=' 'interface' ('extends' typeDefinition)* '{' end_of_statement? interfaceProperty* '}'       # interfaceTypeDecl
-  | 'type' type_identifier '=' 'enum' '{' end_of_statement? enumeratorList? '}'                                           #      enumTypeDecl
+  : 'type' type_identifier '=' 'struct' ('extends' typeDefinition)* '{' endOfStmt? structProperty* '}'             #    structTypeDecl
+  | 'type' type_identifier '=' 'interface' ('extends' typeDefinition)* '{' endOfStmt? interfaceProperty* '}'       # interfaceTypeDecl
+  | 'type' type_identifier '=' 'enum' '{' endOfStmt? enumeratorList? '}'                                           #      enumTypeDecl
   | 'type' type_identifier '=' (typeDefinition ('|' typeDefinition)+)                                                     # aggregateTypeDecl
   | 'type' type_identifier '=' typeDefinition                                                                             #     aliasTypeDecl
   ;
@@ -160,13 +160,13 @@ structSetterDef
   ;
 
 structProperty
-  : structPropertyDecl end_of_statement
-  | comments end_of_statement
+  : structPropertyDecl endOfStmt
+  | comments endOfStmt
   ;
 
 interfaceProperty
-  : interfacePropertyDecl end_of_statement
-  | comments end_of_statement
+  : interfacePropertyDecl endOfStmt
+  | comments endOfStmt
   ;
 
 enumerator
@@ -175,7 +175,7 @@ enumerator
   ;
 
 enumeratorList
-  : (enumerator end_of_statement)+
+  : (enumerator endOfStmt)+
   | comments
   ;
 

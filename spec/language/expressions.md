@@ -12,8 +12,8 @@ constant
     : 'true'                  # trueLiteralExpr
     | 'false'                 # falseLiteralExpr
     | 'null'                  # nullLiteralExpr
-    | String_literal          # stringLiteralExpr
-    | Constant                # constantExpr
+    | stringLiteral           # stringLiteralExpr
+    | numberLiteral           # numberLiteralExpr
     | identifier              # identifierExpr
     ;
 
@@ -61,10 +61,10 @@ argumentExprList
 
 // TODO expand the operator like @postfix_expr
 unary_expr
-    : unaryNewExpression
-    | unaryDeleteExpression
+    : unaryNewExpression                                        # unaryNewExpr
+    | unaryDeleteExpression                                     # unaryDeleteExpr
     // NOTE:  there is not sizeof operator
-    | ('++' |  '--')* (postfix_expr | unary_operator cast_expr)
+    | ('++' |  '--')* (postfix_expr | unary_operator cast_expr) # operatorUnityExpr
     ;
 
 unary_operator

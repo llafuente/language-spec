@@ -11,11 +11,9 @@
 
 ```syntax
 returnStmt
-  //TODO : 'return' expression
-  : 'return'
+  : 'return' rhsExpr?
   ;
 
-// TODO NOTE some are only valid inside struct, maybe we should move it
 functionDecl
   : functionDef functionBody
   ;
@@ -58,11 +56,11 @@ overloadableOperators
   ;
 
 functionBody
-  : end_of_statement? '{' functionBodyStmtList '}' end_of_statement?
+  : endOfStmt? '{' functionBodyStmtList '}' endOfStmt?
   ;
 
 functionBodyStmtList
-  : end_of_statement? (functionBodyStmt end_of_statement)*
+  : endOfStmt? (functionBodyStmt endOfStmt)*
   ;
 
 labeledStatement
@@ -70,7 +68,7 @@ labeledStatement
   ;
 
 blockStatement
-  : '{' end_of_statement? functionBodyStmtList '}'
+  : '{' endOfStmt? functionBodyStmtList '}'
   ;
 
 functionBodyStmt

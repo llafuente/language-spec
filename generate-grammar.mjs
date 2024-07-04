@@ -21,9 +21,9 @@ function replaceTokens(tokens, contents) {
 var lexer = [];
 // lexer
 [
-	"./language\\tokens.md",
-	"./language\\identifiers.md",
-	"./language\\literals.md",
+	"./spec/language/tokens.md",
+	"./spec/language/identifiers.md",
+	"./spec/language/literals.md",
 ].forEach((file) => {
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
@@ -48,17 +48,17 @@ console.log(tokens);
 
 var parser = [];
 [
-	"./language\\program.md",
-	"./language\\type-system.md",
-	"./language\\functions.md",
-	"./memory-management.md",
-	"./language\\expressions.md",
-	// "./generic-programming.md",
-	// "./preprocessor-and-metaprogramming.md",
-	// "./compiler\\compiler-configuration.md",
-	"./language\\control-flow.md",
-	"./language\\variables.md",
-	"./language\\types\\array.md",
+	"./spec/language/program.md",
+	"./spec/language/type-system.md",
+	"./spec/language/functions.md",
+	"./spec/memory-management.md",
+	"./spec/language/expressions.md",
+	// "./spec/generic-programming.md",
+	// "./spec/preprocessor-and-metaprogramming.md",
+	// "./spec/compiler/compiler-configuration.md",
+	"./spec/language/control-flow.md",
+	"./spec/language/variables.md",
+	"./spec/language/types/array.md",
 ].forEach((file) => {
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
@@ -75,8 +75,11 @@ writeFileSync("./LanguageParser.g4", `parser grammar LanguageParser;
 
 // < core\os\process.language
 
-let fd_stdin = openSync('./language.language', 'r');
+let fd_stdin = openSync('./tests/syntax-smoke-screen.language', 'r');
 // var fd_stdin = openSync('./tests/syntax/struct-initializer.language', 'r');
+// tokenizer debug
+// let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-tokens'], {
+// parser debug
 let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
   stdio: [fd_stdin, 1, 2]
 });

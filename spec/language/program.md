@@ -9,7 +9,7 @@ program
   ;
 
 programStmsList
-  : (programStms end_of_statement)*
+  : (programStms (endOfStmt | EOF))*
   ;
 
 programStms
@@ -24,11 +24,11 @@ programStms
 
 // package entry point!
 packageProgram
-  : (comments end_of_statement?)* packageDefinition end_of_statement packageStmsList? EOF
+  : (comments endOfStmt?)* packageDefinitionStmt packageStmsList? EOF
   ;
 
 packageStmsList
-  : (packageStmts end_of_statement)*
+  : (packageStmts (endOfStmt | EOF))*
   ;
 
 packageStmts
@@ -40,8 +40,8 @@ packageStmts
   | fileVariableDeclStmt
   ;
 
-packageDefinition
-  : 'package' identifier
+packageDefinitionStmt
+  : 'package' identifier endOfStmt
   ;
 
 /*
@@ -55,7 +55,7 @@ comments
   | BLOCK_COMMENT
   ;
 
-end_of_statement: (NEWLINE_TK | SEMICOLON_TK)* | EOF;
+endOfStmt: (NEWLINE_TK | SEMICOLON_TK)+;
 
 identifier: IdentifierLow | IdentifierUp ;
 
@@ -67,13 +67,20 @@ dollarIdentifierList
   : dollarIdentifier (',' dollarIdentifier)*
   ;
 
-
 preprocessorMacroCallArgumentList
   : '$'
   ;
 
 preprocessorMacroCallExpr
   : '$'
+  ;
+
+stringLiteral
+  : STRING_LITERAL
+  ;
+
+numberLiteral
+  : NUMBER
   ;
 ```
 

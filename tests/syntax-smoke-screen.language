@@ -1,0 +1,179 @@
+//
+// type declaration
+//
+// alias primitive
+type pepe = i8
+// alias nother type
+type pepe2 = pepe
+
+// aggregate
+type pepe3 = pepe | pepe2
+type pepe4 = i8 | i16 | pepe
+type pepe5 = i8 | i16 | pepe | i8[]
+
+// empty struct declaration
+type pepe2 = struct {}
+// one propery struct declaration
+type point1 = struct {
+	float x
+}
+// multiple properties, new, clone, delete, types, getter, setter, hoist, alias, default properties and operators
+type point2 = struct {
+	float a
+	float b
+	float[] c
+	i8? f
+	float<i8> d
+	float<i8[]> e
+	hoist float<i8[], pepe> f
+	float<i8[], pepe[]> f
+	float<i8[], lend pepe[]> f
+	float<i8?> f
+	
+	// sematic-error
+	float<$xx[] is struct> f
+
+	i8 a = 10
+	string b = "pepe"
+	ref<string> c = ""
+	ref<string> d = 10
+	ref<string> d = 10.0
+	ref<string> e = true
+	ref<string> f = false
+	ref<string> g = null
+
+	alias g f
+
+	get size length {
+		return this.f
+	}
+
+	set size length {
+		this.f = value
+	}
+
+	new() {}
+	clone(point2<$t> other) {}
+	delete() {}
+
+	operator . () {}
+	operator . (i8 a) {}
+	operator / () {
+		return x
+	}
+}
+// templated struct
+type point2<$t, $t2> = struct {
+	$t x
+	$t2 y
+}
+
+
+// templated extends 
+type struct_that_extends_pepe<$t> = struct extends pepe {}
+// templated extends templated
+type struct_that_extends_templated<$t> = struct extends pepe<$t> {}
+
+//
+// functions
+//
+
+// empty function
+function f() {}
+
+// one parameter
+function f(i8 a) {
+	return a
+}
+// multiple parameters
+function f(i8 a, i8 b) {
+	return a + b	
+}
+// complex parameter types
+function f(pepe<i8> a, pepe[] b, pepe? c) {
+}
+// pure function
+pure function f(pepe<i8> a, pepe[] b, pepe? c) {
+}
+
+/*
+this is the main file...
+package var i8 z
+package var z2 = 10
+package const xxx<i8> z4 = 10
+*/
+global var i8 z
+global var xxx<i8> z4 = 10
+global const xxx<i8> z4 = 10
+
+function x() {
+
+	1 + 2 * 3 / 4
+	1 | 2 & 3 ^ 4 || 5 && 6 % 1 << 1 >> 1 == 1 != 1 
+	1 |= 1
+	1 &= 1 %= 1 *= 1 /= 1 -= 1 += 1
+	++1
+	--1
+	1++
+	1--
+
+	a = 1
+	obj.access = 1
+	obj[1] = 1
+	obj(100)
+	obj(pepe.martin, 10.0, null, false, 1, "", obj?.safe, obj!.safe)
+
+	// loop
+
+	loop 10 {}
+	// TODO range! loop 1..10 {}
+	loop value {}
+	loop value.value() {}
+	loop value?.value() {}
+
+	loop key in iterable {}
+	loop key, value in iterable {}
+
+	outterloop: loop i in 10 {
+	  loop j in 10 {
+	    if j < 10 {
+	      // this is clearer and allowed :)
+	      continue outterloop 
+	    }
+	  }
+	}
+	// foreach
+	foreach value?.value.value() {}
+
+	foreach key in iterable {}
+	foreach key, value in iterable {}
+
+	outterloop2: foreach key, value in iterable {
+		continue
+		restart
+		break
+
+		continue 10
+
+		continue 2
+		restart 2
+		break 2
+
+		continue outterloop2
+		restart outterloop2
+		break outterloop2
+	}
+
+
+	a = b + 0xFF
+	a = b + 0b0101
+	a = b + 0o0707
+	
+	a = b + 0
+
+	a = b + 1
+	a = b + 10
+	a = b + 1000
+	a = b + 10001
+	a = b + 123456789
+}

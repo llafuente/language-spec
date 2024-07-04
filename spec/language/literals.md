@@ -12,56 +12,7 @@ same as c, but we want to support advanced staff like
   literal / constants
 */
 
-Constant
-  : Integer_constant
-  | Floating_constant
-  // TODO study enumeration must be named, so it's a member access
-  // | enumeration_literal
-  | StringLiteral
-  ;
-
-fragment
-Integer_constant
-  : DECIMAL_CONSTANT INTEGER_SUFFIX?
-  | OCTAL_CONSTANT INTEGER_SUFFIX?
-  | HEXADECIMAL_CONSTANT INTEGER_SUFFIX?
-  | BINARY_CONSTANT
-  ;
-
-fragment
-BINARY_CONSTANT
-  : '0' [bB] [0-1]+
-  ;
-
-fragment
-HEXADECIMAL_CONSTANT
-  : HEXADECIMAL_PREFIX HEXADECIMAL_DIGIT+
-  ;
-
-fragment
-HEXADECIMAL_PREFIX
-  : '0' [xX]
-  ;
-
-// TODO study, this is necessary, we should be able to guest ?
-fragment
-INTEGER_SUFFIX
-  : 'U'
-  | 'UL'
-  | 'ULL'
-  ;
-
-fragment
-OCTAL_CONSTANT
-  :   '0' OCTAL_DIGIT*
-  ;
-
-fragment
-DECIMAL_CONSTANT
-  : NON_ZERO_DIGIT DIGIT*
-  ;
-
-String_literal
+STRING_LITERAL
     :   ENCODING_PREFIX? '"' SCHAR_SEQUENCE? '"'
     ;
 
@@ -101,75 +52,25 @@ SIMPLE_ESCAPE_SEQUENCE
 
 fragment
 OCTAL_ESCAPE_SEQUENCE
-    :   '\\' OCTAL_DIGIT OCTAL_DIGIT? OCTAL_DIGIT?
+    :   '\\' OCT_DIGIT OCT_DIGIT? OCT_DIGIT?
     ;
 
 fragment
 HEXADECIMAL_ESCAPE_SEQUENCE
-    :   '\\x' HEXADECIMAL_DIGIT+
+    :   '\\x' HEX_DIGIT+
     ;
 
-fragment
-OCTAL_DIGIT
-    :   [0-7]
-    ;
-
-Floating_constant
-    :   DECIMAL_FLOATING_CONSTANT
-    |   HEXADECIMAL_FLOATING_CONSTANT
-    ;
-
-fragment
-DECIMAL_FLOATING_CONSTANT
-    :   FRACTIONAL_CONSTANT EXPONENT_PART? FLOATING_SUFFIX?
-    |   DIGIT_SEQUENCE EXPONENT_PART FLOATING_SUFFIX?
-    ;
-
-fragment
-HEXADECIMAL_FLOATING_CONSTANT
-    :   HEXADECIMAL_PREFIX (HEXADECIMAL_FRACTIONAL_CONSTANT | HEXADECIMAL_DIGIT_SEQUENCE) BINARY_EXPONENT_PART FLOATING_SUFFIX?
-    ;
-
-fragment
-FLOATING_SUFFIX
-    :   [flFL]
-    ;
-
-fragment
-BINARY_EXPONENT_PART
-    :   [pP] SIGN? DIGIT_SEQUENCE
-    ;
-
-fragment
-FRACTIONAL_CONSTANT
-    :   DIGIT_SEQUENCE? '.' DIGIT_SEQUENCE
-    |   DIGIT_SEQUENCE '.'
-    ;
-
-fragment
-EXPONENT_PART
-    :   [eE] SIGN? DIGIT_SEQUENCE
-    ;
-
-fragment
-SIGN
-    :   [+-]
-    ;
 
 fragment
 HEXADECIMAL_FRACTIONAL_CONSTANT
-    :   HEXADECIMAL_DIGIT_SEQUENCE? '.' HEXADECIMAL_DIGIT_SEQUENCE
-    |   HEXADECIMAL_DIGIT_SEQUENCE '.'
+    :   HEX_DIGIT_SEQUENCE? '.' HEX_DIGIT_SEQUENCE
+    |   HEX_DIGIT_SEQUENCE '.'
     ;
 
 fragment
-HEXADECIMAL_DIGIT_SEQUENCE
-    :   HEXADECIMAL_DIGIT+
+HEX_DIGIT_SEQUENCE
+    :   HEX_DIGIT+
     ;
-
-DIGIT_SEQUENCE
-  :   DIGIT+
-;
 
 StringLiteral
     :   '\'' CCHAR_SEQUENCE '\''
@@ -188,5 +89,50 @@ CCHAR
     :   ~['\\\r\n]
     |   ESCAPE_SEQUENCE
     ;
+
+
+//
+// numbers
+//
+/*
+NUMBER
+    : [0-9]+
+    ;
+
+TODO_
+*/
+NUMBER
+    : INTEGER
+    | FLOAT_NUMBER
+    | IMAG_NUMBER
+    ;
+
+// https://docs.python.org/3.12/reference/lexical_analysis.html#integer-literals
+fragment INTEGER        : DEC_INTEGER | DEC_ZERO | BIN_INTEGER | OCT_INTEGER | HEX_INTEGER;
+fragment DEC_INTEGER    : NON_ZERO_DIGIT ('_'? DIGIT)*;
+fragment DEC_ZERO       : '0' ('_'? '0')*;
+fragment BIN_INTEGER    : '0' ('b' | 'B') ('_'? BIN_DIGIT)+;
+fragment OCT_INTEGER    : '0' ('o' | 'O') ('_'? OCT_DIGIT)+;
+fragment HEX_INTEGER    : '0' ('x' | 'X') ('_'? HEX_DIGIT)+;
+// fragment NON_ZERO_DIGIT : [1-9];
+fragment NON_ZERO_DIGIT : '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+//fragment DIGIT          : [0-9];
+fragment DIGIT          : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+fragment BIN_DIGIT      : '0' | '1';
+fragment OCT_DIGIT      : [0-7];
+fragment HEX_DIGIT      : DIGIT | [a-f] | [A-F];
+
+// https://docs.python.org/3.12/reference/lexical_analysis.html#floating-point-literals
+fragment FLOAT_NUMBER   : POINT_FLOAT | EXPONENT_FLOAT;
+fragment POINT_FLOAT    : DIGIT_PART? FRACTION | DIGIT_PART '.';
+fragment EXPONENT_FLOAT : (DIGIT_PART | POINT_FLOAT) EXPONENT;
+fragment DIGIT_PART     : DIGIT ('_'? DIGIT)*;
+fragment FRACTION       : '.' DIGIT_PART;
+fragment EXPONENT       : ('e' | 'E') ('+' | '-')? DIGIT_PART;
+
+// https://docs.python.org/3.12/reference/lexical_analysis.html#imaginary-literals
+fragment IMAG_NUMBER : (FLOAT_NUMBER | DIGIT_PART) ('j' | 'J');
+
+
 
 ```
