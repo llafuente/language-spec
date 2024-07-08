@@ -1,3 +1,9 @@
+<!--
+
+  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/
+
+-->
+
 # Expressions
 
 *Syntax*
@@ -27,17 +33,19 @@ primary_expr
 postfix_expr
     // memberAccessExpression
     // TODO this should be a rhs_expression?
-    : postfix_expr '[' expression ']'                                                  # postfix_expr_braces
+    : postfix_expr '![' expression ']'                                                 # postfixSelfElementAccessExpr
+    | postfix_expr '?[' expression ']'                                                 # postfixSafeElementAccessExpr
+    | postfix_expr '[' expression ']'                                                  # postfixElementAccessExpr
     // TODO slice operator
-    | postfix_expr '[' expression ':' expression ']'                                   # postfix_expr_slice
-    | postfix_expr '?.' identifier                                                     # postfix_expr_safe_dot
-    | postfix_expr '!.' identifier                                                     # postfix_expr_self_dot
-    | postfix_expr '.' identifier                                                      # postfix_expr_dot
+    | postfix_expr '[' expression ':' expression ']'                                   # postfixSliceExpr
+    | postfix_expr '?.' identifier                                                     # postfixSafeMemberAccessExpr
+    | postfix_expr '!.' identifier                                                     # postfixSelfMemberAccessExpr
+    | postfix_expr '.' identifier                                                      # postfixMemberAccessExpr
     // function call
-    | postfix_expr '(' argumentExprList? ')'                                           # postfix_expr_call
+    | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
     | postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
     | preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
-    | primary_expr ( '++' | '--' )*                                                    # postfix_expr_idncr
+    | primary_expr ( '++' | '--' )*                                                    # postfixIndecrementExpr
     ;
 
 namedArgument
@@ -177,7 +185,7 @@ operators
 
 | Category               | Operator                                                  | Associativity |
 |------------------------|-----------------------------------------------------------|---------------|
-| Postfix                | () [] !. ?. . ++ - -                                      | Left to right |
+| Postfix                | () ?[] ![] [] !. ?. . ++ --                               | Left to right |
 | Unary                  | +  -  !  ~  ++  -- &amp; typeof new delete                | Right to left |
 | Multiplicative         | *  /  %                                                   | Left to right |
 | Additive               | +  -                                                      | Left to right |
@@ -191,6 +199,21 @@ operators
 | Logical OR             | \|\|                                                      | Left to right |
 | Conditional (**TODO**) | ?:                                                        | Right to left |
 | Assignment             | =  +=  -=  *=  /=  %=&gt;&gt;=  &lt;&lt;=  &amp;=  ^= \|= | Right to left |
+
+
+<!--
+
+    Experimental operators
+
+    Nullish coalescing assignment
+    ??=
+    assign if left is null
+
+    =??
+
+    assign if right is not null
+
+-->    
 
 ## Casting
 

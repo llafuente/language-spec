@@ -59,6 +59,7 @@ var parser = [];
 	"./spec/language/control-flow.md",
 	"./spec/language/variables.md",
 	"./spec/language/types/array.md",
+	// "./spec/language/types/enumerated.md",
 ].forEach((file) => {
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");

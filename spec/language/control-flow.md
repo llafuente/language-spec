@@ -69,6 +69,11 @@ yields false, "else-then-block" will be executed.
 
 1. "if-condition" shall have boolean type.
 
+<!-- https://eslint.org/docs/latest/rules/no-dupe-else-if -->
+2. if expression shall not repeat or be part of previous "if-condition"
+
+> This branch can never execute. Its condition is a duplicate or is covered by a previous if-condition
+
 
 *Example*
 

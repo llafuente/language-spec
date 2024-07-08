@@ -94,6 +94,8 @@ HASH_TK : '#';
 // Expressions
 LEFTPAREN_TK : '(';
 RIGHTPAREN_TK : ')';
+SELFLEFTBRACKET_TK : '![';
+SAFELEFTBRACKET_TK : '?[';
 LEFTBRACKET_TK : '[';
 RIGHTBRACKET_TK : ']';
 LEFTBRACE_TK : '{';

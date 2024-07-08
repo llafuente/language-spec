@@ -14,6 +14,39 @@ TODO review c - 6.9.2 External object definitions
 * `const`: *No-assignable*: Memory can be modified, the variable itself shall not be.
 * `readonly`: *Inmutable*: Do not allow any modifications to it's memory `readonly`
 
+*Example*
+
+```language-error
+struct point = {
+  float x
+  float y
+
+  function reset() {
+    x = 0
+    y = 0
+  }
+}
+
+// var can be assign, re-assign and modified
+var p1 = new point(0, 0)
+p1 = new point(1, 1)
+p1.x = 10
+p2.y = 10
+
+// const can be assign and modified but not re-assign
+const p2 = new point(0, 0)
+p2 = new point(1, 1) // <<- semantic error
+p2.x = 10
+p2.y = 10
+
+// readonly can be assign not modified and not re-assign
+readonly p3 = new point(0, 0)
+
+p3 = new point(1, 1) // <<- semantic error
+p3.x = 10 // <-- semantic error
+p3.reset() // <-- semantic error
+
+```
 
 3. The scope of a variable tells the compiler the life cycle of the variable. There are two scopes:
 
@@ -25,6 +58,18 @@ TODO review c - 6.9.2 External object definitions
 1. A variable can't be shadowed or a semantic-error shall raise
 
 > variable redefition
+
+2. `const`variable cant be re-assigned or a semantic-error shall raise
+
+> '?' cannot be reassign, is const
+
+3. `readonly`variable cant be re-assigned or a semantic-error shall raise
+
+> '?' cannot be reassign, is readonly
+
+4. `readonly`variable cant be modified or a semantic-error shall raise
+
+> '?' cannot be modified, is readonly
 
 
 <a name="global-variables"></a>
