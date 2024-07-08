@@ -14,6 +14,10 @@ returnStmt
   : 'return' rhsExpr?
   ;
 
+deferStmt
+  : 'defer' rhsExpr?
+  ;
+
 functionDecl
   : functionDef functionBody
   ;
@@ -81,6 +85,7 @@ functionBodyStmt
   | selectionStmts
   // function exclusive
   | returnStmt
+  | deferStmt
   | blockVariableDeclStmt
   ;
 
@@ -403,29 +408,34 @@ function free_array_error(own array<$t> arr) {
 
 1. A default parameter will be inserted at function call by the compiler.
 
-2. It's a compiler construct but don't has runtime cost.
 
 *Constraints*
 
 1. Default parameter value shall have a static value.
 
+2. Not supported at ffi as It's a compiler construct.
 
 ### `arguments` keyword
 
 *Semantics*
 
-1. it's a magic variable that holds the arguments passed with type:
+1. It's a magic variable that holds the arguments passed with type:
 *array&lt;variant&gt;*
 
-2. It's a compiler construct, it has runtime cost.
+<!-- REVIEW It's the way to access unnamed varargs (c style). -->
 
-3. It's the way to access unnamed varargs (c style).
+*Remarks*
+
+It's a compiler construct that has runtime cost.
 
 *Constraints*
 
 1. `arguments` shall be used only in function body.
 
-2. At least one parameters shall be declared to use arguments inside a function.
+2. At least one parameters shall be declared to use arguments inside 
+a function or a semantic-error shall raise.
+
+> arguments used but function has no parameters.
 
 *Example*
 
@@ -452,8 +462,29 @@ function sum3 (...) {
 
 ```
 
-If a function use arguments add this header.
+`arguments` shall be implemented including the following macro
+at the top of the function
 
+```language
+readonly array<variant> arguments = []
+#for param_key, param_value in self.parameters {
+  arguments.push(cast<variant>(#param_value#))
+}
+```
+
+<!--
+  REVIEW - even it's usefull it does something wrong
+  you define a type in parameters but it's not the real type...
+
+  also to force an array type implies another problem
+
+  function join(string[] xxx...) {}
+  join(["xxx", "yyy"]) // and now what ?
+
+  function join(string[][] xxx...) {}
+  join(["xxx"], ["yyy"], [["ups!"]]) // and now what ?
+
+-->
 ## Named varargs
 
 *Semantics*
@@ -485,13 +516,15 @@ function join_anything(variant list) {
 
 Wraps a function call.
 
-The main usage for hook should be to replace a function causing bugs or debug input/output.
+*Remarks*
+
+The main usage for `hook` should be to replace a buggy functions or debug input/output.
 
 *Constraints*
 
 1. A function can be hooked once in the same context.
 
-2. Declared function must have the same type as hooked one.
+2. Declared function shall have the same type and name as `hook`ed one.
 
 *Example*
 
@@ -565,7 +598,7 @@ throws function step1() i32 {
   global $error_stack
 
   $error_stack.push(error("simple error", __FILE__, __FUNCTION__, __LINE__))
-  return 0
+  return i32.DEFAULT
 }
 
 throws function step2() i32 {
@@ -573,7 +606,7 @@ throws function step2() i32 {
 
   step1()
   if ($error_stack.length) {
-    $error_stack.last.addTrace(__FILE__, __FUNCTION__, __LINE__)
+    $error_stack.trace.unshift(__FILE__, __FUNCTION__, __LINE__)
     return i32.DEFAULT
   }
 
@@ -602,7 +635,7 @@ https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2895.htm
 
 *Semantics*
 
-A defer statement defers the execution of a function call until the surrounding [function-exits](#function-exit).
+A defer statement pushes the expression execution to the end of the surrounding function ([function-exits](#function-exit)).
 
 
 *Constraints*
@@ -612,12 +645,53 @@ A defer statement defers the execution of a function call until the surrounding 
 2. `defer` shall honor scope and raise error if a parameter is out-of-scope at
 any [function-exit](#function-exit).
 
+```language-error
+function out_of_scope() void {
+  {
+    int b = 10
+    defer print (b)
+  }
+}
+```
+
+```language
+function out_of_scope_but_lambda() void {
+  {
+    int b = 10
+    defer function() { print (b) }
+    b = 11
+  }
+}
+```
+
+Note: `b` it's a primitive so copied
+
+```output
+10
+```
+
+```language
+function out_of_scope_but_lambda2() void {
+  {
+    shared_ptr<int> a = 10
+    weak_ptr<int> b = a
+    defer function() { print (b) }
+    b = 11
+  }
+}
+```
+
+```output
+null
+```
+
+
 *Example*
 
 ```language
 function add_one(i32 a) void {
-  defer print("add_one", a)
-  defer () => {print("add_one", a)}
+  defer print("stmt - add_one", a)
+  defer function () {print("lambda add_one", a)}
   ++a
 }
 
@@ -626,8 +700,11 @@ x(15)
 ```
 
 ```output
-add_one 11
-add_one 16
+stmt add_one 11
+lambda add_one 10
+
+stmt add_one 16
+lambda add_one 15
 ```
 
 *Example 2*
@@ -682,4 +759,92 @@ function add_one(i32 a) i32 {
   }
   return 0
 }
+```
+
+## lambda / anonymous functions
+
+
+*Semantics*
+
+A lambda / anonymous functions is the way the simplest way to create a
+function object.
+
+*Constraints*
+
+1. Stack variables are captured by value.
+
+```language
+function sum (int a, int b) {
+  const r = function {
+    return a + b
+  }
+
+  ++a
+
+  return r
+}
+
+#assert sum(10, 10)() == 20
+```
+
+2. `readonly` stack variables shall raise an error
+
+```language-error
+// error, as shared_ptr will be modificied if copied!
+function sum_error (readonly shared_ptr<int> a, int b) {
+  return function {
+    return a + b
+  }
+}
+```
+
+```language
+function sum_works (shared_ptr<readonly int> a, int b) {
+  return function {
+    return a + b
+  }
+}
+```
+
+3. Lambda shall not capture global variables implicitily.
+
+4. Lambda type is `shared_ptr<lambda.callable>`
+
+5. Lambda will honor current memory pool.
+
+*Implementation*
+
+* Locate all variables captures
+* Use the variables as parameters
+* create a `shared_ptr<lambda.callable>`
+* assign all parameters
+
+
+```language
+function sum (auto ref<int> a, auto ref<int> b) {
+  return function {
+    return a + b;
+  }
+}
+// extract the lambda function
+// define parameters
+function lambda_sum_001 (ref<int> a, ref<int> b) {
+  return a + b;
+}
+// create the callable
+var x = new shared_ptr<lambda_sum_001.callable>(){a, b}
+
+```
+
+
+
+*Examples*
+
+```language
+function sum (auto ref<int> a, auto ref<int> b) {
+  return function {
+    return a + b;
+  }
+}
+sum(10, 11)()
 ```

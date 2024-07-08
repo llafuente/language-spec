@@ -47,6 +47,7 @@
 * get
 * set
 * autocast
+* defer
 
 <!-- TODO tokens.md -->
 ## templates

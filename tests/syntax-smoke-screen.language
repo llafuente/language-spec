@@ -177,3 +177,16 @@ function x() {
 	a = b + 10001
 	a = b + 123456789
 }
+
+function defer_1() {
+	defer print("ok")
+}
+
+function defer_1(itn a) {
+	defer print(a)
+	++a
+	defer print(a)
+	++a
+
+	return a
+}

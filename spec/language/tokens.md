@@ -55,6 +55,7 @@ ALIAS_TK : 'alias';
 GET_TK : 'get';
 SET_TK : 'set';
 AUTOCAST_TK : 'autocast';
+DEFER_TK : 'defer';
 
 // Control flow
 
