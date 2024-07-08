@@ -6,6 +6,7 @@
 
 import ref
 
+// single allocation data
 struct _shared_ref_data<$t> {
 	$t data
 	allocator.dealloca _dealloca

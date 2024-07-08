@@ -1,8 +1,8 @@
 struct ref<$t> {
 	i64 ptr
 
-	clone() {
-		
+	clone(ref<$t> other) {
+		other.ptr = ptr
 	}
 
 	operator.() $t {

@@ -6,7 +6,7 @@
 
 *Constraints*
 
-1. Same as `c language`, struct must be 100% compatible.
+1. Same as `c language`, struct shall be 100% compatible.
 
 *Example*
 
@@ -31,6 +31,10 @@ type Quaternion = struct extends Vector3 {
 
 A default constructor is defined with all the properties in order.
 
+*Constraints*
+
+1. A default constructor shall be define by compiler if no other constructor is present.
+
 *Example*
 
 ```language
@@ -39,7 +43,7 @@ type a = struct {
   float z
   /*
   default constructor:
-  function new($t y, float z) {
+  new($t y, float z) {
     this.y = y
     this.z = z
   }
@@ -166,7 +170,7 @@ Align `struct` properties to given value.
 
 *Constraints*
 
-1. Same as `c language`, struct must be 100% compatible.
+1. Same as `c language`, struct shall be 100% compatible.
 
 # Properties modifiers
 
@@ -178,11 +182,44 @@ Align `struct` properties to given value.
 
 This ease composition patterns.
 
+*Remarks*: Only exposes properties and no methods.
+
 *Constraints*
 
-1. `hoist` shall not be applied to setters or getters.
+1. `hoist` shall be applied only to properties or a semantic-error shall raise:
 
-2. `hoist` shall checked no collisions in self property names or other hoist.
+> hoist shall be applied only to struct properties.
+
+2. The compiler shall check for no collisions in self property names or other hoist.
+
+*Collisions examples*
+```language-error
+type abc = struct {
+  i32 a
+  i32 b
+  i32 c
+}
+// "abc" hoist collide "a" property
+type y = struct {
+  hoist x x
+  i32 a
+}
+// "hoist abc y" collide "hoist abc x" as both declared the same properties
+type y = struct {
+  hoist x x
+  hoist x y
+}
+// "abc.a" collide with a getter
+type y = struct {
+  hoist x x
+  get i32 a { return 0; }
+}
+// "abc.a" collide with a function
+type y = struct {
+  hoist x x
+  function a() int { return 0; }
+}
+```
 
 *Example*
 
@@ -199,7 +236,7 @@ type Vector3 = struct {
   }
 }
 type Player = struct {
-  hoist Vector3 position;
+  hoist Vector3 position
 }
 
 p = Player()
@@ -218,12 +255,28 @@ p.position.add(Vector3(10,11,12)) // ok
 Mark the property as `readonly` outside the constructor, so nobody can modify
 it's value.
 
+*Remarks*: This means no modifications to all the memory, including calling function that modify internal memory
+
 *Constraints*
 
-1. `readonly` shall not be applied to setters or getters.
+1. `readonly` shall be applied only to properties or a semantic-error shall raise:
+
+> readonly shall be applied only to struct properties.
 
 2. If a `struct` has `readonly` properties without default value a constructor
-shall be defined.
+shall be defined or a semantic-error shall raise
+
+> Found a non-default readonly property and no constructor.
+
+3. Disallow calling any function that it's parameter don't have readonly modifier or a semantic-error shall raise:
+
+> Try to call a function that modify a readonly property
+
+> Try to assign a readonly property
+
+> Try to remove readonly modifier at cast
+
+> Try to remove readonly modifier at unsafe_cast
 
 *Example*
 
@@ -231,7 +284,11 @@ shall be defined.
 struct dbtable {
   readonly string id
   string name
-  //...
+
+  new (string _id, string _name) {
+    id = _id
+    name = _name
+  }
 }
 
 var dbtable t("xxx-xxx-xxx", "yyy")
@@ -269,6 +326,19 @@ at destruction.
 *Constraints*
 
 1. Memory shall be freed at destructor
+
+*Example*
+
+```language
+type User {
+  own ref<string> name
+}
+
+{
+  new User("xxxx")
+}
+
+```
 
 ## `override` modifier
 
