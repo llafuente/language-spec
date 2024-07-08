@@ -6,6 +6,7 @@
 TYPE_TK : 'type';
 STRUCT_TK : 'struct';
 ENUM_TK : 'enum';
+MASK_TK : 'mask';
 EXTENDS_TK : 'extends';
 INTERFACE_TK : 'interface';
 IS_TK : 'is';

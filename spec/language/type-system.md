@@ -95,7 +95,7 @@ templateExtends
 typeDefinition
   : typeModifiers* type '[' ']'                                       #     arrayType
   | typeModifiers* type '?'                                           #  nullableType
-  | typeModifiers* type '<' templateDefinitionList '>'  # templatedType
+  | typeModifiers* type '<' templateDefinitionList '>'                # templatedType
   | typeModifiers* type                                               #    singleType
   ;
 
@@ -103,9 +103,10 @@ typeDecl
   // aliasing existing type
   : 'type' type_identifier '=' 'struct' ('extends' typeDefinition)* '{' endOfStmt? structProperty* '}'             #    structTypeDecl
   | 'type' type_identifier '=' 'interface' ('extends' typeDefinition)* '{' endOfStmt? interfaceProperty* '}'       # interfaceTypeDecl
-  | 'type' type_identifier '=' 'enum' '{' endOfStmt? enumeratorList? '}'                                           #      enumTypeDecl
-  | 'type' type_identifier '=' (typeDefinition ('|' typeDefinition)+)                                                     # aggregateTypeDecl
-  | 'type' type_identifier '=' typeDefinition                                                                             #     aliasTypeDecl
+  | 'type' type_identifier '=' 'enum' primitive? '{' endOfStmt? enumeratorList? '}'                                #      enumTypeDecl
+  | 'type' type_identifier '=' 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'                            #      maskTypeDecl
+  | 'type' type_identifier '=' (typeDefinition ('|' typeDefinition)+)                                              # aggregateTypeDecl
+  | 'type' type_identifier '=' typeDefinition                                                                      #     aliasTypeDecl
   ;
 
 // TODO do not repeat at parser level ?
@@ -170,14 +171,23 @@ interfaceProperty
   ;
 
 enumerator
-  //: identifier '=' conditional_expr
-  : identifier
+  : identifier ('=' logical_or_expr)?
   ;
 
 enumeratorList
   : (enumerator endOfStmt)+
   | comments
   ;
+
+maskEnumerator
+  : identifier ('=' logical_or_expr)
+  ;
+
+maskEnumeratorList
+  : (maskEnumerator endOfStmt)+
+  | comments
+  ;
+
 
 structProperyInitializer
   // REVIEW json support is ok, '=' maybe the best as function arguments

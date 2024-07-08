@@ -6,6 +6,7 @@
 * type
 * struct
 * enum
+* mask
 * extends
 * interface
 * is

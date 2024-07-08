@@ -190,3 +190,19 @@ function defer_1(itn a) {
 
 	return a
 }
+
+type position = enum {
+	FIRST
+	SECOND
+	THRID
+}
+
+type enconding = enum {
+	BIN = "Binary"
+	ASCII = "Ascii"
+}
+
+type masky = mask {
+	BIN = 0x00001
+	ASCII = 0b10101001
+}
