@@ -4,85 +4,79 @@ TODO review c - 6.9.2 External object definitions
 
 # Variables
 
-A variables is the name that it's associated with a value in a computer program.
+*Semantics*
 
-That name can point to a value that change over time: a `variable` (`var`)
-or a values that don't: a `constant` (`const`)
+1. A variables is the name that it's associated with a value in a computer program.
 
-The scope of a variable tells the compiler the life cycle of the variable.
-We list all the options below.
+2. A variable can be:
+
+* `var`: *Mutable*, variable can be modified itself and it's memory.
+* `const`: *No-assignable*: Memory can be modified, the variable itself shall not be.
+* `readonly`: *Inmutable*: Do not allow any modifications to it's memory `readonly`
+
+
+3. The scope of a variable tells the compiler the life cycle of the variable. There are two scopes:
+
+* *program scope*. `global`, `package` and `file` variables scope start and program start and will be freed when program exit gracefully.
+* *block scope*. A variable start at the point of its declaration and ends at the end of its block.
 
 *Constraints*
 
-1. A variable can't be shadowed. Compiler shall raise an error.
+1. A variable can't be shadowed or a semantic-error shall raise
+
+> variable redefition
 
 
 <a name="global-variables"></a>
-## global
+## global variables
 
 *syntax*
 
 ```syntax
 globalVariableDeclStmt
   // infer variable with initialization
-  : 'global' 'var' identifier '=' rhsExpr
-
-  // typed variable with initialization
-  | 'global' 'var' typeDefinition identifier '=' rhsExpr
-
-  // typed variable no initialization
-  | 'global' 'var' typeDefinition identifier
-
-  // typed constant with initialization
-  | 'global' 'const' typeDefinition identifier '=' rhsExpr
-
-  // infer constant with initialization
-  | 'global' 'const' identifier '=' rhsExpr
+  : 'global' fileVariableDeclStmt
   ;
 ```
 
 *Semantics*
 
-A Global variables is available to every file in main project
+1. Global variables are available to every file in main project
 
-`packages` are not part of your project so a package could not
+*Remarks*: `packages` are not part of your project so a package could not
 read your global variables.
 
 *Constraints*
 
-Global variables shall not be declared outside your program `entry file`
+1. Global variables shall not be declared outside your program `entry file`
 
-A global variable that is not assigned shall have a type.
+2. A global variable that is not assigned shall have a type.
 
-The identifier shall no be uppercased, that reserved to defines.
+3. The identifier shall no be uppercased, that reserved to defines or a syntax-error shall raise
 
+> Unexpected uppercased identifier, that's reserved to meta-programming.
+
+4. Global variables are initialized before main program starts. In order of appeareance.
 
 <a name="package-variables"></a>
 ## package variables
 
-A Package can export variables so the main program and other libraries will share
-it's access.
-
-Declaration is bound to the top of the file.
+*Syntax*
 
 ```syntax
 packageVariableDeclStmt
   // infer variable with initialization
-  : 'package' 'var' identifier '=' rhsExpr
-
-  // typed variable with initialization
-  | 'package' 'var' typeDefinition identifier '=' rhsExpr
-
-  // typed variable no initialization
-  | 'package' 'var' typeDefinition identifier
-
-  // typed constant with initialization
-  | 'package' 'const' typeDefinition identifier '=' rhsExpr
-
-  // untyped constant with initialization
-  | 'package' 'const' identifier '=' rhsExpr
+  : 'package' fileVariableDeclStmt
   ;
 ```
+
+*Semantics*
+
+1. `package` variables are available to every file that `import`s the library.
+
+*Constraints*
+
+1. File variables shall not be used outside the current file.
 
 
 <a name="file-variables"></a>
@@ -93,19 +87,13 @@ packageVariableDeclStmt
 ```syntax
 fileVariableDeclStmt
   // infer variable with initialization
-  : 'var' identifier '=' rhsExpr
+  : ('var' | 'const' | 'readonly') identifier '=' rhsExpr
 
   // typed variable with initialization
-  | 'var' typeDefinition identifier '=' rhsExpr
+  | ('var' | 'const' | 'readonly') typeDefinition identifier '=' rhsExpr
 
   // typed variable no initialization
   | 'var' typeDefinition identifier
-
-  // typed constant with initialization
-  | 'const' typeDefinition identifier '=' rhsExpr
-
-  // untyped constant with initialization
-  | 'const' identifier '=' rhsExpr
   ;
 ```
 
@@ -128,7 +116,7 @@ Example:
 var ten = 10
 ```
 
-## block variable
+## block scope variable
 
 *Syntax*
 
@@ -140,8 +128,7 @@ blockVariableDeclStmt
 
 *Semantics*
 
-A block variable will live until the end of the current block unless it's fetch
-by a lambda, in that case it will live until the lambda dies.
+A block variable will live until the end of the current block.
 
 *Constraints*
 
@@ -170,46 +157,53 @@ print("end")
 
 ```language
 type a = struct {
-  function new() {
-    print("constructor")
+  new() {
+    print("a constructor called")
   }
-  function delete() {
-    print("destructor")
+  delete() {
+    print("a destructor called")
   }
 }
 function simple_test() {
+  print("function called")
+
   var aptr = new a()
 } // <-- aptr freed here
-print("start")
+
+print("program starts")
 simple_test()
-print("end")
+print("program ends")
 ```
 
 ```output
-start
-constructor
-destructor
-end
+program starts
+function called
+a constructor called
+a destructor called
+program ends
 ```
 
+<!-- REVIEW this example collide with new lambda spec -->
 *Example*
 
 ```language
 type a = struct {
-  function new() {
+  new() {
     print("constructor")
   }
-  function delete() {
+  delete() {
     print("destructor")
   }
 }
 type callback = function () lend string
 function do_your_job() callback {
   var aptr = new a()
-  function r() lend string {
+
+  function r() lend a {
     print("lambda start and return")
     return aptr
   }
+
   return r
 }
 print("start")
@@ -231,15 +225,95 @@ end
 ```
 
 
-# Type / infer
+# Type and inference
 
-Typing a variable is optional in the language, it's very probable you don't need
-to type anything in your main program.
+*Semantics*
 
-If type is omitted, the variable will take the type of the first assignment.
+1. Any named variable (global, package, file, block, function parameters...)
+shall have a type at compile time.
 
-Nevertheless enforcing types makes your program more stable to refactoring.
+2. That type can be explicit (developer choose a type) or implicit (the compiler does) aka
+type inference.
 
+*Constrains*
+
+1. If type is explicit, that type will be used.
+
+2. If type need to be infered the following rules shall be follow.
+
+2. 1. Type will be infered from the first assignament.
+
+2. 2. It will choose the greater (signed) type possible.
+
+```language-test
+var i = 10
+#assert type(i) == i64
+var i = 10.0
+#assert type(i) == f64
+```
+
+2. 3. All return statements inside a function shall have the exact same type.
+
+> multiple return types found
+
+```language-error
+function x(int i) {
+  if (i > 10) {
+    return i // i32
+  }
+  return 0 // i64
+}
+```
+
+2. 4. If any operation is performed before an assignament a semantic-error shall raise
+
+> Variable is used before initialization.
+
+```language-error
+var x
+x += 1
+x = 10
+```
+
+2. 5. When calling a generic function, parameters shall be resolved first,
+one by one from left to right.
+
+> multiple return types found
+
+```language-error
+function sum<$t>($t a, $t b) {
+  if (a > 10) {
+    return 10
+  }
+  return a + b
+}
+
+sum<i32>(10, 10) // wrong, multiple return types
+sum(10, 10) // ok
+```
+
+> multiple template types found
+
+```language-error
+function sum<$t>($t a, $t b) {
+  return a + b
+}
+var x = 10
+var i32 y = 10
+sum(x, y)
+```
+
+> template type couldn't be resolved
+
+```language-error
+function do_something<$t>(ptr<$t> b) {
+}
+
+sum(null)
+```
+
+
+*Remarks*: Nevertheless enforcing types makes your program more stable to refactoring.
 
 # Magic variables
 
@@ -249,64 +323,46 @@ We call magic variables those that the programmer don't explicitly declare.
 
 *Constraints*
 
-1. Magic variable shall be prefixed by `$` (dollar sign) to avoid easy
-collisions.
+1. Magic variable shall be prefixed by `$` (dollar sign)
 
-
-*Example*
+2. Magic variables shall not be shadowed or shadow another variable if used.
 
 ```language
 loop 5 {
   print("index = " + $index)
+  loop 5 {
+    print("ok, it's not used!")
+  }
 }
 ```
 
-*Example*
+2. 1. Shall no shadow a defined variable or semantic-error shall raise.
 
-An error raise when a magic variable try to shadow your variables.
+> variable $index redeclared at line 2:1
 
-```language
+```language-error
 var $index = 0
 loop 5 {
   print("index = " + $index)
 }
 ```
 
-```error
-variable $index redeclared at line 2:1
+2. 2. Shall no shadow another magic variable or semantic-error shall raise.
+
+> variable $index redeclared at line 2:3
+
+```language-error
+loop 5 {
+  loop 5 {
+    print("index = " + $index)
+  }
+}
 ```
 
 *Example*
 
-An error raise if a magic variable will shadow another magic variable.
-
 ```language
 loop 5 {
-  loop 5 {
-    print("index = " + $index)
-  }
+  print("index = " + $index)
 }
 ```
-
-```error
-variable $index redeclared at line 1:1
-```
-<!--
-STUDY!
-
-But only if used. ??
-If not used, it's ok.
-
-```language
-loop 5 {
-    print("index = " + $index)
-  loop 5 {
-    print("ok")
-  }
-}
-```
--->
-
-## Implementation notes.
-
-Magic variables shouldn't be special inside the compiler.
