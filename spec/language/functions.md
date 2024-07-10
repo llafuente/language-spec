@@ -642,7 +642,34 @@ A defer statement pushes the expression execution to the end of the surrounding 
 
 1. Defer shall be compiler feature and not a runtime.
 
-2. `defer` shall honor scope and raise error if a parameter is out-of-scope at
+<!-- selected-by-pitfall: while this maybe be usefull is hard to follow for human eye. -->
+2. `defer` shall honor visual order (top-down) rather than execution order.
+
+```language
+function defer_order() {
+  defer print("start")
+  goto end
+
+middle:
+  defer print("middle")
+  goto exit
+
+end:
+  defer("end")
+  goto middle
+
+exit
+}
+```
+
+```output
+start
+middle
+end
+```
+
+
+3. `defer` shall honor scope and raise error if a parameter is out-of-scope at
 any [function-exit](#function-exit).
 
 ```language-error
