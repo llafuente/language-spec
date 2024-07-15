@@ -61,7 +61,7 @@ type_identifier
   ;
 
 primitive
-  : I8_TK | I16_TK | I32_TK | I64_TK | U8_TK | U16_TK | U32_TK | U64_TK | F32_TK | F64_TK | FLOAT_TK | INT_TK | SIZE_TK | BOOL_TK | PTRDIFF_TK | ADDRESS_TK | VOID_TK;
+  : 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' | 'float' | 'int' | 'size' | 'bool' | 'ptrdiff' | 'address' | 'void' | 'self' | 'any';
 
 type
   : primitive
@@ -80,7 +80,7 @@ templateDefinitionList
 
 // TODO semantic error if a tempalte is inside a template...
 templateDefinition
-  : typeDefinition ( templateIs | templateExtends )*
+  : typeDefinition ( templateIs | templateExtends | templateImplements )*
   ;
 
 templateIs
@@ -91,6 +91,10 @@ templateExtends
   : 'extends' (primitive | identifier)
   ;
 
+templateImplements
+  : 'implements' identifier
+  ;
+
 // REVIEW typeDefinitionList ?
 typeDefinition
   : typeModifiers* type '[' ']'                                       #     arrayType
@@ -99,10 +103,18 @@ typeDefinition
   | typeModifiers* type                                               #    singleType
   ;
 
+typeExtendsDecl
+  : 'extends' typeDefinition
+  ;
+
+typeImplementsDecl
+  : 'implements' typeDefinition
+  ;
+
 typeDecl
   // aliasing existing type
-  : 'type' type_identifier '=' 'struct' ('extends' typeDefinition)* '{' endOfStmt? structProperty* '}'             #    structTypeDecl
-  | 'type' type_identifier '=' 'interface' ('extends' typeDefinition)* '{' endOfStmt? interfaceProperty* '}'       # interfaceTypeDecl
+  : 'type' type_identifier '=' 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'             #    structTypeDecl
+  | 'type' type_identifier '=' 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'       # interfaceTypeDecl
   | 'type' type_identifier '=' 'enum' primitive? '{' endOfStmt? enumeratorList? '}'                                #      enumTypeDecl
   | 'type' type_identifier '=' 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'                            #      maskTypeDecl
   | 'type' type_identifier '=' (typeDefinition ('|' typeDefinition)+)                                              # aggregateTypeDecl

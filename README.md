@@ -41,6 +41,8 @@
 
 ## Language
 
+[Keywords](spec/keywords.md)
+
 [Type system](spec/language/type-system.md)
 
 * Primitives

@@ -8,8 +8,11 @@
 * enum
 * mask
 * extends
+* implements
 * interface
 * is
+* any
+* self
 
 ## primitives
 

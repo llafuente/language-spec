@@ -2,6 +2,8 @@
 
   https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/
 
+  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12126-enumeration-comparison-operators
+
   https://docs.python.org/3/library/operator.html
 
 -->

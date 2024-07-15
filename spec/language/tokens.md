@@ -8,8 +8,11 @@ STRUCT_TK : 'struct';
 ENUM_TK : 'enum';
 MASK_TK : 'mask';
 EXTENDS_TK : 'extends';
+IMPLEMENTS_TK : 'implements';
 INTERFACE_TK : 'interface';
 IS_TK : 'is';
+ANY_TK : 'any';
+SELF_TK : 'self';
 
 // constants
 TRUE_TK : 'true';
