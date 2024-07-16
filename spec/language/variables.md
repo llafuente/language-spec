@@ -11,8 +11,8 @@ TODO review c - 6.9.2 External object definitions
 2. A variable can be:
 
 * `var`: *Mutable*, variable can be modified itself and it's memory.
-* `const`: *No-assignable*: Memory can be modified, the variable itself shall not be.
-* `readonly`: *Inmutable*: Do not allow any modifications to it's memory `readonly`
+* `const`: *No-assignable*: Memory can be modified, the variable itself shall not be. (aka single assignment variables)
+* `readonly`: *Inmutable*: Do not allow any modifications to it's memory `readonly`.
 
 *Example*
 
@@ -50,14 +50,14 @@ p3.reset() // <-- semantic error
 
 3. The scope of a variable tells the compiler the life cycle of the variable. There are two scopes:
 
-* *program scope*. `global`, `package` and `file` variables scope start and program start and will be freed when program exit gracefully.
+* *program scope*. `global`, `package` and `file` variables scope start when the program start and it will be freed when program exit gracefully.
 * *block scope*. A variable start at the point of its declaration and ends at the end of its block.
 
 *Constraints*
 
-1. A variable can't be shadowed or a semantic-error shall raise
+1. A variable can't be shadowed or redefined or a semantic-error shall raise
 
-> variable redefition
+> variable redefition '?' at '?'
 
 2. `const`variable cant be re-assigned or a semantic-error shall raise
 
