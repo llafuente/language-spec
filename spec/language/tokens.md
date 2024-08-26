@@ -1,6 +1,8 @@
 # Tokens
 
-```syntax
+*syntax*
+
+```lexer
 // Type system
 
 TYPE_TK : 'type';

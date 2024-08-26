@@ -7,7 +7,7 @@
 
 *Syntax*
 
-```syntax
+```lexer
 IdentifierLow
     :   IDENTIFIERLOW_NON_DIGIT
         (   IDENTIFIER_NON_DIGIT
@@ -66,6 +66,18 @@ fragment
 HEX_QUAD
     :   HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     ;
+```
+
+```syntax
+identifier: IdentifierLow | IdentifierUp ;
+
+dollarIdentifier
+  : '$' identifier
+  ;
+
+dollarIdentifierList
+  : dollarIdentifier (',' dollarIdentifier)*
+  ;
 ```
 
 *Semantics*

@@ -9,7 +9,7 @@ program
   ;
 
 programStmsList
-  : (programStms (endOfStmt | EOF))*
+  : (programStms (endOfStmt | EOF))+
   ;
 
 programStms
@@ -28,7 +28,7 @@ packageProgram
   ;
 
 packageStmsList
-  : (packageStmts (endOfStmt | EOF))*
+  : (packageStmts (endOfStmt | EOF))+
   ;
 
 packageStmts
@@ -44,12 +44,6 @@ packageDefinitionStmt
   : 'package' identifier endOfStmt
   ;
 
-/*
-blockStmt
-  : '{' statement '}'
-  ;
-*/
-
 comments
   : SINGLE_LINE_COMMENT
   | BLOCK_COMMENT
@@ -57,31 +51,6 @@ comments
 
 endOfStmt: (NEWLINE_TK | SEMICOLON_TK)+;
 
-identifier: IdentifierLow | IdentifierUp ;
-
-dollarIdentifier
-  : '$' identifier
-  ;
-
-dollarIdentifierList
-  : dollarIdentifier (',' dollarIdentifier)*
-  ;
-
-preprocessorMacroCallArgumentList
-  : '$'
-  ;
-
-preprocessorMacroCallExpr
-  : '$'
-  ;
-
-stringLiteral
-  : STRING_LITERAL
-  ;
-
-numberLiteral
-  : NUMBER
-  ;
 ```
 
 *Semantics*

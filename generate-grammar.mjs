@@ -3,6 +3,14 @@ import { spawn }  from 'node:child_process';
 
 //var list = readDirSync(".");
 
+function parseLexer(fileContents) {
+	return fileContents.filter((line) => {
+		return line.indexOf("lexer\n") == 0
+	}).map((line) => {
+		return line.substr("lexer\n".length)
+	}).join("\n");
+}
+
 function parseSyntax(fileContents) {
 	return fileContents.filter((line) => {
 		return line.indexOf("syntax\n") == 0
@@ -28,7 +36,7 @@ var lexer = [];
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
 	lexer.push(`//file: ${file}`)
-	lexer.push(parseSyntax(contents))
+	lexer.push(parseLexer(contents))
 });
 writeFileSync("./LanguageLexer.g4", `lexer grammar LanguageLexer;\n` + lexer.join("\n"))
 
@@ -49,6 +57,8 @@ console.log(tokens);
 var parser = [];
 [
 	"./spec/language/program.md",
+	"./spec/language/identifiers.md",
+	"./spec/language/literals.md",
 	"./spec/language/type-system.md",
 	"./spec/language/functions.md",
 	"./spec/memory-management.md",

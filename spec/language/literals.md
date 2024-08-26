@@ -7,7 +7,7 @@ same as c, but we want to support advanced staff like
 (6.4.5)
 -->
 
-```syntax
+```lexer
 /*
   literal / constants
 */
@@ -135,4 +135,14 @@ fragment IMAG_NUMBER : (FLOAT_NUMBER | DIGIT_PART) ('j' | 'J');
 
 
 
+```
+
+```syntax
+stringLiteral
+  : STRING_LITERAL
+  ;
+
+numberLiteral
+  : NUMBER
+  ;
 ```
