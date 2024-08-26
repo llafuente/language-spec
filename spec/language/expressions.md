@@ -47,8 +47,8 @@ postfix_expr
     | postfix_expr '.' identifier                                                      # postfixMemberAccessExpr
     // function call
     | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
-    | postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
-    | preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
+    //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
+    //| preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
     | primary_expr ( '++' | '--' )*                                                    # postfixIndecrementExpr
     ;
 

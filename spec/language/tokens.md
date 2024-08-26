@@ -90,8 +90,30 @@ UNINITIALIZED_TK : 'uninitialized';
 AT_TK : 'at';
 CAST_TK : 'cast';
 
+
+//metaprogramming
+
+META_MACRO_TK : '#macro';
+META_REPEAT_TK : '#repeat';
+META_MACRO_BLOCK_TK : '#block';
+META_DEFINE_TK : '#define';
+META_TEXT_TK : '#text';
+META_STRING_TK : '#string';
+META_EXPR_TK : '#expression';
+META_VALUE_TK : '#value';
+META_FORARGS_TK : '#forargs';
+META_FORSTRUCT_TK : '#forstruct';
+META_EXEC_TK : '#exec';
+META_ASSERT_TK : '#assert';
+META_UID_TK : '#uid';
+META_ERROR_TK : '#error';
+META_WARNING_TK : '#warning';
+META_TYPE_ERROR_TK : '#type_error';
+META_SEMANTIC_ERROR_TK : '#semantic_error';
+
 // Preprocessor
 
+DOUBLE_HASH_TK : '##';
 HASH_TK : '#';
 
 // Expressions

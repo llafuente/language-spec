@@ -9,7 +9,7 @@ well, I have others"
 
 We love ours :)
 
-1. Syntax is very important. No eagle eye need to be required.
+1. Syntax is very important. Be verbose and clear instead of require an eagle eye.
 
 * Code must be `grep-able`. Everything should be easy to locate.
 * One statement per line or use semicolon is optional but this rule not.
@@ -28,6 +28,10 @@ package manager... are in fact: language features so the compiler handle it.
 6. Help developers trace their programs.
 
 7. The language/spec shall be small enough, libraries... will see.
+
+8. Develop ergonomics are very important
+
+9. Operating system decople. Use as little as possible as a language.
 
 <!--
 

@@ -4,6 +4,9 @@
 (6.4.2.1)
 (6.4.3)
 -->
+
+*Syntax*
+
 ```syntax
 IdentifierLow
     :   IDENTIFIERLOW_NON_DIGIT
@@ -50,7 +53,6 @@ NON_DIGITUP
     :   [A-Z]
     ;
 
-
 fragment
 UNIVERSAL_CHARACTER_NAME
     :   '\\u' HEX_QUAD
@@ -65,3 +67,11 @@ HEX_QUAD
     :   HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     ;
 ```
+
+*Semantics*
+
+There are three identifiers.
+
+* All upercased, used for metaprogramming
+* Dollar started, used for templates/generics
+* The rest, Don't start with a number, dollar or uppercase.

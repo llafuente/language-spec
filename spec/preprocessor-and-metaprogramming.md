@@ -29,10 +29,10 @@ Implementation notes.
 ```syntax
 
 preprocessorStr
-  : '##' IdentifierUp '#'
+  : '##' identifierUp '#'
   ;
 preprocessorEcho
-  : '#' IdentifierUp '#'
+  : '#' identifierUp '#'
   ;
 
 preprocessor_expressions
@@ -64,7 +64,7 @@ preprocessor_stmts
 ```syntax
 defineDecl
   // REVIEW why do not accept "non-newline?!" ~[\r\n]*
-  : '#define' Identifier 
+  : '#define' identifier AnyNonNewLine
   ;
 ```
 
@@ -119,20 +119,20 @@ preprocessorMacroArgumentModifier
   ;
 
 preprocessorMacroArgumentList
-  : preprocessorMacroArgumentModifier Identifier (',' preprocessorMacroArgumentList)
+  : preprocessorMacroArgumentModifier identifier (',' preprocessorMacroArgumentList)
   ;
 
 preprocessorMacroDecl
-  : '#macro' Identifier '(' preprocessorMacroArgumentList? ')' '#block'? functionBody
+  : '#macro' identifier '(' preprocessorMacroArgumentList? ')' '#block'? functionBody
   ;
 
 // TODO
-nonCommaParenthesis
-  : (NON_DIGIT | DIGIT | operators)+
-  ;
+//nonCommaParenthesis
+//  : (NON_DIGIT | DIGIT | operators)+
+//  ;
 
 preprocessorMacroCallArgument
-  : '(' nonCommaParenthesis ')'
+  : '(' identifier ')'
   ;
 
 preprocessorMacroCallArgumentList
@@ -140,14 +140,14 @@ preprocessorMacroCallArgumentList
   ;
 
 preprocessorMacroCallExpr
-  : '#' Identifier '(' preprocessorMacroCallArgumentList? ')' blockStmt?
+  : '#' identifier '(' preprocessorMacroCallArgumentList? ')' blockStatement?
   ;
 
 // see: preprocessorMemberMacroCallExpr
 
 // see: postfix_expr_macro_call
 // preprocessor_macro_call_expr
-//   : '#' Identifier '(' preprocessorMacroCallArgumentList? ')' blockStmt?
+//   : '#' identifier '(' preprocessorMacroCallArgumentList? ')' blockStatement?
 //   ;
 
 ```
@@ -562,7 +562,7 @@ list := [1,2,3,4]
 
 ```syntax
 forargs_stmt
-  : '#forargs' Identifier ',' Identifier functionBody
+  : '#forargs' identifier ',' identifier functionBody
   ;
 ```
 
@@ -598,7 +598,7 @@ print(10, 11, 12)
 
 ```syntax
 forstruct_stmt
-  : '#forstruct' Identifier ',' Identifier 'in' Identifier functionBody
+  : '#forstruct' identifier ',' identifier 'in' identifier functionBody
   ;
 ```
 *Semantics*
@@ -689,7 +689,7 @@ Raise a compile time error if condition yield false.
 
 ```syntax
 execStmt
-  : '#exec' CCHAR_SEQUENCE
+  : '#exec' AnyNonNewLine
   ;
 ```
 
@@ -712,7 +712,7 @@ Execute given command:
 
 ```syntax
 uidStmt
-  : '#uid' IdentifierUp
+  : '#uid' identifierUp
   ;
 ```
 
@@ -784,7 +784,7 @@ print(##date)
 
 ```syntax
 errorStmt
-  : '#' 'error' CCHAR_SEQUENCE
+  : '#error' AnyNonNewLine
   ;
 ```
 
@@ -799,7 +799,7 @@ Display the error message and abort compilation.
 
 ```syntax
 warningStmt
-  : '#' 'warning' CCHAR_SEQUENCE
+  : '#warning' AnyNonNewLine
   ;
 ```
 
@@ -813,7 +813,7 @@ Display the warning message but continue compilation.
 
 ```syntax
 typeErrorStmt
-  : '#' 'type_error' CCHAR_SEQUENCE
+  : '#type_error' AnyNonNewLine
   ;
 ```
 
@@ -827,7 +827,7 @@ Display a type error message and abort compilation.
 
 ```syntax
 semantic_errorStmt
-  : '#' 'semantic_error' CCHAR_SEQUENCE
+  : '#semantic_error' AnyNonNewLine
   ;
 ```
 
@@ -842,11 +842,11 @@ Display a type semantic message and abort compilation.
 
 ```syntax
 identifierList
-    :   Identifier? (',' Identifier)*
+    : identifier? (',' identifier)*
     ;
 
 preprocessorRepeatExpr
-  : '#' 'repeat' '(' identifierList ')'
+  : '#repeat' '(' identifierList ')'
   ;
 ```
 
