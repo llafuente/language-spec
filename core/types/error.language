@@ -1,0 +1,41 @@
+type source_code_location = struct {
+  // file name
+  string file
+  // function name
+  string function
+  // line number (starts at 1)
+  string line
+  // column number
+  string column (starts at 1)
+}
+
+type error = struct {
+  // parent exception
+  // it will be set if throw happens inside catch
+  own ref error parent
+  // error message
+  string message
+  // source code stack
+  source_code_location[] stack
+
+  constructor(string message, string file, string function, string line, string column, own ref error parent = null) {
+    this.message = clone message
+    this.parent = parent
+
+    new this.stack()
+    stack.push_back()(file, function, line, column)
+
+  	// TODO calculate stack
+  }
+
+  to_string() lend string {
+    var buffer = ""
+    buffer += message
+    
+    for (var s in stack) {
+      buffer += s.file + ":" + s.line.to_string() + ":" + s.column.to_string() " at " + s.function
+    }
+
+    return buffer
+  }
+}
