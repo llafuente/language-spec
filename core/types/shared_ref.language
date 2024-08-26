@@ -7,7 +7,7 @@
 import ref
 
 // single allocation data
-struct _shared_ref_data<$t> {
+struct _smart_pointer_data<$t> {
 	$t data
 	allocator.dealloca _dealloca
 	size strong_count = 1
@@ -21,7 +21,7 @@ struct _shared_ref_data<$t> {
 
 struct _shared_ref_common<$t> {
 	// noone owns this memory, exclusively
-	type data_type = _shared_ref_data<$t>
+	type data_type = _smart_pointer_data<$t>
 	type data_ref_type = ref<data_type>
 
 	data_ref_type pointer
@@ -183,5 +183,5 @@ struct weak_ref<$t> extends _shared_ref_common<$t, None>
 #assert shared_ref<i64>.size == ref.size
 #assert shared_ref<i32>.size == ref.size
 
-#assert _shared_ref_data<i32>.size == size.size + i32.size
-#assert _shared_ref_data<i64>.size == size.size + i64.size
+#assert _smart_pointer_data<i32>.size == size.size + i32.size
+#assert _smart_pointer_data<i64>.size == size.size + i64.size

@@ -13,6 +13,11 @@ type allocator<$t> = interface {
 	
 	/*
 	Allocates uninitialized continuos memory of given size
+
+	Remarks:
+		allocation has accesss to the type that it's going to be allocated
+		* enables Region-based memory management based on types.
+		* enables stub returing, while possible to allocate more memory it will exceed your memory bound.
 	*/	
 	function alloca (size s) lend uninitialized ref<$t>
 
