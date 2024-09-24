@@ -17,7 +17,6 @@
 expressions
 */
 
-// TODO specific string numeric octal binary hex etc...
 constant
     : 'true'                  # trueLiteralExpr
     | 'false'                 # falseLiteralExpr
@@ -25,13 +24,16 @@ constant
     | stringLiteral           # stringLiteralExpr
     | numberLiteral           # numberLiteralExpr
     | identifier              # identifierExpr
+    // typeof is only available inside postfixCallExpr
+    | 'typeof'                # typeofIdentifierExpr
     ;
 
 primary_expr
-    : constant                # constantPrimaryExpr
-    | arrayInitializer        # arrayInitializer2
-    | structInitializer       # structInitializer2
-    | '(' expression ')'      # groupPrimaryExpr
+    : constant                   # constantPrimaryExpr
+    | arrayInitializer           # arrayInitializer2
+    | structConstantInitializer  # structInitializer2
+    | structInitializer          # structInitializer2
+    | '(' expression ')'         # groupPrimaryExpr
     ;
 
 postfix_expr
@@ -46,7 +48,7 @@ postfix_expr
     | postfix_expr '!.' identifier                                                     # postfixSelfMemberAccessExpr
     | postfix_expr '.' identifier                                                      # postfixMemberAccessExpr
     // function call
-    | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
+    | postfix_expr '(' argumentExprList? ')'                                # postfixCallExpr
     //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
     //| preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
     | primary_expr ( '++' | '--' )*                                                    # postfixIndecrementExpr
@@ -80,7 +82,7 @@ unary_expr
     ;
 
 unary_operator
-    :   '&' | '*' | '+' | '-' | '~' | '!'
+    :   '@' | '&' | '*' | '+' | '-' | '~' | '!'
     ;
 
 cast_expr
