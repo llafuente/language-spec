@@ -1,27 +1,45 @@
-import { openSync, readFileSync, writeFileSync } from 'node:fs';
-import { spawn }  from 'node:child_process';
+import { openSync, readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { spawn, spawnSync }  from 'node:child_process';
 
-//var list = readDirSync(".");
 
-function parseLexer(fileContents) {
-	return fileContents.filter((line) => {
-		return line.indexOf("lexer\n") == 0
-	}).map((line) => {
-		return line.substr("lexer\n".length)
-	}).join("\n");
+
+function readDirSyncR(dir) {
+    var results = [];
+    var list = readdirSync(dir);
+    list.forEach(function(file) {
+        file = dir + '/' + file;
+        var stat = statSync(file);
+        if (stat && stat.isDirectory()) { 
+            /* Recurse into a subdirectory */
+            results = results.concat(readDirSyncR(file));
+        } else { 
+            /* Is a file */
+            results.push(file);
+        }
+    });
+    return results;
 }
 
-function parseSyntax(fileContents) {
+
+function parseCode(fileContents, annotation) {
 	return fileContents.filter((line) => {
-		return line.indexOf("syntax\n") == 0
+		return line.indexOf(`${annotation}\n`) == 0
 	}).map((line) => {
-		return line.substr("syntax\n".length)
-	}).join("\n");
+		return line.substr(`${annotation}\n`.length)
+	});
+}
+
+function extractAllCode(fileContents, annotation) {
+	return parseCode(fileContents, annotation).join("\n");
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 function replaceTokens(tokens, contents) {
 	for (const tk of tokens) {
-		contents = contents.replace(tk[0], tk[1]);
+		contents = contents.replace(new RegExp(escapeRegExp(tk[0]), 'g'), tk[1]);
 	}
 	return contents
 }
@@ -36,7 +54,7 @@ var lexer = [];
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
 	lexer.push(`//file: ${file}`)
-	lexer.push(parseLexer(contents))
+	lexer.push(extractAllCode(contents, "lexer"))
 });
 writeFileSync("./LanguageLexer.g4", `lexer grammar LanguageLexer;\n` + lexer.join("\n"))
 
@@ -55,7 +73,7 @@ console.log("TOKENS!");
 console.log(tokens);
 
 var parser = [];
-[
+var spec_files = [
 	"./spec/language/program.md",
 	"./spec/language/identifiers.md",
 	"./spec/language/literals.md",
@@ -70,29 +88,70 @@ var parser = [];
 	"./spec/language/variables.md",
 	"./spec/language/types/array.md",
 	// "./spec/language/types/enumerated.md",
-].forEach((file) => {
+];
+
+spec_files.forEach((file) => {
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
 	parser.push(`//file: ${file}`)
-	parser.push(replaceTokens(tokens, parseSyntax(contents)))
+	parser.push(replaceTokens(tokens, extractAllCode(contents, "syntax")))
 
 	// search for tokens and replace them!
 });
 
 writeFileSync("./LanguageParser.g4", `parser grammar LanguageParser;
 // options { tokenVocab=LanguageLexer; }
-` + parser.join("\n"))
+` + parser.join("\n"));
 
 
 // < core\os\process.language
 
-let fd_stdin = openSync('./tests/syntax-smoke-screen.language', 'r');
-// var fd_stdin = openSync('./tests/syntax/struct-initializer.language', 'r');
-// tokenizer debug
-// let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-tokens'], {
-// parser debug
-let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
-  stdio: [fd_stdin, 1, 2]
+// readDirSyncR("./spec")
+spec_files = [
+	"./spec/language/types/structured.md",
+]
+spec_files.forEach((file) => {
+	console.log(`Validating spec file: ${file}`)
+	var contents = readFileSync(file, {encoding: "utf-8"})
+	contents = contents.split("```");
+	parseCode(contents, "language").forEach((text) => {
+		if (!text.length) {
+			return
+		}
+
+		console.log("------------------------")
+		console.log(text.split("\n").map((t,idx) => `${idx+1} | ${t}` ).join("\n"))
+		console.log("------------------------")
+		var tmp_file = "./temp.language";
+		writeFileSync(tmp_file, text);
+		let fd_stdin = openSync(tmp_file, 'r');
+		let antlr4 = spawnSync('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
+		  stdio: [fd_stdin, 1, 2]
+		});
+
+		if (antlr4.status != 0) {
+			console.log(text)
+			process.exit(1);
+		}
+	});
+});
+
+
+
+
+[
+	'./tests/syntax-smoke-screen.language',
+	'./tests/preprocessor-smoke-screen.language'
+].forEach((file) => {
+
+	let fd_stdin = openSync(file, 'r');
+	// var fd_stdin = openSync('./tests/syntax/struct-initializer.language', 'r');
+	// tokenizer debug
+	// let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-tokens'], {
+	// parser debug
+	let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
+	  stdio: [fd_stdin, 1, 2]
+	});
 });
 
 /*
