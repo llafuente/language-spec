@@ -42,10 +42,10 @@ support `tagged unions`.
 
 ```language
 type chair = struct {
-  "chair" type
+  "chair" kind
 }
 type table = struct {
-  "table" type
+  "table" kind
 }
 type ikea = chair | table;
 ```
@@ -61,7 +61,7 @@ type_identifier
   ;
 
 primitive
-  : 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' | 'float' | 'int' | 'size' | 'bool' | 'ptrdiff' | 'address' | 'void' | 'self' | 'any';
+  : 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' | 'float' | 'int' | 'size' | 'bool' | 'ptrdiff' | 'ptraddr' | 'void' | 'self' | 'any';
 
 type
   : primitive
@@ -97,10 +97,11 @@ templateImplements
 
 // REVIEW typeDefinitionList ?
 typeDefinition
-  : typeModifiers* type '[' ']'                                       #     arrayType
-  | typeModifiers* type '?'                                           #  nullableType
-  | typeModifiers* type '<' templateDefinitionList '>'                # templatedType
-  | typeModifiers* type                                               #    singleType
+  : typeModifiers* stringLiteral                                      # fixedStringType
+  | typeModifiers* type '[' ']'                                       #       arrayType
+  | typeModifiers* type '?'                                           #    nullableType
+  | typeModifiers* type '<' templateDefinitionList '>'                #   templatedType
+  | typeModifiers* type                                               #      singleType
   ;
 
 typeExtendsDecl
@@ -113,19 +114,23 @@ typeImplementsDecl
 
 typeDecl
   // aliasing existing type
-  : 'type' type_identifier '=' 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'             #    structTypeDecl
-  | 'type' type_identifier '=' 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'       # interfaceTypeDecl
-  | 'type' type_identifier '=' 'enum' primitive? '{' endOfStmt? enumeratorList? '}'                                #      enumTypeDecl
-  | 'type' type_identifier '=' 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'                            #      maskTypeDecl
-  | 'type' type_identifier '=' (typeDefinition ('|' typeDefinition)+)                                              # aggregateTypeDecl
-  | 'type' type_identifier '=' typeDefinition                                                                      #     aliasTypeDecl
+  : 'type' type_identifier '=' 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'     #    structTypeDecl
+  | 'type' type_identifier '=' 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'                    # interfaceTypeDecl
+  | 'type' type_identifier '=' functionDef                                                                             #  functionTypeDecl
+  | 'type' type_identifier '=' 'enum' primitive? '{' endOfStmt? enumeratorList? '}'                                    #      enumTypeDecl
+  | 'type' type_identifier '=' 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'                                #      maskTypeDecl
+  | 'type' type_identifier '=' typeDefinition ('|' typeDefinition)+                                                    # aggregateTypeDecl
+  | 'type' type_identifier '=' typeDefinition                                                                          #     aliasTypeDecl
   ;
 
 // TODO do not repeat at parser level ?
 structPropertyModifiers
   : 'hoist'
   | 'readonly'
-  | 'own'
+  ;
+
+functionModifiers
+  : 'readonly'
   ;
 
 structPropertyDecl
@@ -133,7 +138,7 @@ structPropertyDecl
   : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
   // TODO REVIEW aliasing operator?
   | 'alias' identifier identifier
-  | functionDecl
+  | (functionModifiers)* functionDecl
   | memoryFunctionDecl
   | operatorFunctionDecl
   | structGetterDecl
@@ -169,7 +174,7 @@ structSetterDecl
   ;
 
 structSetterDef
-  : 'set' typeDefinition identifier
+  : 'set' identifier '(' typeDefinition identifier ')'
   ;
 
 structProperty
@@ -212,7 +217,8 @@ structProperyInitializerList
   ;
 
 structInitializer
-  : '{' structProperyInitializerList? '}'
+  : typeDefinition '{' structProperyInitializerList? '}' # implicitStructInitializer
+  | '{' structProperyInitializerList? '}'                # inferenceStructInitializer
   ;
 
 // TODO

@@ -95,10 +95,10 @@ same underlying type.
 5. Enumerators shall be "namespaced" with the `enum` name. Enumerators shall not
 leak in global/file/package scope.
 
-6. `enum` and `mask` shall define the folowing properties if `compiler.rtti` is enabled.
+6. `enum` and `mask` shall define the folowing properties if `compiler_rtti` is enabled.
 
+See [Introspection](../instrospection.md) for more information.
 
-* `string $name` - The enumerated name.
 * `size $length` - How many elements are defined
 * `(i32|u32|i64|u64|ref string)[] $values` - Array with all the values
 * `type $underlyingType` - Underlying type
@@ -277,7 +277,7 @@ The enumarated type is no more than syntactic sugar above struct.
     }
 
     // reflection / rtti
-#if compiler.rtti {
+#if compiler_rtti {
     static size           $length = #length#
     static type           $underlyingType = #value_type#
     static string         $name = ##enum_name#
@@ -295,7 +295,7 @@ The enumarated type is no more than syntactic sugar above struct.
 }
 
 
-  function operator = (#enum_name# e, string str): #enum_name# {
+  function operator = (#enum_name# e, ref string str): #enum_name# {
     switch(str) {
       #for k,v in enumerators_values {
         #eval name enumerator_names[k]
