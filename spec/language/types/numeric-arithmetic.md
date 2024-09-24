@@ -162,7 +162,7 @@ It needed because we auto-deref pointers
 
 ```
 int a = 0;
-ref<int> b = &a;
+ref<int> b = @a;
 print(b) // 0
 print(cast<address>(b)) // 0x????????
 ```
@@ -211,17 +211,3 @@ print(msar.length) // KO, because it cannot determine offset
 
 ```
  -->
-
-# Proposes
-
-## bigint
-
-Big numbers
-
-## decimal<precision>
-
-Decimal with fixed precision
-
-## complex
-
-Complex numbers

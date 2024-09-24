@@ -15,6 +15,7 @@ INTERFACE_TK : 'interface';
 IS_TK : 'is';
 ANY_TK : 'any';
 SELF_TK : 'self';
+TYPEOF_TK : 'typeof';
 
 // constants
 TRUE_TK : 'true';
@@ -38,7 +39,7 @@ INT_TK : 'int';
 SIZE_TK : 'size';
 BOOL_TK : 'bool';
 PTRDIFF_TK : 'ptrdiff';
-ADDRESS_TK : 'address';
+PTRADDR_TK : 'ptraddr';
 VOID_TK : 'void';
 HOIST_TK : 'hoist';
 READONLY_TK : 'readonly';
