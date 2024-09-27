@@ -7,7 +7,7 @@
 
 *Semantics*
 
-Interfaces defines contract a `struct` shall define: properties, getter, setters and methods
+Interfaces defines contract a `struct` shall implement: properties, getter, setters and methods
 
 *Remarks*: `implements` is not required to match an interface it just tells the compiler to report errors if something is missing.
 

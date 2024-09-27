@@ -13,6 +13,7 @@
 * is
 * any
 * self
+* typeof
 
 ## primitives
 

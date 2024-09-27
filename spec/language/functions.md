@@ -19,16 +19,21 @@ deferStmt
   ;
 
 functionDecl
-  : functionDef functionBody
+  : (functionDef | anonymousFunctionDef) functionBody
+  ;
+
+anonymousFunctionDef
+  : 'pure'? 'function' '(' functionParameterList? ')' typeDefinition?
   ;
 
 functionDef
-  : 'pure'? 'function' identifier '(' functionParameterList? ')' typeDefinition?
+  : 'pure'? 'function' identifier? '(' functionParameterList? ')' typeDefinition?
   ;
 
 memoryFunctionDecl
   : memoryFunctionDef functionBody
   ;
+
 memoryFunctionDef
   : ('new'|'delete'|'clone') '(' functionParameterList? ')' typeDefinition?
   ;
@@ -135,12 +140,15 @@ function yyy() xxx {       // point 3
   return xxx               // point 2
 }
 
-xxx = 10                   // point 1 stderr: A function name shall not be used in lhs expression
-var x = xxx                // point 2
-print(xxx.arguments)       // point 2 stdout: []
-print(xxx.return_type)     // point 2 stdout: i32
-print(type(xxx))           // point 4 stdout: function xxx() i32
-print(type(xxx).arguments) // point 4 stdout: []
+function main() {
+  xxx = 10
+  // point 1 stderr: A function name shall not be used in lhs expression
+  var x = xxx                // point 2
+  print(xxx.arguments)       // point 2 stdout: []
+  print(xxx.return_type)     // point 2 stdout: i32
+  print(typeof(xxx))           // point 4 stdout: function xxx() i32
+  print(typeof(xxx).arguments) // point 4 stdout: []
+}
 
 ```
 
@@ -207,13 +215,15 @@ function sort(i32[] arr, isort callback) {
   //...
 }
 
-// inline declaration
-type xxx = function(i32 a, i32 b) i32
+function main() {
+  // inline declaration
+  type xxx = function(i32 a, i32 b) i32
 
-print([1, 2, 3].sort(isort))
+  print([1, 2, 3].sort(isort))
 
-// equivalent ?
-#assert type isort === type xxx
+  // equivalent ?
+  #assert typeof(isort) === typeof(xxx)
+}
 ```
 
 
@@ -237,32 +247,7 @@ print([1, 2, 3].sort(isort))
 1. All parameters must have a explicit type.
 
 
-### function parameter modifiers
-
-#### writable (implicit)
-
-*Semantics*
-
-The parameter memory can be modified
-
-*Constrains*
-
-1. The parameter itself shall not be modified
-
-
-```language
-function xxx(writable ref<i32> a) i32 {
-  a = 10;
-  // fail
-  a = new ref<i32>(11); // a contents are writable but a is constant
-}
-
-xxx(10) // fail, as 10 is not writable, also not a pointer
-var ref<i32> i = new ref<i32>(10);
-xxx(i) // fail, as 10 is not writable, also not a pointer
-
-```
-
+### function type modifiers
 
 #### readonly (const)
 
@@ -272,29 +257,31 @@ Parameter (and it's memory) shall not be modified.
 
 *Constrains*
 
-1. The variable shall not be in a `left hand side` assignament.
+1. `readonly` shall be applied only to function parameters.
 
-2. Any property of an object shall not be in a `left hand side` assignament.
+2. The variable shall not be in a `left hand side` assignament.
 
-3. A method that modified the value shall no be called.
+3. Any property of an object shall not be in a `left hand side` assignament.
 
-4. Another function that modified the value shall not be called.
+4. A method that modified the value shall no be called.
 
-5. A readonly parameters shall not be casted to a non-readable type.
+5. Another function that modified the value shall not be called.
+
+6. A readonly parameters shall not be casted to a non-readable type.
 
 *Example*
 
 ```language
-struct point {
+type point = struct {
   float x;
   float y;
 
-  // real function signature: setX(writable point this, float x)
-  setX(float x) {
+  // real function signature: setX(out ref<point> this, float x)
+  function setX(float x) {
     this.x = x
   }
-  // real function signature: setY(writable point this, float y)
-  setY(float y) {
+  // real function signature: setY(out ref<point> this, float y)
+  function setY(float y) {
     this.y = y
   }
 }
@@ -335,65 +322,100 @@ function new_sum(readonly p1 point, p2 point) point {
   return p1.add(p2)
 }
 
-
-var point = func_add_ok(point{x: 0, y: 1}, point{x: 2, y: 0})
-
-
-
+function main() {
+  var point = func_add_ok(point{x: 0, y: 1}, point{x: 2, y: 0})
+}
 
 ```
 
-#### output
+#### out (output)
 
 *Semantics*
 
-Mark the parameter as a reference output (explicit pointer).
+Mark the parameter as output.
 
-An output parameter can be in a left hand side assignment.
+*Constraints*
+
+1. `out` shall be applied only to function parameters.
+
+2. In at least one code-path the value shall be modified or a semantic-error shall raise
+
+> At function '?' parameter '?' is mark as out but not modified.
+
+3. The parameter will be promoted to a `ref` if necessary implicitly.
 
 *Example*
 
 ```language
-function reset(output a int) {
+function reset(out int a) {
   a = 0
 }
 
-int a = 1;
-print a // stdout: 1
-reset(a)
-print a // stdout: 0
+function main() {
+  int a = 1;
+  #assert a == 1
+
+  reset(a)
+  #assert a == 0
+}
 ```
 
 #### lend
 
 *Semantics*
 
-Lend mark the parameter as output and additionally lend the memory to the callee,
-that should handle it from now on. if not handled it will be freed at the end of
-call block
+`lend` marks a function parameter or function return type as output and additionally lend the
+memory to the callee, that will handle it from now on. if not handled it
+will be freed at the end of call block.
 
 * Constrains*
 
-1. Stack memory shall not be lend.
+1. `lend` shall be applied only to function parameters or function return type.
 
-2. All function paths must lend memory or null.
+2. Stack memory shall not be lend or a semantic error shall raise
 
-3. lend shall not have default value.
+> stack memory shall not be lend at function '?'
+
+3. All function paths shall lend memory, optionally if the paramter is nullable can return null or a semantic error shall raise
+
+> Found a path that don't lend memory at 'line:col'
+
+4. A parameters with lend shall be a `ref` type or a semantic error shall raise
+
+> A parameter with `lend` require `ref` at '?'
+
+5. A parameters with lend shall not have default value other than null, in wich case nullable operator is required.
+
+> The only valid default value for a `lend` parameters is `null`
+
+> Default value is `null` but nullable qualifier is not applied at '?'
 
 #### own
 
 *Semantics*
 
-The parameter memory will be owned
+`own` marks a function parameter as memory reciever. The callee is no longer
+responsible for the memory and it's the function the new owner. The function 
+can lend the memory again or the memory will be freed at `function-exit`.
 
 *Constrains*
 
-1. All function exits the memory should be lend or deleted.
+1. At all `function-exits` the memory should be lend or deleted.
 
 ```language
-function free_array(own array<$t> arr) {
-  delete arr
+function implicit_delete(own array<$t> arr) {
+  // at function-exit, arr will be freed
 }
+
+function mix_usage(own array<$t> arr) {
+  if (arr.length > 0) {
+    pool_should_handle_it(arr)
+    return // here arr won't be freed, "a pool" own the memory now.
+  }
+  // if no length, arr will be freed
+}
+
+
 
 function free_array_error(own array<$t> arr) {
   if (arr.length) {
@@ -402,27 +424,88 @@ function free_array_error(own array<$t> arr) {
 }
 ```
 
-### Default parameters
+### Default arguments / Default parameters
 
 *Semantics*
 
-1. A default parameter will be inserted at function call by the compiler.
-
+Allows a function to be called without providing one or more trailing arguments.
 
 *Constraints*
 
-1. Default parameter value shall have a static value.
+1. A default parameter will be inserted at function call by the compiler.
 
-2. Not supported at ffi as It's a compiler construct.
+2. Default parameter value shall be:
 
+2. 1. A compile time known value.
+
+```language
+// 1h timeout
+function default_test(int timeout = 60 * 60 * 1000) {}
+function default_test2(int timeout = 15) {}
+function default_test2(string timeout = "xxxx") {}
+```
+
+2. 2. A global, package, file variable.
+
+```
+global var default_timeout = 60 * 60 * 1000
+function test(int timeout = default_timeout) {}
+
+function main() {
+  // compiler will add the as first argument default_timeout
+  // test(default_timeout)
+  test()
+
+  // change value
+  default_timeout = 30 * 60 * 1000
+  test() // 30m this time, it will honor changes
+}
+```
+3. Not supported at ffi (any to language) as it's a compiler construct.
+
+<!-- EAGLE EYE: avoid double comma /empty parameter to use default argument ,, -->
+4. To force a default argument use: `default` keyword.
+
+*Example*
+
+```language
+
+function add2(int a, int b = 1) int {
+  return a + b
+}
+
+function add4(int a = 1, int b = 2, int c = 3, int d = 4) {
+  return a + b + c + d
+}
+
+
+function main() {
+  #assert add2(7) == 8
+  #assert add2(7, default) == 8
+  #assert add2(7, 3) == 10
+  // using named params
+  #assert add2(b = default, a = 7) == 8
+
+  
+  #assert add4() == 10
+  #assert add4(c = 7) == 14
+  #assert add4(default, default, 7) == 14
+  #assert add4(1, default, default, 7) == 13
+}
+
+```
+
+<!--
+  https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arguments-exotic-objects
+  varargs (c style)
+-->
 ### `arguments` keyword
 
 *Semantics*
 
-1. It's a magic variable that holds the arguments passed with type:
+It's a magic variable that holds the arguments passed with type:
 *array&lt;variant&gt;*
 
-<!-- REVIEW It's the way to access unnamed varargs (c style). -->
 
 *Remarks*
 
@@ -437,6 +520,10 @@ a function or a semantic-error shall raise.
 
 > arguments used but function has no parameters.
 
+3. arguments shall implement `index_iterator`
+
+4. arguments shall implement `string_iterator`
+
 *Example*
 
 ```language
@@ -445,12 +532,19 @@ function sum (int a, int b) {
   return a + b
 }
 
-// same but using arguments, slower
+// same but using arguments, slower - using index_iterator
 function sum2 (int a, int b) {
   return arguments[0] + arguments[1]
 }
 
-// mandatory when using varargs
+// same but using arguments, even slower - using string_iterator
+function sum2 (int a, int b) {
+  return arguments["a"] + arguments["b"]
+}
+
+```
+<!--
+// mandatory when using varargs??
 function sum3 (...) {
   int total = 0;
   print(typeof arguments); // stdout: array<variant>
@@ -460,7 +554,6 @@ function sum3 (...) {
   return total
 }
 
-```
 
 `arguments` shall be implemented including the following macro
 at the top of the function
@@ -468,11 +561,11 @@ at the top of the function
 ```language
 readonly array<variant> arguments = []
 #for param_key, param_value in self.parameters {
-  arguments.push(cast<variant>(#param_value#))
+  arguments.push({#param_value#})
 }
 ```
 
-<!--
+
   REVIEW - even it's usefull it does something wrong
   you define a type in parameters but it's not the real type...
 
@@ -485,6 +578,7 @@ readonly array<variant> arguments = []
   join(["xxx"], ["yyy"], [["ups!"]]) // and now what ?
 
 -->
+
 ## Named varargs
 
 *Semantics*
@@ -495,19 +589,86 @@ readonly array<variant> arguments = []
 
 2. At least one parameters must be send.
 
+3. The base type shall be array or a semantic-error shall raise
+
+> parameter '?' is a vararg but type is not an array.
+
+4. If the next parameter to a vararg is of the same type
+it shall be filled before vararg.
+
+This constraints implies that:
+* function x (string[] list..., string separator)
+* function x (string separator, string[] list...)
+
+Shall not be allowed, a semantic error shall raise
+
+> Function '?' declaration collide
+
+```
+// same type is supported.
+function return_data(string[] list..., string separator) string?[]{
+  return [...list, null, separator]
+}
+function main() {
+  // empty list, just the separator
+  #assert return_data("1") == [[], null, "1"]
+  // 1 parameters varargs
+  #assert return_data("1", "2") == [["1"], null, "2"]
+  // 2 parameters varargs
+  #assert return_data("1", "2", "3") == [["1", "2"], null, "3"]
+  // 3 parameters varargs
+  #assert return_data("1", "2", "3", "4") == [["1", "2", "3"], null, "4"]
+}
+
+```
+
+
+
+```error
+function join(string list...) {
+
+}
+```
+
 *Example*
 
 ```language
-function join(string list...) {
-  // list type is not string
-  // it's string[] list
+function join(string[] list...) {
+  var str = ""
+  for (s in str) {
+    str+=s
+  }
+  return str
 }
-function joinBy(string list..., rune x) {
+
+#assert join("a", "b", "c") == "abc"
+
+function joinBy(string[] list..., rune x) {
   // string[] list
+  var str = ""
+  for (s in str) {
+    str+=s
+    if(!$last) {
+      str+=x
+    }
+  }
+  return str
 }
-function join_anything(variant list) {
-  // variant[] list
+
+#assert joinBy("a", "b", "c", ',') == "a,b,c"
+
+// same type is supported.
+function joinBy2(string[] list..., string separator) {
+  return joinBy(string[] list..., separator[0])
 }
+// empty list, just the separator
+#assert joinBy("a") == ""
+// ["a"], ":"
+#assert joinBy("a", ":") == "a"
+// ["a", "b", "c"], ":"
+#assert joinBy("a", "b", "c", ":") == "a:b:c"
+
+
 ```
 
 ## `hook`
@@ -526,6 +687,8 @@ The main usage for `hook` should be to replace a buggy functions or debug input/
 
 2. Declared function shall have the same type and name as `hook`ed one.
 
+3. `hook`ed function can be called using the keyword `hook` inside function body.
+
 *Example*
 
 ```language
@@ -533,8 +696,8 @@ function sum(i32 a, i32 b) i32 {
   return a + b
 }
 
-hook sum(i32 a, i32 b) i32 {
-  var r = @hook(a, b);
+hook function sum(i32 a, i32 b) i32 {
+  var r = hook(a, b);
   print("sum(", a, ",", b, ") = ", r)
   return r;
 }
@@ -560,11 +723,13 @@ again and add current code location to the trace.
 2. Empty `throw` (re)throws current handled exception.
 
 ```
-try {
-  throw "x"
-} catch (e) { // catch all exceptions
-  // rethrow
-  throw
+function main() {
+  try {
+    throw "x"
+  } catch (e) { // catch all exceptions
+    // rethrow
+    throw
+  }
 }
 ```
 
@@ -646,33 +811,38 @@ A defer statement pushes the expression execution to the end of the surrounding 
 2. `defer` shall honor visual order (top-down) rather than execution order.
 
 ```language
-function defer_order() {
-  defer print("start")
+function defer_order(ref array<string> ar) {
+  defer ar.push("start")
   goto end
 
 middle:
-  defer print("middle")
+  defer ar.push("middle")
   goto exit
 
 end:
-  defer("end")
+  defer ar.push("end")
   goto middle
 
 exit
 }
+
+function main() {
+  var a = new array<string>()
+  defer_order(ar)
+  #assert ar.length == 3
+  #assert ar[0] == "start"
+  #assert ar[1] == "middle"
+  #assert ar[2] == "end"
+}
 ```
 
-```output
-start
-middle
-end
-```
 
-
-3. `defer` shall honor scope and raise error if a parameter is out-of-scope at
+3. `defer` shall honor scope and raise semantic-error if a parameter is out-of-scope at
 any [function-exit](#function-exit).
 
-```language-error
+> variable '?' is out of scope at this function exit '?'
+
+```language
 function out_of_scope() void {
   {
     int b = 10
@@ -681,21 +851,24 @@ function out_of_scope() void {
 }
 ```
 
-```language
-function out_of_scope_but_lambda() void {
+```compiler
+function out_of_scope() void {
+  var defer_001 = false
   {
     int b = 10
-    defer function() { print (b) }
+    var defer_001 = true
     b = 11
+  }
+
+  if (defer_001) {
+    print (b)
   }
 }
 ```
 
-Note: `b` it's a primitive so copied
+Lambda may extend the scope of a variable.
 
-```output
-10
-```
+In this example `null` will be printed, as `a` goes out of scope and it's deleted before the deferred print.
 
 ```language
 function out_of_scope_but_lambda2() void {
@@ -708,12 +881,28 @@ function out_of_scope_but_lambda2() void {
 }
 ```
 
-```output
-null
+```compiler
+function out_of_scope_but_lambda2() void {
+  var defer_001 = false
+  var defer_001_callable
+  {
+    shared_ptr<int> a = 10
+    weak_ptr<int> b = a
+    defer_001 = true
+    defer_001_callable = function() { print (b) }
+    b = 11
+  }
+  if (defer_001) {
+    defer_001_callable()
+  }
+}
 ```
 
 
+
 *Example*
+
+STUDY-PITFALL. lambda grabbing for primitives is by copy.
 
 ```language
 function add_one(i32 a) void {
@@ -802,7 +991,7 @@ function object.
 
 ```language
 function sum (int a, int b) {
-  const r = function {
+  const r = function () {
     return a + b
   }
 
@@ -874,4 +1063,67 @@ function sum (auto ref<int> a, auto ref<int> b) {
   }
 }
 sum(10, 11)()
+```
+
+
+## Generics
+
+*Semantics*
+
+A generic function is a function witch parameters types (one or more) will be specified later.
+
+For more information about templates read: [Generic programming](generic-programming.md).
+
+*Constraints*
+
+1. Implicit generics declaration will be filled from left to right and skipping repetitions
+
+```
+# implicit declaration
+function x($a a, $b b, $c c) {}
+function y($a a, $a b, $a c) {}
+function z($a a, $b b, $a c, $d d) {}
+# explicit declaration
+function x<$a, $b, $c>($a a, $b b, $c c) {}
+function y<$a>($a a, $a b, $a c) {}
+function z<$a, $b, $d>($a a, $b b, $a c, $d d) {}
+```
+
+2. Implicit call will be filled from left to right
+
+```language
+function add($t a, $t b) {
+  return a + b
+}
+
+#assert add(5, 6) == 11
+#assert add(3.1, 3.1) ~== 6.2
+````
+
+```error
+add(5, "hello")
+```
+
+> invalid template specification 'add($t a, $t b)', '$t' is a 'int' and 'string' at the same time.
+
+
+1. A function shall not be declared with and without a template.
+
+```
+function add(float a, float b) {
+  return a + b 
+}
+function add<$t>($t a, float b) {
+  return a - b 
+}
+```
+
+It should be
+```
+function add<$t>($t a, float b) $t {
+  return a - b 
+}
+function add<$t is float>($t a, float b) $t {
+  return a + b 
+}
 ```

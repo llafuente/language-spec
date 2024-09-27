@@ -150,6 +150,7 @@ QUESTIONDOT_TK : '?.';
 NOTDOT_TK : '!.';
 DOT_TK : '.';
 AND_TK : '&';
+AT_CHAR_TK : '@';
 STAR_TK : '*';
 TILDE_TK : '~';
 NOT_TK : '!';

@@ -49,7 +49,7 @@ comments
   | BLOCK_COMMENT
   ;
 
-endOfStmt: (NEWLINE_TK | SEMICOLON_TK)+;
+endOfStmt: (comments? (NEWLINE_TK | SEMICOLON_TK))+;
 
 ```
 

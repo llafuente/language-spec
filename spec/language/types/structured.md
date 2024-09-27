@@ -2,7 +2,17 @@
 
 *Semantics*
 
-1. A `struct` is an aggregate type with contiguous memory type which members can have distinct types.
+1. A `struct` is an aggregate type with contiguous memory type which fields can have distinct types.
+
+A struct is composed of:
+
+* fields: named value that occupy memory
+* getter/setters: named value that don't occupy memory (syntax sugar)
+* methods: named function that has the type as first parameter
+
+`properties` are the set of fields + getters + setters
+
+`members` are the set of fields + getters + setters + methods.
 
 *Constraints*
 
@@ -50,6 +60,11 @@ type B = struct {
   ref<A> a
 }
 ```
+
+3. A structure shall field name shall be unique, shall not contain a field with same name
+as a getter or a setter or a method or another field. A semantic-error shall raise
+
+> redefinition of field '?' at '?'
 
 
 ## Field declaration

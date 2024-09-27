@@ -35,24 +35,24 @@ preprocessorEcho
   : '#' identifierUp '#'
   ;
 
-preprocessor_expressions
+preprocessorExpr
   : preprocessorStr
   | preprocessorEcho
   | preprocessorRepeatExpr
   ;
 
-preprocessor_stmts
+preprocessorStmts
   : defineDecl
   | preprocessorMacroDecl
-  | forargs_stmt
-  | forstruct_stmt
+  | forargsStmt
+  | forstructStmt
   | assertStmt
   | execStmt
   | uidStmt
   | errorStmt
   | warningStmt
   | typeErrorStmt
-  | semantic_errorStmt
+  | semanticErrorStmt
   ;
 ```
 
@@ -63,7 +63,6 @@ preprocessor_stmts
 
 ```syntax
 defineDecl
-  // REVIEW why do not accept "non-newline?!" ~[\r\n]*
   : '#define' identifier AnyNonNewLine
   ;
 ```
@@ -561,7 +560,7 @@ list := [1,2,3,4]
 ## `#forargs`
 
 ```syntax
-forargs_stmt
+forargsStmt
   : '#forargs' identifier ',' identifier functionBody
   ;
 ```
@@ -597,7 +596,7 @@ print(10, 11, 12)
 *Syntax*
 
 ```syntax
-forstruct_stmt
+forstructStmt
   : '#forstruct' identifier ',' identifier 'in' identifier functionBody
   ;
 ```
@@ -826,7 +825,7 @@ Display a type error message and abort compilation.
 *Syntax*
 
 ```syntax
-semantic_errorStmt
+semanticErrorStmt
   : '#semantic_error' AnyNonNewLine
   ;
 ```

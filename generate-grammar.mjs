@@ -108,7 +108,8 @@ writeFileSync("./LanguageParser.g4", `parser grammar LanguageParser;
 
 // readDirSyncR("./spec")
 spec_files = [
-	"./spec/language/types/structured.md",
+	// "./spec/language/types/structured.md",
+	"./spec/language/functions.md",
 ]
 spec_files.forEach((file) => {
 	console.log(`Validating spec file: ${file}`)

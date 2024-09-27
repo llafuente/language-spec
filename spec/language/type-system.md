@@ -116,7 +116,7 @@ typeDecl
   // aliasing existing type
   : 'type' type_identifier '=' 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'     #    structTypeDecl
   | 'type' type_identifier '=' 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'                    # interfaceTypeDecl
-  | 'type' type_identifier '=' functionDef                                                                             #  functionTypeDecl
+  | 'type' type_identifier '=' anonymousFunctionDef                                                                    #  functionTypeDecl
   | 'type' type_identifier '=' 'enum' primitive? '{' endOfStmt? enumeratorList? '}'                                    #      enumTypeDecl
   | 'type' type_identifier '=' 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'                                #      maskTypeDecl
   | 'type' type_identifier '=' typeDefinition ('|' typeDefinition)+                                                    # aggregateTypeDecl
