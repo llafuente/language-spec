@@ -1,23 +1,27 @@
 //
 // type declaration
 //
+
 // alias primitive
 type pepe = i8
+
 // alias nother type
 type pepe2 = pepe
 
-// aggregate
+// aggregate type
 type pepe3 = pepe | pepe2
 type pepe4 = i8 | i16 | pepe
 type pepe5 = i8 | i16 | pepe | i8[]
 
+// TODO is this useful ?
 // empty struct declaration
 type pepe2 = struct {}
+
 // one propery struct declaration
-type point1 = struct {
+type onefloat = struct {
 	float x
 }
-
+// struct extension / implementation
 type z = struct extends y {
 }
 type z = struct extends x extends y {
@@ -29,6 +33,7 @@ type z = struct extends x implements y {
 type z = struct implements x implements y {
 }
 
+// interface declaration
 type i = interface {
 	float x
 }
@@ -45,10 +50,11 @@ type i = interface {
 type i<$t> = interface {
 	$t a
 	function d($t a) any
-	function d(xx<$t> a) any
+	function d(wrap<$t> a) any
+	function d(ref $t a) any
 }
 
-// multiple properties, new, clone, delete, types, getter, setter, hoist, alias, default properties and operators
+// ¡
 type point2 = struct {
 	float a
 	float b
@@ -93,39 +99,81 @@ type point2 = struct {
 		return x
 	}
 }
+
 // templated struct
-type point2<$t, $t2> = struct {
+type templated_struct_1<$t> = struct {
+	$t x
+}
+type templated_struct_2<$t, $t2> = struct {
 	$t x
 	$t2 y
 }
+type templated_struct_3<$t1, $t2, $t3> = struct {
+	$t1 x
+	$t2 y
+	$t3 z
+}
+
+// templated struct that extends templated struct
+type templated_struct_ex_1<$t> = struct extends templated_struct_1<$t> {
+	$t x
+}
+type templated_struct_ex_2<$t, $t2> = struct extends templated_struct_2<$t, $t2> {
+	$t x
+	$t2 y
+}
+type templated_struct_ex_3<$t1, $t2, $t3> = struct extends templated_struct_3<$t1, $t2, $t3> {
+	$t1 x
+	$t2 y
+	$t3 z
+}
 
 
-// templated extends 
-type struct_that_extends_pepe<$t> = struct extends pepe {}
-// templated extends templated
-type struct_that_extends_templated<$t> = struct extends pepe<$t> {}
+
+// templated interface
+type templated_interface_1<$t> = interface {
+	$t x
+}
+type templated_interface_2<$t, $t2> = interface {
+	$t x
+	$t2 y
+}
+type templated_interface_3<$t1, $t2, $t3> = interface {
+	$t1 x
+	$t2 y
+	$t3 z
+}
+
+// double implements, empty interfaces
+type x = interface {}
+type y = interface {}
+type xy = struct implements x implements y {}
+
+
 
 //
 // functions
 //
 
 // empty function
-function f() {}
+function f0() {}
 
 // one parameter
-function f(i8 a) {
+function f1(i8 a) {
 	return a
 }
 // multiple parameters
-function f(i8 a, i8 b) {
-	return a + b	
+function f2(i8 a, i8 b) {
+	return a + b
 }
 // complex parameter types
-function f(pepe<i8> a, pepe[] b, pepe? c) {
+function fc3(pepe<i8> a, pepe[] b, pepe? c) {
 }
 // pure function
-pure function f(pepe<i8> a, pepe[] b, pepe? c) {
+pure function pfc3(pepe<i8> a, pepe[] b, pepe? c) {
 }
+
+// variables
 
 /*
 this is the main file...
@@ -137,7 +185,9 @@ global var i8 z
 global var xxx<i8> z4 = 10
 global const xxx<i8> z4 = 10
 
-function x() {
+
+// operator
+function check_operators() {
 
 	1 + 2 * 3 / 4
 	1 | 2 & 3 ^ 4 || 5 && 6 % 1 << 1 >> 1 == 1 != 1 

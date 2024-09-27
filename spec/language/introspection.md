@@ -2,6 +2,7 @@
 
 <!--
   https://en.wikipedia.org/wiki/Type_introspection
+  https://pkg.go.dev/reflect
 -->
 
 Introspection is the ability of a program to examine the type or fields of
@@ -10,7 +11,7 @@ an object at runtime.
 Introspection is enabled by default, to disable:
 
 ```language
-#set compiler.introspection false
+#set compiler_introspection false
 ```
 
 Introspection will create a set of function for each type declared along an array
@@ -34,7 +35,9 @@ https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html
 ```language
 package rtti
 
-enum type_primitives {
+type primitives = enum  {
+  void
+
   i8
   i16
   i32
@@ -54,12 +57,11 @@ enum type_primitives {
   ptrdiff
   address
   typeid
-  // rune
 
-  void
   ptr
   enum
   struct
+  interface
   function
   callable // this is a pointer to function, but we may need to declare at this level
 
@@ -70,22 +72,52 @@ enum type_primitives {
   // variant is a struct
 }
 
-struct type_field {
+struct annotation {
   string name
-  type type
-  // getter/setter has -1 offset
-  i32 offset
-
-  optional<variant> defaultValue
-
-  optional<callable> getter
-  optional<callable> setter
+  variant value
 }
 
-struct type_known_field<$struct_t, $field_t> extends struct_field_type {
-  // TODO wonky syntax ?
-  function (ptr<$struct_t> s) $field_t       get
-  function (ptr<$struct_t> s, $field_t f)    set
+struct struct_field {
+  string name
+  type type
+
+  string documentation
+  // getter/setter has -1 offset
+  i32 offset
+  size position
+
+  optional<variant> defaultValue
+  optional<callable> setter
+  optional<callable> getter
+
+
+  optional<annotation[]> annotations
+
+  annotation? get_annotation(name) {
+    if (this.annotations) {
+      foreach v in annotations {
+        if (v.name == name) return v
+      }
+    }
+
+    return null
+  }
+/*
+  function set (variant value) {
+    var i8p = unsafe_cast<ptr<i8>>(this)
+    type.set(i8p + size, value)
+  }
+
+  function variant get() {
+    var i8p = unsafe_cast<ptr<i8>>(this)
+    return type.get(i8p + size)
+  }
+*/
+}
+
+struct known_struct_field<$struct_t, $field_t> extends struct_field {
+  function get (ref $struct_t s) $field_t {}
+  function set (ref $struct_t s, $field_t f) {}
 }
 
 struct type_template {
@@ -109,43 +141,81 @@ struct type_method {
   alias invoke call
 }
 
-// TODO maybe Type should be an aggregated
-
-struct type {
+// base for all types
+type base_type = struct {
   // type name inside the language
+  typeid id
   string name
+}
+
+// user declared types
+type decl_type = struct extends base_type {
   // namespace:xx
   // package: xx
   // file:/xx/xx
-  string resolution
-
+  string location
+  
   optional<string>   _binaryName
   // name in the binary
   get string binaryName {
     // null means the same as name
-    return _binaryName != null ? _binaryName : name
+    return _binaryName ?: name
   }
+}
 
-  type_primitives type
+type numeric_type = struct extends decl_type {
+  i32 size
+  bool signed
+  primitives type
+}
+
+type struct_type = struct extends decl_type {  
   // sizeof
   i32 size
 
-  // numbers
-  bool signed
 
   // structs
-  FieldType[] fields
-  MethodType[] methods
-  typeid extends
+  struct_field[] fields
+  struct_method[] methods
 
-  typeid aliasOf
+  typeid[]? extends
+  typeid[]? aliasOf
+}
 
-  // functions
+type function_parameter = struct extends {
+  i32 position
+  string name
+  type type
+
+  optional<variant> defaultValue
+}
+
+type function_type = struct extends decl_type {
+  // pointer to the function
   callable func
-  alias arguments fields
+
+  function_parameter parameters
+
   typeid return_type
   bool can_throw
+}
 
+// REVIEW enum type is under-review as type, because can be implemented using struct maybe we can remove it
+type enumerator = struct {
+  string name
+  variant value
+}
+
+type enum_type = struct extends decl_type {
+  enumerator[] enumerators
+  get length {
+    return this.enumerator.length
+  }
+
+  typeid underlying_type
+}
+
+type T = struct_type | enum_type | function_type | primitive_type {
   get isFunction() bool {
     return type == Primitives.function
   }
@@ -153,7 +223,6 @@ struct type {
     return type in Primitives.i8 or Primitives.i16 Primitives.i32 or Primitives.i64 or Primitives.u8 or Primitives.u16 or Primitives.u32 or Primitives.u64 or Primitives.f32 or Primitives.f64 or Primitives.f128
   }
 }
-
 
 // this shall be populated by the compiler
 global type[] types = []
@@ -192,8 +261,8 @@ struct ab {
 #assert rtti.count_fields(i32) == 2
 ```
 
-## rtti.get_fields(typeid tid): type_field[]
-## rtti.get_arguments(typeid tid): type_field[]
+## rtti.get_fields(typeid tid): struct_field[]
+## rtti.get_arguments(typeid tid): struct_field[]
 
 Returns the list of fields / arguments the type has
 

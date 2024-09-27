@@ -20,14 +20,16 @@ Sets a compiler property.
 
 1. It's only available at `program` `entry point file`.
 
-2. If the property starts with `compiler.` the property must exist.
+2. If the property starts with `compiler.` the property must exist and it will override it's value.
 
 3. If a property is already set a compiler error shall raise.
+
+> Trying to #set a configuration '?' already #set
 
 *Example*
 
 ```language
-var x = #set arrays.out_of_bounds true
+#set arrays.out_of_bounds true
 ```
 
 # `#get`
@@ -61,27 +63,31 @@ var x = #get arrays.out_of_bounds
 
 ```syntax
 preprocessor_require_statement
-  : '#require' Identifier CCHAR_SEQUENCE
+  : '#require' Identifier CCHAR_SEQUENCE?
   ;
 ```
 
 *semantics*
 
-Enforce a property to be at a specific value
+Enforce a property to be set or equal to a specific value
 
 *constraints*
 
 1. It's only available at `package` `entry point file`.
 
-2. If the property don't match the value compiler shall raise a configuration error.
+2. If the property doesn't match the value compiler shall raise a configuration error
+
+> Configuration '?' is required
+
+> Configuration '?' is required to be '?'
 
 
 *Example*
 
-This will enforce a library to be windows only.
+Imagine you are developing a math library and you want the developer to choose beetween f32/f64 you can use.
 
 ```language
-package io.win32
-
-#require os win32
+#require mathlib.float_type
 ```
+
+This way the developer must `#set mathlib.float_type`
