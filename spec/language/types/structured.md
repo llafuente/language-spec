@@ -212,21 +212,21 @@ var vector2 x = new()
 
 *Semantics*
 
-Initialize an object using something very similar to C/Javascript/JSON.
+Initialize an `struct` by setting it's fields instead of using the constructors (syntax similar to C/Javascript/JSON).
 
 *Constraints*
 
-* Only fields can be used.
+1. Only fields can be used or a semantic-error shall raise:
 
-* Constructor resolution has the same resolution algorithm as function call with named parameters against all constructors.
+> Cannot find '?' as field of type '?'
+
+2. Constructor resolution has the same resolution algorithm as function call with named parameters against all constructors.
 
 If a valid constructor can't be not found a semantic-error shall raise
 
 > No constructor match given initializer
 
-> Found '?' constructor
-
-> expected: new(?, ?, ?)
+> expected 'N': new(?, ?, ?)
 
 > Found:    new(?, ?, ?)
 
@@ -234,10 +234,12 @@ If more than one constructor is found
 
 > Found '?' possible constructors. Disambiguation is needed
 
-<!-- test: struct.init.ordered -->
-* If fields names are ommited, the order shall be the same as declared.
+> Found 'N': new(?, ?, ?)
 
-* JS Object initialization shall be used only if default constructor is defined or a semantic-error shall raise:
+<!-- test: struct.init.ordered -->
+3. If fields names are omitted, the order shall be the same as declared.
+
+4. JS Object initialization shall be used only if default constructor is defined or a semantic-error shall raise:
 
 > A custom constructor is defined, use it instead.
 
@@ -247,6 +249,10 @@ If more than one constructor is found
 type v2 = struct {
   float x
   float y
+}
+type line = struct {
+  v2 start
+  v2 end
 }
 type person = struct {
   string name
@@ -261,6 +267,11 @@ var vec0 = v2(0, 0)
 // braced ordered initialization
 var v2 vec01 = {0, 0}
 var vec02 = v2{0, 0}
+
+var l1 = line {{0, 0}, {10, 10}}
+var l2 = line {start.x : 0, start.y: 0, end.x: 10, end.y: 10}
+var l3 = line {start: {x : 0, y: 0}, end: {x: 10, y: 10}}
+var l4 = line {start: {0, 0}, end: {10, 10}}
 
 // braced ordered initialization with default values
 var person01 = person { "John", "Doe" }

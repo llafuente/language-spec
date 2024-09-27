@@ -208,7 +208,7 @@ maskEnumeratorList
 
 structProperyInitializer
   // REVIEW json support is ok, '=' maybe the best as function arguments
-  : identifier ':' rhsExpr # namedStructProperyInitializer
+  : identifier ('.' identifier)* ':' rhsExpr # namedStructProperyInitializer
   | rhsExpr                # orderStructProperyInitializer
   ;
 
