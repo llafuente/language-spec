@@ -71,6 +71,8 @@ HEX_QUAD
 ```syntax
 identifier: IdentifierLow | IdentifierUp ;
 
+identifierUp: IdentifierUp ;
+
 dollarIdentifier
   : '$' identifier
   ;

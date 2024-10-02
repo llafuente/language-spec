@@ -105,9 +105,8 @@ additive_expr
     ;
 
 shift_expr
-//    :   additive_expr (('<<'|'>>') additive_expr)*
-    : shift_expr '<<' additive_expr # shift_expr_left
-    | shift_expr '>>' additive_expr # shift_expr_right
+    : shift_expr '<' '<' additive_expr # shift_expr_left
+    | shift_expr '>' '>' additive_expr # shift_expr_right
     | additive_expr                 # shift_expr_fw
     ;
 

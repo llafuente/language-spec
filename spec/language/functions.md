@@ -23,11 +23,11 @@ functionDecl
   ;
 
 anonymousFunctionDef
-  : 'pure'? 'function' '(' functionParameterList? ')' typeDefinition?
+  : 'pure'? 'function' templateDefinitionList '(' functionParameterList? ')' typeDefinition?
   ;
 
 functionDef
-  : 'pure'? 'function' identifier? '(' functionParameterList? ')' typeDefinition?
+  : 'pure'? 'function' identifier templateDefinitionList? '(' functionParameterList? ')' typeDefinition?
   ;
 
 memoryFunctionDecl
@@ -352,7 +352,7 @@ function reset(out int a) {
 }
 
 function main() {
-  int a = 1;
+  var int a = 1;
   #assert a == 1
 
   reset(a)
@@ -898,6 +898,15 @@ function out_of_scope_but_lambda2() void {
 }
 ```
 
+4. Defer statement shall not be a constant.
+
+```error
+function error() void {
+  defer 1
+  defer "string"
+  defer 1 + 1
+}
+```
 
 
 *Example*
@@ -1037,7 +1046,7 @@ function sum_works (shared_ptr<readonly int> a, int b) {
 
 
 ```language
-function sum (auto ref<int> a, auto ref<int> b) {
+function sum (autocast ref<int> a, autocast ref<int> b) {
   return function {
     return a + b;
   }
@@ -1047,8 +1056,11 @@ function sum (auto ref<int> a, auto ref<int> b) {
 function lambda_sum_001 (ref<int> a, ref<int> b) {
   return a + b;
 }
-// create the callable
-var x = new shared_ptr<lambda_sum_001.callable>(){a, b}
+
+function main() {
+  // create the callable
+  var x = new shared_ptr<lambda_sum_001.callable>(){a, b}
+}
 
 ```
 
@@ -1057,12 +1069,15 @@ var x = new shared_ptr<lambda_sum_001.callable>(){a, b}
 *Examples*
 
 ```language
-function sum (auto ref<int> a, auto ref<int> b) {
+function sum (autocast ref<int> a, autocast ref<int> b) {
   return function {
     return a + b;
   }
 }
-sum(10, 11)()
+
+function main() {
+  sum(10, 11)()
+}
 ```
 
 

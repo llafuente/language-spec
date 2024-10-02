@@ -72,10 +72,11 @@ typeModifiers
   : 'lend'
   | 'own'
   | 'uninitialized'
+  | 'readonly'
   ;
 
 templateDefinitionList
-  : templateDefinition (',' templateDefinition)*
+  : '<' templateDefinition (',' templateDefinition)* '>'
   ;
 
 // TODO semantic error if a tempalte is inside a template...
@@ -84,24 +85,27 @@ templateDefinition
   ;
 
 templateIs
-  : 'is' (primitive | identifier | 'struct' | 'enum')
+  : 'is' (typeDefinition | 'struct' | 'enum')
   ;
 
 templateExtends
-  : 'extends' (primitive | identifier)
+  : 'extends' (primitive | identifier | templateTypeDef)
   ;
 
 templateImplements
-  : 'implements' identifier
+  : 'implements' (identifier | templateTypeDef)
   ;
 
 // REVIEW typeDefinitionList ?
 typeDefinition
-  : typeModifiers* stringLiteral                                      # fixedStringType
-  | typeModifiers* type '[' ']'                                       #       arrayType
-  | typeModifiers* type '?'                                           #    nullableType
-  | typeModifiers* type '<' templateDefinitionList '>'                #   templatedType
-  | typeModifiers* type                                               #      singleType
+  : typeModifiers* stringLiteral                                           # fixedStringType
+  | typeModifiers* type '[' ']'                                            #       arrayType
+  | templateTypeDef '?'?                                                   #   templatedType
+  | typeModifiers* type '?'?                                               #      singleType
+  ;
+
+templateTypeDef
+  : typeModifiers* type templateDefinitionList
   ;
 
 typeExtendsDecl
@@ -114,7 +118,7 @@ typeImplementsDecl
 
 typeDecl
   // aliasing existing type
-  : 'type' type_identifier '=' 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'     #    structTypeDecl
+  : 'type' type_identifier '=' 'struct' templateDefinitionList? (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'     #    structTypeDecl
   | 'type' type_identifier '=' 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'                    # interfaceTypeDecl
   | 'type' type_identifier '=' anonymousFunctionDef                                                                    #  functionTypeDecl
   | 'type' type_identifier '=' 'enum' primitive? '{' endOfStmt? enumeratorList? '}'                                    #      enumTypeDecl

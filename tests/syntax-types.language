@@ -1,0 +1,82 @@
+function main() {
+
+	var i8 a = 15
+	var i16 a = 1
+	var i32 a = 1
+	var i64 a = 1
+	var u8 a = 1
+	var u16 a = 1
+	var u32 a = 1
+	var u64 a = 1
+	var float a = 1.0
+
+	// double as identifier
+	var xxx a = 2.0
+	var xxx<yyy> a = 2.0
+	var xxx<i8> a = 2.0
+	var xxx< ref<i8> > a = 2.0
+	var xxx< ref<i8>> a = 2.0
+	var xxx<ref<i8>> a = 2.0
+	// typeModifiers
+	var xxx<readonly ref<i8>> a = 2.0
+	var xxx<ref<readonly i8>> a = 2.0
+	var lend xxx<own ref<uninitialized i8>> a = null
+
+
+	// optional types
+	var i8? a = null
+	var ref<i8>? a = null
+
+	// arrays
+	var i8[] a = null
+	// allocate 10
+	var i8[] a = new(10)
+	// initialize
+	var i8[] a = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+}
+
+// type in functions
+function template_single_instance<$t is i8>() {}
+function template_that_implements<$t implements xxx>() {}
+function template_that_extends<$t extends xxx>() {}
+function template_that_implements_and_extends<$t implements xxx extends yyy>() {}
+function template_that_extends_and_implements<$t extends xxx implements yyy>() {}
+function template_ref<$b>(ref<$b> first) {}
+// optionals
+function template_ref<$b>(ref<$b>? first) {}
+
+// as type declaration
+type x = function<$b>(ref<$b> first)
+
+// complex examples
+function a_ref_to_a_type_we_want<$t is ref<$b>>($b first) {}
+// this means our function will modify ?
+// this is in fact a template "un-trait"
+function a_ref_to_a_readonly_type_we_want<$t is ref<readonly $b>>($b first) {}
+
+// struct
+
+type s = struct {}
+type s = struct extends b {}
+type s = struct implements b {}
+
+type s = struct <$t extends xxx implements yyy> extends a {}
+type s = struct<$t extends xxx implements yyy> {}
+
+// enum
+
+type s = enum {}
+type s = enum {
+	a
+	b
+	c
+	d
+}
+
+type s = mask {}
+type s = mask {
+	a = 0b0001
+	b = 0b0010
+	c = 0b0100
+	d = 0b1000
+}

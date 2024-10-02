@@ -94,14 +94,8 @@ CCHAR
 //
 // numbers
 //
-/*
-NUMBER
-    : [0-9]+
-    ;
 
-TODO_
-*/
-NUMBER
+Number
     : INTEGER
     | FLOAT_NUMBER
     | IMAG_NUMBER
@@ -133,8 +127,16 @@ fragment EXPONENT       : ('e' | 'E') ('+' | '-')? DIGIT_PART;
 // https://docs.python.org/3.12/reference/lexical_analysis.html#imaginary-literals
 fragment IMAG_NUMBER : (FLOAT_NUMBER | DIGIT_PART) ('j' | 'J');
 
+/*
+NON_NEW_LINE
+    : NON_NEW_LINE_CHAR
+    ;
 
-
+fragment
+NON_NEW_LINE_CHAR
+    : ~[\r\n]
+    ;
+*/
 ```
 
 ```syntax
@@ -143,6 +145,10 @@ stringLiteral
   ;
 
 numberLiteral
-  : NUMBER
+  : Number
+  ;
+
+anyNonNewLine
+  : ',' // NON_NEW_LINE+
   ;
 ```
