@@ -266,161 +266,163 @@ STUDY: Design notes
 * alternative sysntax: cast(x)(--) ?
 -->
 
-## Operator optimization (Experimental)
 
-If the same operator is chained multiple times over the same type for example:
+
+<a name="operator-overloading"></a>
+## structure/object operators (operator overloading)
+
+*Semantics*
+
+Customizes the operators for operands of user-defined types.
+
+
+### Binary arithmetic
+
+Binary arithmetic operators operates over two types and return a new one.
+
+* `+`: addition
+* `-`: subtraction
+* `*`: multiplication
+* `/`: division
+* `^`: power
+
+*Constraints*
+
+1. Definition for all binary arithmetic
+
+> lend? ref<struct> operator X (ref<struct> lhs, readonly ref<struct> rhs)
+
+*Example*
 
 ```language
-"a" + "b" + "c"
-```
+type point = struct {
+  float x
+  float y
 
-The compiler will try to call operator+(string a, string, b, string c)
-instead of two times: operator+(string a, string, b).
-If the type support the long operator, it will be used.
+  operator +(point b) point {
+    return point(a.x + b.x, a.y + b.y)
+  }
+  operator +(float z) point {
+    return point(a.x + z, a.y + z)
+  }
+}
 
-## Define custom operators
+function main() {
+  var a = point(1, 2)
+  var b = point(3, 4)
+  var c = a + b
 
-<!--
-https://en.cppreference.com/w/cpp/language/operators
--->
-
-You can define any operator in the language as functions with the name
-`operator?`, example: `operator+`.
-
-Those operator have a scope, they are not global.
-So if you define a struct, like point in a file, and the operator in another
-file, your program need to import both to work with operators.
-
-```language
-function operator+(point a, point b) point {
-  return point(a.x + b.x, a.y + b.y)
+  #assert c.x ~== 4
+  #assert c.y ~== 6
+  #assert typeof c.y == point
+  
+  c = a + 5.5
+  #assert c.x ~== 6.5
+  #assert c.y ~== 7.5
 }
 ```
 
-If you try to define built-in operators you will get an error, for example
+### Assignament operators
+
+Assignament operators operates over two types, modify the first one and return a copy or the first one.
+
+* `=`: assignament 
+* `+=`: addition assignament
+* `-=`: subtraction assignament
+* `*=`: multiplication assignament
+* `/=`: division assignament
+* `^=`: power assignament
+
+*Constraints*
+
+1. Definition for all assignaments
+
+> lend? ref<struct> operator X (ref<struct> lhs, readonly ref<struct> rhs)
+
+### Comparison operators
+
+Comparison operators compare two types and return a boolean
+
+*Constraints*
+
+1. Definition for all comparison
+
+> bool operator X (ref<struct> lhs, readonly ref<struct> rhs)
+
+2. If `operator<` is defined the others are implicit as desrcibed
 
 ```language
-function operator+(i8 a, readonly i8 b) point {
-  return x + b
+bool operator >  (readonly ref<$T> lhs, readonly ref<$T> rhs) { return rhs < lhs; }
+bool operator <= (readonly ref<$T> lhs, readonly ref<$T> rhs) { return !(lhs > rhs); }
+bool operator >= (readonly ref<$T> lhs, readonly ref<$T> rhs) { return !(lhs < rhs); }
+```
+
+3. If `operator==` is defined the `!=` are implicit as desrcibed
+
+```language
+bool operator != (readonly ref<$T> lhs, readonly ref<$T> rhs) { return !(lhs == rhs); }
+```
+
+*Example*
+
+```language
+type floatWapper = struct {
+  float value
+
+  bool operator ==  (readonly ref<$T> rhs) { return this.value == lhs.value; }
+  bool operator <  (readonly ref<$T> rhs) { return this.value < lhs.value; }
+  bool operator >  (readonly ref<$T> rhs) { return this < lhs; }
+  bool operator <= (readonly ref<$T> rhs) { return !(this > rhs); }
+  bool operator >= (readonly ref<$T> rhs) { return !(this < rhs); }
+
 }
 ```
 
-> Operator redefinition at line <file_x>1:1 original <file_y>:1:1
+## Array subscript operator
 
-#### Unsupported operators
+*Semantic*
 
-<!--
-  TODO reconsider ^ <-- could be power ?
--->
+Provides array-like access to a struct.
 
-Here is the list of unsupported operators.
+*Constraints*
 
-* shift_expr: all
-* unary_expr: all
-* and_expr: all
-* exclusive_or_expr: all
-* inclusive_or_expr: all
-* logicaland_expr: all
-* logical_or_expr: all
-* conditional_expr: all
-* postfix_expr: `operator()`, `operator++`, `operator--`
-    * `operator!.` self operator shall not be overriden, as this will remove access to an object that overrides dot.
-* assignment_expr: `operator<<=`, `operator >>=`, `operator&=`, `operator^=`, `operator|=`
+1. Definition shall be compatible
 
-#### relational_expr operators
+> any operator [] (readonly ref<struct> lhs, any rhs)
+> ref<struct> operator []= (ref<struct> lhs, any rhs)
 
-`$t` and `$other` can be the same type.
 
-```language
-function operator< (readonly $t lhs, readonly $other rhs) bool { /* implement! */ }
-function operator> (readonly $t lhs, readonly $other rhs) bool { return rhs < lhs; } // default implementation when < is defined
-function operator<=(readonly $t lhs, readonly $other rhs) bool { return !(lhs > rhs); } // default implementation when < is defined
-function operator>=(readonly $t lhs, readonly $other rhs) bool { return !(lhs < rhs); } // default implementation when < is defined
-```
+## Member access (unary)
 
-#### multiplicative_expr operators
+*Semantic*
 
-`$t` and `$other` can be the same type.
+Provides a seamnless encapsulation method it also providen a easy extension method at user code.
+
+* `.`: member access
+* `?.`: safe member access
+
+*Constraints*
+
+1. Definition shall be compatible
+
+> any operator . (readonly ref<struct> lhs)
+> any operator ?. (ref<struct> lhs)
+
+2. Max operator recursion is 10.
+
+
+*Example*
 
 ```language
-function operator*(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
-function operator/(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
-function operator%(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
-```
+type myref = struct<$T> {
+  ref<$T> p
 
-#### additive_expr operators
+  uninitialized $T operator new() {
+    return intrinsics_deref(this.p)
+  }
 
-`$t` and `$other` can be the same type.
-
-```language
-function operator+(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }
-function operator-(readonly $t lhs, readonly $other rhs) lend $t { /* implement! */ }defined
-```
-
-#### equality_expr operators
-
-`$t` and `$other` can be the same type.
-
-```language
-function operator==(readonly $t lhs, readonly $other rhs) bool { /* implement! */ }
-function operator!=(readonly $t lhs, readonly $other rhs) bool { return !(lhs == rhs); } // default implementation when == is defined
-```
-
-#### assignment_expr operators
-
-`$t` and `$other` can be the same type.
-
-assignament_expr cannot be chained so no `return`
-
-```language
-function operator = ($t lhs, readonly $other rhs) {}
-function operator *= ($t lhs, readonly $other rhs) {}
-function operator /= ($t lhs, readonly $other rhs) {}
-function operator %= ($t lhs, readonly $other rhs) {}
-function operator += ($t lhs, readonly $other rhs) {}
-function operator -= ($t lhs, readonly $other rhs) {}
-```
-
-#### cast_expr
-
-This is a very special operator because this allows the compiler to fit your
-type in many places. Use it with care.
-
-```language
-operator cast($t lhs) $other {}
-```
-
-
-#### postfix_expr
-
-<!--
-Member access can be done two different ways, but both share the same principle.
-It's forbidden to lend memory.
-
-  TODO study: operator. lend memory
-  this is almost mandatory to implement runtime COM objects
--->
-
-
-```language
-function operator [](readonly $t lhs, $other rhs) $another {}
-// operator slice
-// start == number.MIN means not defined example: arr[:10]
-// function operator [:](readonly $t lhs, number start = number.MIN, number end = number.MIN) $another {}
-function operator.(readonly $t lhs, string rhs) lend $another {}
-```
-
-The operator. it's a very special operator that will call recursive the operator. of a given type.
-
-dot operator is meant
-
-
-```language
-struct ref<$T> {
-  ptr<$T> p
-
-  operator.() {
-    return __deref(p)
+  $T operator.() {
+    return intrinsics_deref(this.p)
   }
 }
 
@@ -429,5 +431,24 @@ struct point {
   float y
 }
 
-ref<point>
+function main() {
+    var pp = new myref<point>()(1, 2)
+    print(pp.x, pp.y)
+}
+```
+```
+
+
+
+
+
+
+#### cast_expr
+
+This is a very special operator because this allows the compiler to fit your
+type in many places. Use it with care.
+
+```language
+operator cast($t lhs) $other {}
+operator autocast($t lhs) $other {}
 ```
