@@ -326,6 +326,83 @@ type a = struct {
 }
 ```
 
+## structure/object methods
+
+*Semantics*
+
+An object method is a function declared inside its body that operates with the structure (specially the first parameter is `ref<?> this`)
+
+A function can be used as an object method but no the other way, because the methods are namespaced.
+
+*Constraints*
+
+1. A function can be used as a method if the compiler can cast the object as first argument.
+
+```error
+function fn_by_copy (i8 a, i8b) {
+  // ...
+}
+function fn_by_reference (ref<i8> a, i8b) {
+  // ...
+}
+function fn_invalid_cast (array<i8> a, i8b) {
+  // ...
+}
+
+function fn_autocast_point (array<i8> a, i8b) {
+  // ...
+}
+type point = struct { float x; float y }
+function autocast(i8 a) point {
+  return point(a, 0)
+}
+
+function main() {
+  var i8 a = 1
+  var i8 b = 2
+
+  a.fn_by_copy(b) // valid, 'a' will be copied
+  a.fn_by_reference(b) // valid, 'a' will be referenced (implicit autocast by the compiler)
+  a.fn_invalid_cast(b) // invalid as 'a' can't be casted to array
+  a.fn_autocast_point(b) // valid, as the compiler found way to cast: autocast(i8) -> point
+}
+```
+
+
+*Example*
+
+```error
+type point = struct {
+  add(ref<point> b) {
+    // ...
+  }
+}
+
+function sub(ref<point> a, ref<point> b) {
+  // ...
+}
+
+function main() {
+  var p1 = point{}
+  var p2 = point{}
+  
+  p.add(p2)  // valid
+  add(p1, p2) // <-- Semantic-error: can't find add
+  point.add(p1, p2) // <-- valid
+
+  sub(p1, p2)  // valid
+  p1.sub(p2)   // valid
+
+  print(typeof(add))        // Semantic-error: can't find add
+  print(typeof(point.add))  // valid: function...
+  print(typeof(sub))        // valid: function...
+}
+```
+
+## structure/object operators (operator overloading)
+
+Read more at [expressions](../expressions.md#operator-overloading)
+
 ## struct modifiers
 
 ### `extends` (Inheritance)
