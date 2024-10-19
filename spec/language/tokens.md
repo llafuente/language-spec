@@ -63,6 +63,7 @@ GET_TK : 'get';
 SET_TK : 'set';
 AUTOCAST_TK : 'autocast';
 DEFER_TK : 'defer';
+OUT_TK : 'out';
 
 // Control flow
 
@@ -134,7 +135,9 @@ DOLLAR_TK : '$';
 COMMA_TK : ',';
 GT_TK : '>';
 LT_TK : '<';
+EQUALEQUALEQUAL_TK : '===';
 EQUALEQUAL_TK : '==';
+ALMOSTEQUAL_TK : '~=';
 EQUAL_TK : '=';
 PIPE_TK : '|';
 QUESTION_TK : '?';
@@ -160,6 +163,7 @@ MOD_TK : '%';
 // RIGHT_SHIFT_TK : '>>';
 LESS_EQUAL_TK : '<=';
 GREATER_EQUAL_TK : '>=';
+NOT_EQUALEQUAL_TK : '!==';
 NOT_EQUAL_TK : '!=';
 CARET_TK : '^';
 ANDAND_TK : '&&';

@@ -21,6 +21,7 @@ constant
     : 'true'                  # trueLiteralExpr
     | 'false'                 # falseLiteralExpr
     | 'null'                  # nullLiteralExpr
+    | 'default'               # defaultValueExpr
     | stringLiteral           # stringLiteralExpr
     | numberLiteral           # numberLiteralExpr
     | identifier              # identifierExpr
@@ -119,7 +120,15 @@ relational_expr
     ;
 
 equality_expr
-    : equality_expr '==' relational_expr # equality_expr_eq
+    // memory equality (pointer comparation)
+    : equality_expr '===' relational_expr # equality_expr_eqp
+    // memory inequality (pointer comparation)
+    | equality_expr '!==' relational_expr # equality_expr_nep
+    // floating point equality: abs(left - right) < epsilon
+    | equality_expr '~=' relational_expr # equality_expr_almost_equal
+    // type equality
+    | equality_expr '==' relational_expr # equality_expr_eq
+    // type inequality
     | equality_expr '!=' relational_expr # equality_expr_neq
     | relational_expr                    # equality_expr_fw
     ;
@@ -163,6 +172,7 @@ expression
 
 rhsExpr
   : conditional_expr
+  | anonymousFunctionDef functionBody
   ;
 
 operators
