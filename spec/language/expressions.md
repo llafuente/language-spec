@@ -342,6 +342,7 @@ Assignament operators operates over two types, modify the first one and return a
 * `*=`: multiplication assignament
 * `/=`: division assignament
 * `^=`: power assignament
+* `~=`: floating point equality
 
 *Constraints*
 

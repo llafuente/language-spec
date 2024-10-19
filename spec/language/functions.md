@@ -21,13 +21,19 @@ deferStmt
 functionDecl
   : (functionDef | anonymousFunctionDef) functionBody
   ;
-
+/*
+functionModifiers
+  : '@pure'
+  | '@mock'
+  | '@debug'
+  ;
+*/
 anonymousFunctionDef
-  : 'pure'? 'function' templateDefinitionList? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : 'pure'? 'function' templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 functionDef
-  : 'pure'? 'function' identifier templateDefinitionList? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : 'pure'? 'function' identifier templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 memoryFunctionDecl
@@ -60,6 +66,7 @@ overloadableOperators
   | '*='
   | '/='
   | '^='
+  | '~='
   // Array subscript operator
   | '[' ']' '='
   | '[' ']'
@@ -84,7 +91,7 @@ functionBodyStmtList
   ;
 
 labeledStatement
-  : identifier ':' blockStatement
+  : identifier ':' endOfStmt? (functionBodyStmt | blockStatement)
   ;
 
 globalImportVarList 

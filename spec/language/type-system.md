@@ -56,10 +56,6 @@ Most of the types start as Inmutables like
 -->
 
 ```syntax
-type_identifier
-  : identifier ('<' dollarIdentifierList '>')?
-  ;
-
 primitive
   : 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' | 'float' | 'int' | 'size' | 'bool' | 'ptrdiff' | 'ptraddr' | 'void' | 'self' | 'any';
 
@@ -68,9 +64,7 @@ typeModifiers
   ;
 
 type
-  : typeModifiers? primitive
-  | typeModifiers? dollarIdentifier
-  | typeModifiers? identifier;
+  : typeModifiers? (primitive | dollarIdentifier | identifier);
 
 functionParametersTypeModifiers
   : 'lend'
@@ -86,12 +80,20 @@ functionReturnTypeModifiers
   | 'uninitialized'
   ;
 
-templateDefinitionList
-  : '<' templateDefinition (',' templateDefinition)* '>'
+templateDefinition
+  : '<' templateParameter (',' templateParameter)* '>'
+  ;
+
+templateId
+  : '<' templateArgument (',' templateArgument)* '>'
+  ;
+
+templateArgument
+  : typeDefinition
   ;
 
 // TODO semantic error if a tempalte is inside a template...
-templateDefinition
+templateParameter
   : typeDefinition ( templateIs | templateExtends | templateImplements )*
   ;
 
@@ -116,7 +118,7 @@ typeDefinition
   ;
 
 templateTypeDef
-  : type templateDefinitionList
+  : type templateId
   ;
 
 typeExtendsDecl
@@ -127,15 +129,43 @@ typeImplementsDecl
   : 'implements' typeDefinition
   ;
 
+structTypeDecl
+  : 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'
+  ;
+
+interfaceTypeDecl
+  : 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'
+  ;
+
+aggregateTypeDecl
+  : typeDefinition ('|' typeDefinition)+
+  ;
+
+aliasTypeDecl
+  : typeDefinition
+  ;
+
+// types that support templates
+templateTypeDecl
+  : 'type' identifier templateDefinition? '=' (structTypeDecl | interfaceTypeDecl | anonymousFunctionDef | aggregateTypeDecl | aliasTypeDecl)
+  ;
+
+enumTypeDecl
+  : 'enum' primitive? '{' endOfStmt? enumeratorList? '}'
+  ;
+
+maskTypeDecl
+  : 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'
+  ;
+
+// types that DON'T support templates
+primitiveTypeDecl
+  : 'type' identifier '=' (enumTypeDecl | maskTypeDecl)
+  ;
+
 typeDecl
-  // aliasing existing type
-  : 'type' type_identifier '=' 'struct' templateDefinitionList? (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'     #    structTypeDecl
-  | 'type' type_identifier '=' 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'                    # interfaceTypeDecl
-  | 'type' type_identifier '=' anonymousFunctionDef                                                                    #  functionTypeDecl
-  | 'type' type_identifier '=' 'enum' primitive? '{' endOfStmt? enumeratorList? '}'                                    #      enumTypeDecl
-  | 'type' type_identifier '=' 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'                                #      maskTypeDecl
-  | 'type' type_identifier '=' typeDefinition ('|' typeDefinition)+                                                    # aggregateTypeDecl
-  | 'type' type_identifier '=' typeDefinition                                                                          #     aliasTypeDecl
+  : templateTypeDecl
+  | primitiveTypeDecl
   ;
 
 // TODO do not repeat at parser level ?
@@ -224,8 +254,8 @@ maskEnumeratorList
 
 structProperyInitializer
   // REVIEW json support is ok, '=' maybe the best as function arguments
-  : identifier ('.' identifier)* ':' rhsExpr # namedStructProperyInitializer
-  | rhsExpr                # orderStructProperyInitializer
+  : identifier ('.' identifier)* ':' rhsExpr       # namedStructProperyInitializer
+  | rhsExpr                                        # orderStructProperyInitializer
   ;
 
 structProperyInitializerList
