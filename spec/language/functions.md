@@ -47,21 +47,32 @@ operatorFunctionDef
   ;
 
 overloadableOperators
+  // Binary arithmetic operators
   : '+'
   | '-'
   | '*'
   | '/'
   | '^'
+  // Assignament operators
   | '='
   | '+='
   | '-='
   | '*='
   | '/='
   | '^='
+  // Array subscript operator
+  | '[' ']' '='
+  | '[' ']'
+  // Member access
   | '.'
   | '?.'
-  | '[' ']'
-  | '++'
+  // Comparison operators
+  | '<'
+  | '>'
+  | '<='
+  | '>='
+  | '=='
+  | '!='
   ;
 
 functionBody

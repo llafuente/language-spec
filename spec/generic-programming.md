@@ -1,3 +1,6 @@
+<!-- 
+  https://en.wikipedia.org/wiki/Generic_programming
+-->
 # Generic programming (templates)
 
 Templates can be applied to functions (`function`) and structured types (`struct`).

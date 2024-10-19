@@ -71,7 +71,7 @@ lexer.forEach((chunk) => {
 
 console.log("TOKENS!");
 console.log(tokens);
-
+// order is important for lexer at least!
 var parser = [];
 var spec_files = [
 	"./spec/language/program.md",
@@ -82,7 +82,7 @@ var spec_files = [
 	"./spec/memory-management.md",
 	"./spec/language/expressions.md",
 	// "./spec/generic-programming.md",
-	// "./spec/preprocessor-and-metaprogramming.md",
+	"./spec/preprocessor-and-metaprogramming.md",
 	// "./spec/compiler/compiler-configuration.md",
 	"./spec/language/control-flow.md",
 	"./spec/language/variables.md",
@@ -104,6 +104,36 @@ writeFileSync("./LanguageParser.g4", `parser grammar LanguageParser;
 ` + parser.join("\n"));
 
 
+function antlr4(text, option) {
+	var tmp_file = "./temp.language";
+	writeFileSync(tmp_file, text);
+	let fd_stdin = openSync(tmp_file, 'r');
+	let result =  spawnSync('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', option], {
+	  // stdio: [fd_stdin, 1, 2]
+	  encoding: 'utf-8',
+	   stdio: [fd_stdin]
+	});
+	
+	/*
+	console.log(result.stdout)
+	let stdout = result.stdout.split("\n").filter((t) => {
+		//console.log("**", t, "**")
+		if (t.indexOf("program:") !== -1) {
+			return false
+		}
+		return true
+	}).join("\n").trim()
+	*/
+	if (result.stderr) {
+		console.log("------------------------")
+		console.log(text.split("\n").map((t,idx) => `${idx+1} | ${t}` ).join("\n"))
+		console.log("------------------------")
+		console.log(result.stderr)
+	}
+	return result
+}
+
+
 // < core\os\process.language
 
 // readDirSyncR("./spec")
@@ -120,39 +150,20 @@ spec_files.forEach((file) => {
 			return
 		}
 
-		console.log("------------------------")
-		console.log(text.split("\n").map((t,idx) => `${idx+1} | ${t}` ).join("\n"))
-		console.log("------------------------")
-		var tmp_file = "./temp.language";
-		writeFileSync(tmp_file, text);
-		let fd_stdin = openSync(tmp_file, 'r');
-		let antlr4 = spawnSync('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
-		  stdio: [fd_stdin, 1, 2]
-		});
-
-		if (antlr4.status != 0) {
+		var result = antlr4(text, "-tree")
+		if (result.status != 0) {
 			console.log(text)
 			process.exit(1);
 		}
 	});
 });
 
-
-
-
 [
+	'./tests/syntax-types.language',
 	'./tests/syntax-smoke-screen.language',
 	'./tests/preprocessor-smoke-screen.language'
 ].forEach((file) => {
-
-	let fd_stdin = openSync(file, 'r');
-	// var fd_stdin = openSync('./tests/syntax/struct-initializer.language', 'r');
-	// tokenizer debug
-	// let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-tokens'], {
-	// parser debug
-	let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', '-gui'], {
-	  stdio: [fd_stdin, 1, 2]
-	});
+	antlr4(readFileSync(file, 'utf-8'), "-tree")
 });
 
 /*

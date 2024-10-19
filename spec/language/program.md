@@ -9,16 +9,17 @@ program
   ;
 
 programStmsList
-  : (programStms (endOfStmt | EOF))+
+  : programStms+
   ;
 
 programStms
-  : comments
-  | functionDecl
+  : comments endOfStmt
+  | functionDecl endOfStmt
   // program exclusive!
-  | typeDecl
-  | globalVariableDeclStmt
-  | fileVariableDeclStmt
+  | typeDecl endOfStmt
+  | globalVariableDeclStmt endOfStmt
+  | fileVariableDeclStmt endOfStmt
+  | endOfStmt
   ;
 
 
@@ -28,16 +29,17 @@ packageProgram
   ;
 
 packageStmsList
-  : (packageStmts (endOfStmt | EOF))+
+  : packageStmts+
   ;
 
 packageStmts
-  : comments
-  | functionDecl
+  : comments endOfStmt
+  | functionDecl endOfStmt
   // program exclusive!
-  | typeDecl
-  | packageVariableDeclStmt
-  | fileVariableDeclStmt
+  | typeDecl endOfStmt
+  | packageVariableDeclStmt endOfStmt
+  | fileVariableDeclStmt endOfStmt
+  | endOfStmt
   ;
 
 packageDefinitionStmt
