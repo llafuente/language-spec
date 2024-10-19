@@ -15,6 +15,7 @@ selectionStmts
   | switchStmt
   | gotoStmt
   | loopStmt
+  | forStmt
   | foreachStmt
   | continueStmt
   | restartStmt
@@ -405,6 +406,29 @@ loop ? while <Exception> {
 }
 ```
 -->
+
+<a name="for"></a>
+### `for`
+
+*Semantics*
+
+c-style for loop.
+
+*Syntax*
+
+```syntax
+forCondition
+    : (blockVariableDeclStmt | expression)? ';' forExpression? ';' forExpression?
+    ;
+
+forExpression
+  : assignment_expr (',' assignment_expr)*
+  ;
+
+forStmt
+  : 'for' '(' forCondition ')' functionBody
+  ;
+```
 
 <a name="foreach"></a>
 ### `foreach`
