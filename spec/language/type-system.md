@@ -63,16 +63,27 @@ type_identifier
 primitive
   : 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' | 'float' | 'int' | 'size' | 'bool' | 'ptrdiff' | 'ptraddr' | 'void' | 'self' | 'any';
 
-type
-  : primitive
-  | dollarIdentifier
-  | identifier;
-
 typeModifiers
+  : 'readonly'
+  ;
+
+type
+  : typeModifiers? primitive
+  | typeModifiers? dollarIdentifier
+  | typeModifiers? identifier;
+
+functionParametersTypeModifiers
+  : 'lend'
+  | 'own'
+  | 'uninitialized' // why ? <-- real usage ?
+  | 'autocast'
+  | 'out'
+  ;
+
+functionReturnTypeModifiers
   : 'lend'
   | 'own'
   | 'uninitialized'
-  | 'readonly'
   ;
 
 templateDefinitionList
@@ -98,14 +109,14 @@ templateImplements
 
 // REVIEW typeDefinitionList ?
 typeDefinition
-  : typeModifiers* stringLiteral                                           # fixedStringType
-  | typeModifiers* type '[' ']'                                            #       arrayType
-  | templateTypeDef '?'?                                                   #   templatedType
-  | typeModifiers* type '?'?                                               #      singleType
+  : stringLiteral                                           # fixedStringType
+  | templateTypeDef '?'?                                    #   templatedType
+  | type '[' ']'                                            #       arrayType
+  | type ('.' identifier)* '?'?                             #      singleType
   ;
 
 templateTypeDef
-  : typeModifiers* type templateDefinitionList
+  : type templateDefinitionList
   ;
 
 typeExtendsDecl
@@ -129,7 +140,8 @@ typeDecl
 
 // TODO do not repeat at parser level ?
 structPropertyModifiers
-  : 'hoist'
+  : 'own'
+  | 'hoist'
   | 'readonly'
   ;
 
@@ -141,7 +153,7 @@ structPropertyDecl
   // TODO anonymousFunction
   : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
   // TODO REVIEW aliasing operator?
-  | 'alias' identifier identifier
+  | propertyAlias
   | (functionModifiers)* functionDecl
   | memoryFunctionDecl
   | operatorFunctionDecl
@@ -229,13 +241,5 @@ structInitializer
 structConstantInitializer
   : '{' structProperyInitializerList? '}'
   ;
-
-/*
-typeDefinition
-  | 'function' '(' function_parameter_list? ')' type_ref             # function_type_decl
-  | enum_type_decl                                                   # enum_type
-  ;
-
-*/
 ```
 
