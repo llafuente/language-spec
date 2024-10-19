@@ -53,6 +53,7 @@
 * set
 * autocast
 * defer
+* out
 
 <!-- TODO tokens.md -->
 ## templates

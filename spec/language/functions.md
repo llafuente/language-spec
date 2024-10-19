@@ -15,7 +15,7 @@ returnStmt
   ;
 
 deferStmt
-  : 'defer' rhsExpr?
+  : 'defer' rhsExpr
   ;
 
 functionDecl
@@ -23,11 +23,11 @@ functionDecl
   ;
 
 anonymousFunctionDef
-  : 'pure'? 'function' templateDefinitionList '(' functionParameterList? ')' typeDefinition?
+  : 'pure'? 'function' templateDefinitionList? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 functionDef
-  : 'pure'? 'function' identifier templateDefinitionList? '(' functionParameterList? ')' typeDefinition?
+  : 'pure'? 'function' identifier templateDefinitionList? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 memoryFunctionDecl
@@ -35,7 +35,7 @@ memoryFunctionDecl
   ;
 
 memoryFunctionDef
-  : ('new'|'delete'|'clone') '(' functionParameterList? ')' typeDefinition?
+  : ('new'|'delete'|'clone') '(' functionParameterList? ')'
   ;
 
 operatorFunctionDecl
@@ -43,7 +43,7 @@ operatorFunctionDecl
   ;
 
 operatorFunctionDef
-  : 'operator' overloadableOperators '(' functionParameterList? ')' typeDefinition?
+  : 'operator' overloadableOperators '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 overloadableOperators
@@ -76,33 +76,43 @@ overloadableOperators
   ;
 
 functionBody
-  : endOfStmt? '{' functionBodyStmtList '}' endOfStmt?
+  : endOfStmt? '{' globalImportVarList? functionBodyStmtList? '}'
   ;
 
 functionBodyStmtList
-  : endOfStmt? (functionBodyStmt endOfStmt)*
+  : functionBodyStmt+
   ;
 
 labeledStatement
-  : identifier ':' functionBodyStmt
+  : identifier ':' blockStatement
+  ;
+
+globalImportVarList 
+  : globalImportVar+
+  ;
+
+globalImportVar 
+  : 'global' identifier (',' identifier)* endOfStmt
   ;
 
 blockStatement
-  : '{' endOfStmt? functionBodyStmtList '}'
+  : '{' functionBodyStmtList? '}'
   ;
 
 functionBodyStmt
-  : labeledStatement
-  | blockStatement
-  | comments
-  | typeDecl
-  | functionDecl
-  | expression
-  | selectionStmts
+  : labeledStatement endOfStmt
+  | blockStatement endOfStmt
+  | comments endOfStmt
+  | typeDecl endOfStmt
+  | functionDecl endOfStmt
+  | expression endOfStmt
+  | selectionStmts endOfStmt
   // function exclusive
-  | returnStmt
-  | deferStmt
-  | blockVariableDeclStmt
+  | returnStmt endOfStmt
+  | deferStmt endOfStmt
+  | blockVariableDeclStmt endOfStmt
+  | assertStmt endOfStmt
+  | endOfStmt
   ;
 
 functionParameterList
@@ -110,7 +120,7 @@ functionParameterList
   ;
 
 functionParameter
-  : 'autocast'? typeDefinition identifier ('=' constant)?
+  : functionParametersTypeModifiers* typeDefinition identifier ('=' rhsExpr)?
   ;
 ```
 
@@ -569,7 +579,7 @@ function sum3 (...) {
 `arguments` shall be implemented including the following macro
 at the top of the function
 
-```language
+```
 readonly array<variant> arguments = []
 #for param_key, param_value in self.parameters {
   arguments.push({#param_value#})
@@ -608,6 +618,7 @@ readonly array<variant> arguments = []
 it shall be filled before vararg.
 
 This constraints implies that:
+
 * function x (string[] list..., string separator)
 * function x (string separator, string[] list...)
 
@@ -615,10 +626,16 @@ Shall not be allowed, a semantic error shall raise
 
 > Function '?' declaration collide
 
-```
+5. If the vargs type is optional, null will be used if no arguments sent.
+
+6. If the vargs type is not optional, empty array will be used if no arguments sent.
+
+*Example*
+
+```todo
 // same type is supported.
 function return_data(string[] list..., string separator) string?[]{
-  return [...list, null, separator]
+  return [list, null, separator]
 }
 function main() {
   // empty list, just the separator
@@ -633,17 +650,9 @@ function main() {
 
 ```
 
+*Example 2*
 
-
-```error
-function join(string list...) {
-
-}
-```
-
-*Example*
-
-```language
+```todo
 function join(string[] list...) {
   var str = ""
   for (s in str) {
@@ -822,19 +831,19 @@ A defer statement pushes the expression execution to the end of the surrounding 
 2. `defer` shall honor visual order (top-down) rather than execution order.
 
 ```language
-function defer_order(ref array<string> ar) {
+function defer_order(ref<array<string>> ar) {
   defer ar.push("start")
   goto end
 
-middle:
+middle: {
   defer ar.push("middle")
   goto exit
-
-end:
+}
+end: {
   defer ar.push("end")
   goto middle
-
-exit
+}
+exit:{}
 }
 
 function main() {
@@ -856,13 +865,13 @@ any [function-exit](#function-exit).
 ```language
 function out_of_scope() void {
   {
-    int b = 10
+    var b = 10
     defer print (b)
   }
 }
 ```
 
-```compiler
+```compiled
 function out_of_scope() void {
   var defer_001 = false
   {
@@ -884,15 +893,17 @@ In this example `null` will be printed, as `a` goes out of scope and it's delete
 ```language
 function out_of_scope_but_lambda2() void {
   {
-    shared_ptr<int> a = 10
-    weak_ptr<int> b = a
-    defer function() { print (b) }
+    var shared_ptr<int> a = 10
+    var weak_ptr<int> b = a
+    defer function() {
+      print (b)
+    }
     b = 11
   }
 }
 ```
 
-```compiler
+```compiled
 function out_of_scope_but_lambda2() void {
   var defer_001 = false
   var defer_001_callable
@@ -900,7 +911,9 @@ function out_of_scope_but_lambda2() void {
     shared_ptr<int> a = 10
     weak_ptr<int> b = a
     defer_001 = true
-    defer_001_callable = function() { print (b) }
+    defer_001_callable = function() {
+      print (b)
+    }
     b = 11
   }
   if (defer_001) {
@@ -927,12 +940,16 @@ STUDY-PITFALL. lambda grabbing for primitives is by copy.
 ```language
 function add_one(i32 a) void {
   defer print("stmt - add_one", a)
-  defer function () {print("lambda add_one", a)}
+  defer function () {
+    print("lambda add_one", a)
+  }
   ++a
 }
 
-x(10)
-x(15)
+function main() {
+  x(10)
+  x(15)
+}
 ```
 
 ```output
@@ -954,7 +971,7 @@ function add_one(i32 a) void {
 
 *Generation*
 
-```language
+```compiled
 function add_one(i32 a) i32 {
   bool defer_001 = false
 
@@ -980,7 +997,7 @@ function defer2() void {
 
 *Generation*
 
-```language
+```compiled
 function add_one(i32 a) i32 {
   bool defer_001 = false
 
@@ -1020,7 +1037,9 @@ function sum (int a, int b) {
   return r
 }
 
-#assert sum(10, 10)() == 20
+function main() {
+  #assert sum(10, 10)() == 20
+}
 ```
 
 2. `readonly` stack variables shall raise an error
@@ -1028,7 +1047,7 @@ function sum (int a, int b) {
 ```language-error
 // error, as shared_ptr will be modificied if copied!
 function sum_error (readonly shared_ptr<int> a, int b) {
-  return function {
+  return function () {
     return a + b
   }
 }
@@ -1036,7 +1055,7 @@ function sum_error (readonly shared_ptr<int> a, int b) {
 
 ```language
 function sum_works (shared_ptr<readonly int> a, int b) {
-  return function {
+  return function () {
     return a + b
   }
 }
@@ -1058,7 +1077,7 @@ function sum_works (shared_ptr<readonly int> a, int b) {
 
 ```language
 function sum (autocast ref<int> a, autocast ref<int> b) {
-  return function {
+  return function () {
     return a + b;
   }
 }
@@ -1070,7 +1089,7 @@ function lambda_sum_001 (ref<int> a, ref<int> b) {
 
 function main() {
   // create the callable
-  var x = new shared_ptr<lambda_sum_001.callable>(){a, b}
+  var x = new shared_ptr<lambda_sum_001.callable>(a, b)
 }
 
 ```
@@ -1081,7 +1100,7 @@ function main() {
 
 ```language
 function sum (autocast ref<int> a, autocast ref<int> b) {
-  return function {
+  return function () {
     return a + b;
   }
 }
@@ -1122,8 +1141,10 @@ function add($t a, $t b) {
   return a + b
 }
 
-#assert add(5, 6) == 11
-#assert add(3.1, 3.1) ~== 6.2
+function main () {
+  #assert add(5, 6) == 11
+  #assert add(3.1, 3.1) ~= 6.2
+}
 ````
 
 ```error

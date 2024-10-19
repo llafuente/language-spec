@@ -63,7 +63,7 @@ preprocessorStmts
 
 ```syntax
 defineDecl
-  : '#define' identifier AnyNonNewLine
+  : '#define' identifier anyNonNewLine
   ;
 ```
 
@@ -650,7 +650,7 @@ print(1, "y", p.y)
 
 ```syntax
 assertStmt
-  : '#assert' expression ',' StringLiteral
+  : '#assert' expression (',' StringLiteral)?
   ;
 ```
 
@@ -688,7 +688,7 @@ Raise a compile time error if condition yield false.
 
 ```syntax
 execStmt
-  : '#exec' AnyNonNewLine
+  : '#exec' anyNonNewLine
   ;
 ```
 
@@ -783,7 +783,7 @@ print(##date)
 
 ```syntax
 errorStmt
-  : '#error' AnyNonNewLine
+  : '#error' anyNonNewLine
   ;
 ```
 
@@ -798,7 +798,7 @@ Display the error message and abort compilation.
 
 ```syntax
 warningStmt
-  : '#warning' AnyNonNewLine
+  : '#warning' anyNonNewLine
   ;
 ```
 
@@ -812,7 +812,7 @@ Display the warning message but continue compilation.
 
 ```syntax
 typeErrorStmt
-  : '#type_error' AnyNonNewLine
+  : '#type_error' anyNonNewLine
   ;
 ```
 
@@ -826,7 +826,7 @@ Display a type error message and abort compilation.
 
 ```syntax
 semanticErrorStmt
-  : '#semantic_error' AnyNonNewLine
+  : '#semantic_error' anyNonNewLine
   ;
 ```
 
