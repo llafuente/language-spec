@@ -3,6 +3,13 @@
 
 	TODO where is the memory allocated -> is important ?
 	TODO rethrow potentially could delete the memory? should check it's not the same address ?
+
+
+Implementations details:
+
+  https://github.com/llvm-mirror/libcxxabi/blob/master/src/cxa_exception.cpp
+  https://github.com/ApexAI/static_exception
+
 -->
 
 # Error handling
@@ -21,6 +28,7 @@ errorHandlingStmts
 	: tryBlock catchBlock? finallyBlock?
 	| 'try' expression
 	| 'catch' expression functionBody
+  | 'throw' expression?
 	;
 
 tryBlock
@@ -28,11 +36,11 @@ tryBlock
 	;
 
 catchBlock
-	: 'catch' (identifier | postfixMemberAccessExpr | typeDefinition identifier) functionBody
+	: 'catch' (typeDefinition identifier | postfix_expr) functionBody
 	;
 
 finallyBlock
-	: 'finally' (identifier | postfixMemberAccessExpr | typeDefinition identifier) functionBody
+	: 'finally' functionBody
 	;
 ```
 
@@ -62,6 +70,11 @@ function main() {
 3. A `return` statements is forbidden inside any `catchBlock` if a `finallyBlock` is defined, a semantic-error shall raise
 
 > Found a return at '?:?' but there is a finally block.
+
+4. Catch block expression shall be a constant expression.
+<!-- STUDY, is there a real world usage to execute a postfix and compare values ? -->
+
+5. Empty `throw` (re)throws current handled exception.
 
 *Examples*
 
