@@ -130,7 +130,7 @@ typeImplementsDecl
   ;
 
 structTypeDecl
-  : 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'
+  : 'struct' (typeExtendsDecl | typeImplementsDecl | 'noalign')* '{' endOfStmt? structProperty* '}'
   ;
 
 interfaceTypeDecl
@@ -175,16 +175,13 @@ structPropertyModifiers
   | 'readonly'
   ;
 
-functionModifiers
-  : 'readonly'
-  ;
-
 structPropertyDecl
   // TODO anonymousFunction
   : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
   // TODO REVIEW aliasing operator?
   | propertyAlias
-  | (functionModifiers)* functionDecl
+  // Notice: do not support anonymous function
+  | functionDef functionBody
   | memoryFunctionDecl
   | operatorFunctionDecl
   | structGetterDecl

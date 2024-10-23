@@ -21,19 +21,22 @@ deferStmt
 functionDecl
   : (functionDef | anonymousFunctionDef) functionBody
   ;
-/*
+
 functionModifiers
-  : '@pure'
-  | '@mock'
-  | '@debug'
+  : 'pure'
+  | 'override'
+  | 'overwrite'
+  | 'readonly'
   ;
-*/
+  // | '@mock'
+  // | '@debug'
+
 anonymousFunctionDef
-  : 'pure'? 'function' templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : functionModifiers* 'function' templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 functionDef
-  : 'pure'? 'function' identifier templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : functionModifiers* 'function' identifier templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 memoryFunctionDecl
@@ -41,7 +44,7 @@ memoryFunctionDecl
   ;
 
 memoryFunctionDef
-  : ('new'|'delete'|'clone') '(' functionParameterList? ')'
+  : ('override' | 'overwrite')* ('new'|'delete'|'clone') '(' functionParameterList? ')'
   ;
 
 operatorFunctionDecl
@@ -224,7 +227,7 @@ function sum(i32 a, i32 b) i32 {
 1. A pure function shall have no access to package, file or global variables
 unless it's a constant or a semantic-error shall raise
 
-> A pure function shall no read or write any non-constant variable.
+> A pure function shall no read or write any non-constant variable outside function scope
 
 
 ## functions as Type
