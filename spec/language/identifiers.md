@@ -48,7 +48,7 @@ IDENTIFIER_NON_DIGIT
 
 fragment
 NON_DIGIT
-    :   [a-zA-Z_]
+    :   [a-zA-Z_$]
     ;
 
 fragment

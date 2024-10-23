@@ -94,6 +94,7 @@
 * try
 * catch
 * finally
+* throw
 
 ## memory
 

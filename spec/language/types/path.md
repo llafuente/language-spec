@@ -6,9 +6,10 @@ These means it contains a method specialization by the underlying type is the sa
 
 The path is OS independent because a [https://en.wikipedia.org/wiki/Uniform_Resource_Identifier](URI - Uniform Resource Identifier) must be used.
 
-
+```language
 var path x = "file://c/windows/system32"
 var path y = "file://media/dev1/desktop"
+```
 
 With this we try to unify all access to file information from web request to filesystem.
 
@@ -56,11 +57,14 @@ fs.file.post("http://www.google.com", headers = ["Accept: application/json"], bo
 
 fs.file.post("http://www.google.com", headers = ["Accept: application/json"], body = `{"message": "xxx"}`, auth = basic_auth)
 
+var credentials = new BasicAuth(user = "john", password = "Doe")
+fs.file.get("http://www.mybank.com", auth = credentials)
+
 var credentials = new SSLCertificateAuth(key = "/c/file.pem", ssltype = "PEM", crt="/c/file.crt", keypassword = "xxx")
-fs.file.get("http://www.bank.com", auth = credentials)
+fs.file.get("http://www.mybank.com", auth = credentials)
 
 
-fs.file.post("http://www.google.com").pipe("/c/download.htmlge")
+fs.file.post("http://www.google.com").pipe(fs.stream.create("/c/download.html"))
 fs.file.post("http://www.google.com").pipe(app.stdout)
 fs.file.post("http://www.google.com").pipe(app.stderr)
 

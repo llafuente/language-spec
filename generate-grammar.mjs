@@ -87,6 +87,7 @@ var spec_files = [
 	"./spec/language/control-flow.md",
 	"./spec/language/variables.md",
 	"./spec/language/types/array.md",
+	"./spec/language/error-handling.md",
 	// "./spec/language/types/enumerated.md",
 ];
 
@@ -138,8 +139,12 @@ function antlr4(text, option) {
 
 // readDirSyncR("./spec")
 spec_files = [
-	// "./spec/language/types/structured.md",
+	"./spec/language/types/structured.md",
 	"./spec/language/functions.md",
+	"./spec/language/control-flow.md",
+	"./spec/language/variables.md",
+	"./spec/language/types/array.md",
+	"./spec/language/error-handling.md",
 ]
 spec_files.forEach((file) => {
 	console.log(`Validating spec file: ${file}`)

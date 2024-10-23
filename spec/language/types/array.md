@@ -318,15 +318,17 @@ Push a value at the end to be initialized
 *Example*
 
 ```language
-var arr = i8[10]
-#assert arr.length == 0
-#assert arr.capacity == 10
+function main() {
+  var arr = new i8[10]
+  #assert arr.length == 0
+  #assert arr.capacity == 10
 
-arr.init_push() = 5
-arr.init_push()(5)
+  // arr.init_push() = 5
+  arr.init_push()(5)
 
-#assert arr[0] == 5
-#assert arr.length == 1
+  #assert arr[0] == 5
+  #assert arr.length == 1
+}
 ```
 
 *Implementation*

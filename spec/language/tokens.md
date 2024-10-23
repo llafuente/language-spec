@@ -101,6 +101,7 @@ CAST_TK : 'cast';
 TRY_TK : 'try';
 CATCH_TK : 'catch';
 FINALLY_TK : 'finally';
+THROW_TK : 'throw';
 
 
 //metaprogramming

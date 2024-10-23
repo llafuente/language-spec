@@ -268,7 +268,7 @@ function main() {
 
 * `return` (implicit or explicit)
 
-* `throw`
+* `throw` (in fact is a `return`)
 
 ## function `parameters`
 
@@ -736,93 +736,6 @@ hook function sum(i32 a, i32 b) i32 {
 
 sum(10, 15)
 ```
-
-## `throws`, `throw` and `error`
-<!--
-https://github.com/llvm-mirror/libcxxabi/blob/master/src/cxa_exception.cpp
-https://github.com/ApexAI/static_exception
--->
-*Semantics*
-
-Raise an error to the caller. If the callee don't handle the error is raised
-again and add current code location to the trace.
-
-*Constraints*
-
-1. `throw` code must be generated before `defer`.
-
-2. Empty `throw` (re)throws current handled exception.
-
-```
-function main() {
-  try {
-    throw "x"
-  } catch (e) { // catch all exceptions
-    // rethrow
-    throw
-  }
-}
-```
-
-3. Trace can be disabled with flag: compiler.disable_traces
-
-
-*Code generation*
-
-
-```language
-throws function step1() void {
-  throw error("simple error")
-}
-
-function step2() {
-  step1()
-}
-
-function main() {
-  try {
-    step2()
-  } catch(e) {
-    print(e.message)
-  }
-}
-
-```
-
-```language
-throws function step1() i32 {
-  global $error_stack
-
-  $error_stack.push(error("simple error", __FILE__, __FUNCTION__, __LINE__))
-  return i32.DEFAULT
-}
-
-throws function step2() i32 {
-  global $error_stack
-
-  step1()
-  if ($error_stack.length) {
-    $error_stack.trace.unshift(__FILE__, __FUNCTION__, __LINE__)
-    return i32.DEFAULT
-  }
-
-  return 10
-}
-
-
-throws function main() void {
-  global $error_stack
-
-  step2()
-  if ($error_stack.length) {
-    var error = $error_stack.pop()
-
-    print(e)
-  }
-}
-
-```
-
 
 ## `defer`
 <!--

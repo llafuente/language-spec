@@ -183,26 +183,6 @@ A block variable will live until the end of the current block.
 *Example*
 
 ```language
-function a() b {
-  return c
-}
-```
-
-```language
-function a() b {
-  function c() d {
-    return x
-  }
-  return c
-}
-```
-```language
-print("start")
-simple_test()
-print("end")
-```
-
-```language
 type a = struct {
   new() {
     print("a constructor called")
@@ -211,15 +191,18 @@ type a = struct {
     print("a destructor called")
   }
 }
+
 function simple_test() {
   print("function called")
 
   var aptr = new a()
 } // <-- aptr freed here
 
-print("program starts")
-simple_test()
-print("program ends")
+function main() {
+  print("program starts")
+  simple_test()
+  print("program ends")
+}
 ```
 
 ```output
@@ -242,7 +225,9 @@ type a = struct {
     print("destructor")
   }
 }
+
 type callback = function () lend string
+
 function do_your_job() callback {
   var aptr = new a()
 
@@ -253,13 +238,16 @@ function do_your_job() callback {
 
   return r
 }
-print("start")
-var t = do_your_job()
-print("job started")
-print(t())
-print("lambda finished")
-delete t
-print("end")
+
+function main() {
+  print("start")
+  var t = do_your_job()
+  print("job started")
+  print(t())
+  print("lambda finished")
+  delete t
+  print("end")
+}
 ```
 
 ```output
@@ -293,10 +281,13 @@ type inference.
 2. 2. It will choose the greater (signed) type possible.
 
 ```language-test
-var i = 10
-#assert type(i) == i64
-var i = 10.0
-#assert type(i) == f64
+function main() {
+  var i = 10
+  #assert type(i) == i64
+
+  var f = 10.0
+  #assert type(f) == f64
+}
 ```
 
 2. 3. All return statements inside a function shall have the exact same type.
@@ -312,7 +303,7 @@ function x(int i) {
 }
 ```
 
-2. 4. If any operation is performed before an assignament a semantic-error shall raise
+2. 4. If any read operation is performed before an assignament a semantic-error shall raise
 
 > Variable is used before initialization.
 
@@ -345,7 +336,7 @@ sum(10, 10) // ok
 function sum<$t>($t a, $t b) {
   return a + b
 }
-var x = 10
+var i64 x = 10
 var i32 y = 10
 sum(x, y)
 ```
@@ -375,10 +366,12 @@ We call magic variables those that the programmer don't explicitly declare.
 2. Magic variables shall not be shadowed or shadow another variable if used.
 
 ```language
-loop 5 {
-  print("index = " + $index)
+function main() {
   loop 5 {
-    print("ok, it's not used!")
+    print("index = " + $index)
+    loop 5 {
+      print("ok, it's not used!")
+    }
   }
 }
 ```
@@ -388,9 +381,11 @@ loop 5 {
 > variable $index redeclared at line 2:1
 
 ```language-error
-var $index = 0
-loop 5 {
-  print("index = " + $index)
+function main() {
+  var $index = 0
+  loop 5 {
+    print("index = " + $index)
+  }
 }
 ```
 
@@ -399,9 +394,11 @@ loop 5 {
 > variable $index redeclared at line 2:3
 
 ```language-error
-loop 5 {
+function main() {
   loop 5 {
-    print("index = " + $index)
+    loop 5 {
+      print("index = " + $index)
+    }
   }
 }
 ```
@@ -409,7 +406,9 @@ loop 5 {
 *Example*
 
 ```language
-loop 5 {
-  print("index = " + $index)
+function main() {
+  loop 5 {
+    print("index = " + $index)
+  }
 }
 ```

@@ -42,8 +42,6 @@ primary_expr
 memberIdentifier
     : identifier | 'default' | 'new' ;
 
-postfixMemberAccessExpr: postfix_expr '.' memberIdentifier;
-
 postfix_expr
     // memberAccessExpression
     // TODO this should be a rhs_expression?
@@ -54,7 +52,8 @@ postfix_expr
     | postfix_expr '[' expression ':' expression ']'                                   # postfixSliceExpr
     | postfix_expr '?.' memberIdentifier                                               # postfixSafeMemberAccessExpr
     | postfix_expr '!.' memberIdentifier                                               # postfixSelfMemberAccessExpr
-    | postfix_expr '.' memberIdentifier                                                # postfixMemberAccessExpr2
+    | postfix_expr '.' '.' primary_expr                                                # rangeExpr
+    | postfix_expr '.' memberIdentifier                                                # postfixMemberAccessExpr
     // function call
     | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
     //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'     # preprocessorMemberMacroCallExpr
@@ -454,12 +453,6 @@ function main() {
     print(pp.x, pp.y)
 }
 ```
-```
-
-
-
-
-
 
 #### cast_expr
 
