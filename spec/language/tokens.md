@@ -7,6 +7,7 @@
 
 TYPE_TK : 'type';
 STRUCT_TK : 'struct';
+NOALIGN_TK : 'noalign';
 ENUM_TK : 'enum';
 MASK_TK : 'mask';
 EXTENDS_TK : 'extends';
@@ -64,6 +65,8 @@ SET_TK : 'set';
 AUTOCAST_TK : 'autocast';
 DEFER_TK : 'defer';
 OUT_TK : 'out';
+OVERRIDE_TK : 'override';
+OVERWRITE_TK : 'overwrite';
 
 // Control flow
 
@@ -93,6 +96,11 @@ OWN_TK : 'own';
 UNINITIALIZED_TK : 'uninitialized';
 AT_TK : 'at';
 CAST_TK : 'cast';
+
+// error handling
+TRY_TK : 'try';
+CATCH_TK : 'catch';
+FINALLY_TK : 'finally';
 
 
 //metaprogramming

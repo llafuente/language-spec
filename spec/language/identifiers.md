@@ -8,16 +8,23 @@
 *Syntax*
 
 ```lexer
+Identifier
+    :   IDENTIFIER_NON_DIGIT
+        (   IDENTIFIER_NON_DIGIT
+        |   DIGIT
+        )*
+    ;
+
 IdentifierLow
     :   IDENTIFIERLOW_NON_DIGIT
-        (   IDENTIFIER_NON_DIGIT
+        (   IDENTIFIERLOW_NON_DIGIT
         |   DIGIT
         )*
     ;
 
 IdentifierUp
     :   IDENTIFIERUP_NON_DIGIT
-        (   IDENTIFIER_NON_DIGIT
+        (   IDENTIFIERUP_NON_DIGIT
         |   DIGIT
         )*
     ;
@@ -27,6 +34,7 @@ IDENTIFIERLOW_NON_DIGIT
     :   NON_DIGIT_LOW
     |   UNIVERSAL_CHARACTER_NAME
     ;
+
 fragment
 IDENTIFIERUP_NON_DIGIT
     :   NON_DIGITUP
@@ -50,7 +58,7 @@ NON_DIGIT_LOW
 
 fragment
 NON_DIGITUP
-    :   [A-Z]
+    :   [A-Z_]
     ;
 
 fragment
@@ -69,7 +77,7 @@ HEX_QUAD
 ```
 
 ```syntax
-identifier: IdentifierLow | IdentifierUp ;
+identifier: Identifier;
 
 identifierUp: IdentifierUp ;
 
