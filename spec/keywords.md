@@ -5,6 +5,7 @@
 
 * type
 * struct
+* noalign
 * enum
 * mask
 * extends
@@ -54,6 +55,8 @@
 * autocast
 * defer
 * out
+* override
+* overwrite
 
 <!-- TODO tokens.md -->
 ## templates
@@ -86,6 +89,12 @@
 * in
 * default
 
+## error handling
+
+* try
+* catch
+* finally
+
 ## memory
 
 * clone
@@ -106,3 +115,4 @@
 
 * and
 * or
+* not

@@ -184,10 +184,11 @@ type person = struct {
   }
   */
 }
-
-var person p = new("John")
-var person p2 = new("John", 172)
-var p3 = new person("John", 172)
+function main () {
+  var person p = new("John")
+  var person p2 = new("John", 172)
+  var p3 = new person("John", 172)
+}
 ```
 
 ### Empty constructor
@@ -204,8 +205,10 @@ type vector2 = struct {
   float y = 0.0
 }
 
-var x = new vector2()
-var vector2 x = new()
+function main () {
+  var x = new vector2()
+  var vector2 x = new()
+}
 ```
 
 ### Braces Initializer (JS Object)
@@ -260,40 +263,42 @@ type person = struct {
   string? address = null
   size born = 1900
 }
-// ordered initialization using the default constructor
-// left type inferred
-var vec0 = v2(0, 0)
+function main () {
+  // ordered initialization using the default constructor
+  // left type inferred
+  var vec0 = v2(0, 0)
 
-// braced ordered initialization
-var v2 vec01 = {0, 0}
-var vec02 = v2{0, 0}
+  // braced ordered initialization
+  var v2 vec01 = {0, 0}
+  var vec02 = v2{0, 0}
 
-var l1 = line {{0, 0}, {10, 10}}
-var l2 = line {start.x : 0, start.y: 0, end.x: 10, end.y: 10}
-var l3 = line {start: {x : 0, y: 0}, end: {x: 10, y: 10}}
-var l4 = line {start: {0, 0}, end: {10, 10}}
+  var l1 = line {{0, 0}, {10, 10}}
+  var l2 = line {start.x : 0, start.y: 0, end.x: 10, end.y: 10}
+  var l3 = line {start: {x : 0, y: 0}, end: {x: 10, y: 10}}
+  var l4 = line {start: {0, 0}, end: {10, 10}}
 
-// braced ordered initialization with default values
-var person01 = person { "John", "Doe" }
-#assert person01.address ==  person.address.default
-#assert person01.born    ==  person.born.default
+  // braced ordered initialization with default values
+  var person01 = person { "John", "Doe" }
+  #assert person01.address ==  person.address.default
+  #assert person01.born    ==  person.born.default
 
-var person02 = person { "John", "Doe", default, 2011 }
-#assert person02.address ==  person.address.default
-#assert person02.born    ==  2011
+  var person02 = person { "John", "Doe", default, 2011 }
+  #assert person02.address ==  person.address.default
+  #assert person02.born    ==  2011
 
-// braced named initialization / JS Object
-// full
-var v2 vec03 = {x: 0, y: 0}
-// partial
-var v2 vec04 = {x: 0, 0}
-var v2 vec05 = {0, y: 0}
+  // braced named initialization / JS Object
+  // full
+  var v2 vec03 = {x: 0, y: 0}
+  // partial
+  var v2 vec04 = {x: 0, 0}
+  var v2 vec05 = {0, y: 0}
 
-// single/double quotes are not necessary, as fields names are identifiers
-var v2 vec05 = {"x": 0, "y": 0}
-var vec06 = v2 {"x": 0, "y": 0}
-var v2 vec07 = {'x': 0, 'y': 0}
-var vec08 = v2 {'x': 0, 'y': 0}
+  // single/double quotes are not necessary, as fields names are identifiers
+  var v2 vec05 = {"x": 0, "y": 0}
+  var vec06 = v2 {"x": 0, "y": 0}
+  var v2 vec07 = {'x': 0, 'y': 0}
+  var vec08 = v2 {'x': 0, 'y': 0}
+}
 ```
 
 ## Default destructor
@@ -429,7 +434,7 @@ Read more at [expressions](../expressions.md#operator-overloading)
 ```language
 type A = struct {
   int value
-  new(int _value) void {
+  new(int _value) {
     value = _value
   }
 
@@ -445,7 +450,7 @@ type A = struct {
 type B = struct extends A {
   int value2
 
-  override function new(int _value, int _value2) {
+  override new(int _value, int _value2) {
     overriden(_value)
     value2 = _value2
   }
@@ -460,15 +465,16 @@ type B = struct extends A {
   }
 }
 
+function main () {
+  var v = B(101, 100)
+  #assert v.value != 101
+  #assert v.value2 != 100
 
-var v = B(101, 100)
-#assert v.value != 101
-#assert v.value2 != 100
 
-
-v.print() // call B.print
-cast<A>(v).print() // call A.print
-v.print2() // call B.print2
+  v.print() // call B.print
+  cast<A>(v).print() // call A.print
+  v.print2() // call B.print2
+}
 ```
 
 *Example*
@@ -476,43 +482,44 @@ v.print2() // call B.print2
 Memory layout example
 
 ```language
-type start {
+type start = struct {
   i8 a
   i8 b
 }
-type middle = struct extend start {
+type middle = struct extends start {
   i8 c
   i8 d
 }
-type end = struct extend middle {
+type end = struct extends middle {
   i8 e
   i8 f
 }
 
-var ref<end> value = new {1,2,3,4,5,6}
-// first position of the struct is the position of the first field
-#assert @value == @(value.a)
-#assert @value + 1 == @(value.b)
-#assert @value + 2 == @(value.c)
-#assert @value + 3 == @(value.d)
-#assert @value + 4 == @(value.e)
-#assert @value + 5 == @(value.f)
+function main () {
+  var ref<end> value = new {1,2,3,4,5,6}
+  // first position of the struct is the position of the first field
+  #assert @value == @(value.a)
+  #assert @value + 1 == @(value.b)
+  #assert @value + 2 == @(value.c)
+  #assert @value + 3 == @(value.d)
+  #assert @value + 4 == @(value.e)
+  #assert @value + 5 == @(value.f)
 
-var ref<middle> value2 = cast value
-#assert @(value2) == @(value2.c)
-#assert @(value2) + 1 == @(value2.d)
+  var ref<middle> value2 = cast value
+  #assert @(value2) == @(value2.c)
+  #assert @(value2) + 1 == @(value2.d)
 
-var ref<end> value3 = cast value
-#assert @(value3) == @(value3.e)
-#assert @(value3) + 1 == @(value3.f)
-
+  var ref<end> value3 = cast value
+  #assert @(value3) == @(value3.e)
+  #assert @(value3) + 1 == @(value3.f)
+}
 ```
 
-## `align` (memory alignament)
+## `noalign` (No memory alignament)
 
 *Semantics*
 
-Align `struct` properties to given value.
+Remove default alignament, it will pack the structure-
 
 *Constraints*
 
@@ -520,28 +527,31 @@ Align `struct` properties to given value.
 
 *Examples*
 
-```
-# packed
-type x = struct align 0 { // also known as packed
+```language
+// packed
+type x = struct noalign { // also known as packed
   bool a
   bool b
   bool c
 }
 
-#assert x.sizeof == 1
-#assert x.a.offset == 0
-#assert x.b.offset == 1
-#assert x.c.offset == 2
-
-type x2 = struct align 4 { // force alignment to 4
+type x2 = struct { // default alignament
   bool a
   bool b
   bool c
 }
-#assert x.sizeof == 3
-#assert x.a.offset == 0
-#assert x.b.offset == 4
-#assert x.c.offset == 8
+
+function main () {
+  #assert x.sizeof == 1
+  #assert x.a.offset == 0
+  #assert x.b.offset == 1
+  #assert x.c.offset == 2
+
+  #assert x2.sizeof == 3
+  #assert x2.a.offset == 0
+  #assert x2.b.offset == 8
+  #assert x2.c.offset == 16
+}
 ```
 
 # Properties modifiers
@@ -627,13 +637,15 @@ type Player = struct {
   hoist Vector3 position
 }
 
-var p = Player()
-p.y = 1 // hoisted property
-p.position.x = 1 // still valid
+function main () {
+  var p = Player()
+  p.y = 1 // hoisted property
+  p.position.x = 1 // still valid
 
-// It only expose properties, not methods.
-p.add(Vector3(10,11,12)) // fail, add is not a member of Player.
-p.position.add(Vector3(10,11,12)) // ok
+  // It only expose properties, not methods.
+  p.add(Vector3(10,11,12)) // fail, add is not a member of Player.
+  p.position.add(Vector3(10,11,12)) // ok
+}
 ```
 
 ## `readonly` field/function modifier
@@ -679,17 +691,19 @@ type dbtable = struct {
   }
 }
 
-var dbtable t("xxx-xxx-xxx", "yyy")
-// assignament error
-t.id = "zzz-zzz-zzz" // semantic error: id field is readonly
-t.name = "zzz-zzz-zzz" // ok
+function main () {
+  var dbtable t("xxx-xxx-xxx", "yyy")
+  // assignament error
+  t.id = "zzz-zzz-zzz" // semantic error: id field is readonly
+  t.name = "zzz-zzz-zzz" // ok
 
-// write-method call error
-// semantic error: called a method that modify a readonly field.
-t.id.grow(10)
+  // write-method call error
+  // semantic error: called a method that modify a readonly field.
+  t.id.grow(10)
 
-// read-method call ok
-var string part = t.id.substr(1, 5) // works, as slice will create a new string
+  // read-method call ok
+  var string part = t.id.substr(1, 5) // works, as slice will create a new string
+}
 ```
 
 *Example*
@@ -712,14 +726,14 @@ function distance(readonly ref<point> a, readonly ref<point> b) float {
   return sqrt(pow2(b.x - a.x) + pow2(b.y - a.y))
 }
 
+function main () {
+  var a = new vetor(0, 1)
+  var b = new vetor(1, 0)
 
-var a = new vetor(0, 1)
-var b = new vetor(1, 0)
-
-#assert a.distance(b) ~== 1.414213
-//equivalen to
-#assert distance(a, b) ~== 1.414213
-
+  #assert a.distance(b) ~= 1.414213
+  // equivalen to
+  #assert distance(a, b) ~= 1.414213
+}
 ```
 
 ## `alias`
@@ -741,15 +755,16 @@ An alias won't occupy memory as it's just a syntax sugar.
 *Example*
 
 ```language
-type stack {
+type stack = struct {
   // ...
   size length
   alias count length
 }
+function main () {
+  var s = stack()
 
-var s = stack()
-
-#assert @(s.length) == @(s.count)
+  #assert @(s.length) == @(s.count)
+}
 ```
 
 ## `own`
@@ -766,7 +781,7 @@ at destructor.
 *Example*
 
 ```language
-type Holder = struct {
+type holder = struct {
   own ref<i8> value
 }
 
@@ -776,9 +791,9 @@ function main() {
     var user
     var address
     {
-      var iptr = new i8
+      var iptr = new i8()
       iptr = 101
-      user = new Holder(iptr)
+      user = new holder(iptr)
       address = @iptr
     }
     // same address
@@ -840,7 +855,7 @@ type v3 = struct extends v2 {
   }
 
   override function clear() {
-    override() // Propossals: base.clear() | v2.clear()
+    v2.clear() // Propossals: base.clear() | override
     this.z = 0
   }
 }
@@ -874,7 +889,7 @@ type v2 = struct {
   float y
 
   function toString() string {
-    return ##function# + "{" + this.x + ", " + this.y + "}"
+    return ##__FUNCTION__# + "{" + this.x + ", " + this.y + "}"
   }
 }
 
@@ -882,7 +897,7 @@ type v3 = struct extends v2 {
   float z
 
   overwrite function toString() string {
-    return ##function# + "{" + this.x + ", " + this.y + ", " + this.z + "}"
+    return ##__FUNCTION__# + "{" + this.x + ", " + this.y + ", " + this.z + "}"
   }
 }
 ```
