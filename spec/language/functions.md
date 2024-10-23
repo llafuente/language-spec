@@ -119,6 +119,7 @@ functionBodyStmt
   | deferStmt endOfStmt
   | blockVariableDeclStmt endOfStmt
   | assertStmt endOfStmt
+  | errorHandlingStmts endOfStmt
   | endOfStmt
   ;
 
