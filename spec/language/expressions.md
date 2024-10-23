@@ -83,7 +83,7 @@ unary_expr
     ;
 
 unary_operator
-    :   '@' | '&' | '*' | '+' | '-' | '~' | '!'
+    :   '@' | '&' | '*' | '+' | '-' | '~' | '!' | 'not'
     ;
 
 cast_expr
@@ -146,11 +146,11 @@ inclusive_or_expr
     ;
 
 logicaland_expr
-    :   inclusive_or_expr ('&&' logicaland_expr)*
+    :   inclusive_or_expr (('&&' | 'and') logicaland_expr)*
     ;
 
 logical_or_expr
-    :   logicaland_expr ( '||' logical_or_expr)*
+    :   logicaland_expr (('||' |'or') logical_or_expr)*
     ;
 
 conditional_expr

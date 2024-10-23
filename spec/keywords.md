@@ -101,3 +101,8 @@
 ## preprocessor
 
 * empty
+
+## expressions
+
+* and
+* or
