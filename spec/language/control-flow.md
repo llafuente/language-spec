@@ -17,6 +17,8 @@ selectionStmts
   | loopStmt
   | forStmt
   | foreachStmt
+  | whileStmt
+  | doWhileStmt
   | continueStmt
   | restartStmt
   | breakStmt
@@ -79,15 +81,17 @@ yields false, "else-then-block" will be executed.
 *Example*
 
 ```language
-var x = false
-var y = true
+function main() {
+  var x = false
+  var y = true
 
-if x {
-  print("x is true")
-} else if y {
-  print("y is true")
-} else {
-  print("x and y are false")
+  if x {
+    print("x is true")
+  } else if y {
+    print("y is true")
+  } else {
+    print("x and y are false")
+  }
 }
 ```
 
@@ -152,19 +156,21 @@ The last statement of a `case-block` must be `break` or `fallthrough`.
 We can check a value against a variety of conditions of different types.
 
 ```language
-switch string_value {
-  case string_a, string_b, string_c:
-    fallthrough
-  case string_d:
-    // do something
-    break
-  case "constant-string":
-    // do something
-    break
-  case /^abc/:
-    // do something
-    break
-  default
+function main() {
+  switch string_value {
+    case string_a, string_b, string_c:
+      fallthrough
+    case string_d:
+      // do something
+      break
+    case "constant-string":
+      // do something
+      break
+    case /^abc/:
+      // do something
+      break
+    default
+  }
 }
 ```
 
@@ -172,11 +178,11 @@ As mentioned `switch` use `operator ==` so for example this is how we support re
 
 ```language
 // interface
-// function operator ==(? input, ? check) bool {
+// operator ==(? input, ? check) bool {
 //   return true
 // }
 
-function operator ==(string input, regex check) bool {
+operator ==(string input, regex check) bool {
   return check.test(input)
 }
 ```
@@ -316,8 +322,10 @@ The controlling expression shall have numeric, range or implement index_iterator
 It will print from 0 to 10
 
 ```language
-loop 10 {
-  print($index)
+function main() {
+  loop 10 {
+    print($index)
+  }
 }
 ```
 
@@ -326,8 +334,10 @@ loop 10 {
 It will print from 0 to -10
 
 ```language
-loop -10 {
-  print($index)
+function main() {
+  loop -10 {
+    print($index)
+  }
 }
 ```
 
@@ -338,10 +348,12 @@ The following example will print 1 to 10 and continue.
 It won't fall into infinite loop because the expression is cached at start.
 
 ```language
-var i = 10
-loop 1..i {
-  ++i
-  print($index)
+function main() {
+  var i = 10
+  loop 1..i {
+    ++i
+    print($index)
+  }
 }
 ```
 
@@ -351,12 +363,14 @@ The following example will print all keys and elements in the array and remove o
 At the end the array will be empty but loop is safe :)
 
 ```language
-var arr = [1, 2, 3, 4, 5]
-loop arr {
-  print($index, $value)
-  arr.pop()
+function main() {
+  var arr = [1, 2, 3, 4, 5]
+  loop arr {
+    print($index, $value)
+    arr.pop()
+  }
+  print(arr)
 }
-print(arr)
 ```
 
 <a name="loop-implementation"></a>
@@ -478,51 +492,53 @@ The controlling expression need to implement `index_iterator`
 The following example illustrate both behaviors with pointer and value.
 
 ```language
-struct point {
+type point = struct {
   float x
   float y
 }
 
-// foreach by key and value
+function main() {
+  // foreach by key and value
 
-var list = new array<point>(10)
-list.init_push()(10, 10)
-#assert(list.len == 1)
-#assert(list.cap == 10)
-#assert(list[0].x == 10)
-#assert(list[0].y == 10)
+  var list = new array<point>(10)
+  list.init_push()(10, 10)
+  #assert(list.len == 1)
+  #assert(list.cap == 10)
+  #assert(list[0].x == 10)
+  #assert(list[0].y == 10)
 
-foreach k,v in list {
-  v.x = 100
+  foreach k,v in list {
+    v.x = 100
+  }
+
+  #assert(list[0].x == 10) // 10, because v is copied
+
+  // foreach by key and modify value
+  foreach k in list {
+    list[k].x = 100
+  }
+
+  #assert list[0].x == 100 // 100, because we access directly the array memory
+
+  // foreach by reference
+
+  var list2 = new ptr<point>[10]
+  list.push(new point(10, 10))
+  foreach k,v in list {
+    v.x = 100
+  }
+
+  #assert list[0].x == 100 // 100, because we copied the pointer but modify the target memory
+
+  foreach k,v in list {
+    list.clear_pop()
+    #assert v.x == 0 // v is "safe" but logically, shouldn't be used as the array is empty
+    // list[k] will give a runtime error because it's empty.
+  }
+
+  #assert list.length == 0
+  #assert list.capacity == 10
 }
-
-#assert(list[0].x == 10) // 10, because v is copied
-
-// foreach by key and modify value
-foreach k in list {
-  list[k].x = 100
-}
-
-#assert list[0].x == 100 // 100, because we access directly the array memory
-
-// foreach by reference
-
-var list2 = new ptr<point>[10]
-list.push(new point(10, 10))
-foreach k,v in list {
-  v.x = 100
-}
-
-#assert list[0].x == 100 // 100, because we copied the pointer but modify the target memory
-
-foreach k,v in list {
-  list.clear_pop()
-  #assert v.x == 0 // v is "safe" but logically, shouldn't be used as the array is empty
-  // list[k] will give a runtime error because it's empty.
-}
-
-#assert list.length == 0
-#assert list.capacity == 10
 ```
 
 #### Implementation
@@ -531,12 +547,26 @@ foreach k,v in list {
 
 The compiler shall replace the `loop` statement with a `macro` call.
 
-<a name="for"></a>
-### for
+
+
 <a name="while"></a>
 ### while
+
+```syntax
+whileStmt
+  : 'while' expression functionBody
+  ;
+```
+
+
 <a name="do-while"></a>
 ### do-while
+
+```syntax
+doWhileStmt
+  : 'do' functionBody 'while' expression
+  ;
+```
 
 <a name="continue"></a>
 ### `continue` id
@@ -561,26 +591,28 @@ A label can be used instead to clarify.
 *Example*
 
 ```language
-loop i in 1..10 {
-  loop j in 1..10 {
-    if j < 10 {
-      continue // it will continue $j loop
-    }
-  }
-}
-
-loop i in 1..10 {
+function main() {
   loop i in 1..10 {
-    if j < 10 {
-      continue 2 // it will continue $i loop
+    loop j in 1..10 {
+      if j < 10 {
+        continue // it will continue $j loop
+      }
     }
   }
-}
 
-outterloop: loop i in 1..10 {
-  loop 1..10 as j {
-    if j < 10 {
-      continue outterloop // this is clearer and allowed :)
+  loop i in 1..10 {
+    loop i in 1..10 {
+      if j < 10 {
+        continue 2 // it will continue $i loop
+      }
+    }
+  }
+
+  outterloop: loop i in 1..10 {
+    loop 1..10 as j {
+      if j < 10 {
+        continue outterloop // this is clearer and allowed :)
+      }
     }
   }
 }
