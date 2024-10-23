@@ -22,11 +22,13 @@ constant
     | 'false'                 # falseLiteralExpr
     | 'null'                  # nullLiteralExpr
     | 'default'               # defaultValueExpr
+    | 'new'                   # newValueExpr
     | stringLiteral           # stringLiteralExpr
     | numberLiteral           # numberLiteralExpr
     | identifier              # identifierExpr
     // typeof is only available inside postfixCallExpr
     | 'typeof'                # typeofIdentifierExpr
+    | preprocessorExpr        # preprocessorExpr2
     ;
 
 primary_expr
@@ -37,6 +39,11 @@ primary_expr
     | '(' expression ')'         # groupPrimaryExpr
     ;
 
+memberIdentifier
+    : identifier | 'default' | 'new' ;
+
+postfixMemberAccessExpr: postfix_expr '.' memberIdentifier;
+
 postfix_expr
     // memberAccessExpression
     // TODO this should be a rhs_expression?
@@ -45,13 +52,13 @@ postfix_expr
     | postfix_expr '[' expression ']'                                                  # postfixElementAccessExpr
     // TODO slice operator
     | postfix_expr '[' expression ':' expression ']'                                   # postfixSliceExpr
-    | postfix_expr '?.' identifier                                                     # postfixSafeMemberAccessExpr
-    | postfix_expr '!.' identifier                                                     # postfixSelfMemberAccessExpr
-    | postfix_expr '.' identifier                                                      # postfixMemberAccessExpr
+    | postfix_expr '?.' memberIdentifier                                               # postfixSafeMemberAccessExpr
+    | postfix_expr '!.' memberIdentifier                                               # postfixSelfMemberAccessExpr
+    | postfix_expr '.' memberIdentifier                                                # postfixMemberAccessExpr2
     // function call
-    | postfix_expr '(' argumentExprList? ')'                                # postfixCallExpr
-    //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'       # preprocessorMemberMacroCallExpr
-    //| preprocessorMacroCallExpr                                                        # preprocessorMacroCallExpr2
+    | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
+    //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'     # preprocessorMemberMacroCallExpr
+    //| preprocessorMacroCallExpr                                                      # preprocessorMacroCallExpr2
     | primary_expr ( '++' | '--' )*                                                    # postfixIndecrementExpr
     ;
 
