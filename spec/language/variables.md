@@ -168,6 +168,8 @@ var ten = 10
 ```syntax
 blockVariableDeclStmt
   : fileVariableDeclStmt
+  // infer variable with first initialization
+  | 'var' identifier
   ;
 ```
 
