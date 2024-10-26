@@ -17,12 +17,16 @@ that implies a few limitations to avoid the usage of garbage collector.
 *Syntax*
 
 ```syntax
+allocator
+  : 'at' identifier
+  ;
+
 typeNewExpression
-  : 'new' typeDefinition? ('(' argumentExprList? ')')+ ('at' identifier)?
+  : 'new' typeDefinition? ('(' argumentExprList? ')')+ (allocator)?
   ;
 
 arrayNewExpression
-  : 'new' typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? ('at' identifier)?
+  : 'new' typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? (allocator)?
   ;
 
 unaryNewExpression: typeNewExpression | arrayNewExpression;
@@ -45,6 +49,7 @@ It also allocates memory from a custom [memory-pool](#memory-pool).
 2. Allocating zero memory shall raise runtime error.
 
 3. The `new` expression has type
+
   * `lend ref<type>` for type `typeNewExpression`
   * `lend static_array<type>` for `arrayNewExpression` with length
   * `lend array<type>` for `arrayNewExpression` without length
@@ -72,7 +77,6 @@ function main() {
   #assert arr[0].x == 10
   #assert arr[0].y == 11
 }
-
 ```
 
 4. If a constructor return uninitialized memory user shall call given
@@ -101,20 +105,20 @@ function main() {
   #assert var_a.b != null
   #assert var_a.b.value == 10
 }
-```
+  ```
 
   ```language
 function main() {
   var a = new i8()
 }
-```
+  ```
 
   ```compiled
 function main() {
   var ref<i8> a = global_alocator.calloca(i8.sizeof)
   a = 0 // <-- constructor call, optional as the memory is zero-allocated
 }
-```
+  ```
 
 5. If during constructor an exception is thrown the variable shall be deleted.
 
@@ -216,7 +220,7 @@ See [function.lend](./language/functions.md#lend)
 
 1. Only function parameters and return type shall have `lend` modifier.
 
-### `uninitilized`:
+### `uninitilized`
 
 *Semantics*
 
@@ -227,7 +231,7 @@ constructor before assigned to a variable of any type.
 
 1. `uninitilized` memory cannot be assigned. The user shall call the constructor in place
 
-> uninitilized memory shall not be assigned.
+  > uninitilized memory shall not be assigned.
 
 ```language-error
 function allocate_raw() lend uninitilized ref<i8>{
@@ -241,12 +245,12 @@ function main() {
 
 2. If a cycle is detected the compiler shall raise a semantic-error
 
-> Cycle found at the following type constructors.
+  > Cycle found at the following type constructors.
 
-> '?type' at '?file:?line:?colum'
+  > '?type' at '?file:?line:?colum'
 
 
-### `own`:
+### `own`
 
 *Semantics*
 
@@ -272,7 +276,7 @@ then proceed as point 3.
 
 5. If a structure returned by copy own memory it shall be assigned at call site.
 
-> '?struct' holds memory but it's not assigned at call '?file:?line:?column'
+  > '?struct' holds memory but it's not assigned at call '?file:?line:?column'
 
 *Example*
 
