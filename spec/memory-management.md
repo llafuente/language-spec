@@ -82,7 +82,7 @@ function main() {
 4. If a constructor return uninitialized memory user shall call given
 constructor again, until all memory is initialized.
 
-    ```test
+```test
 type b = struct {
   int value
   new (int v) {
@@ -105,20 +105,20 @@ function main() {
   #assert var_a.b != null
   #assert var_a.b.value == 10
 }
-    ```
+```
 
-    ```language
+```language
 function main() {
   var a = new i8()
 }
-    ```
+```
 
-    ```compiled
+```compiled
 function main() {
   var ref<i8> a = global_alocator.calloca(i8.sizeof)
   a = 0 // <-- constructor call, optional as the memory is zero-allocated
 }
-    ```
+```
 
 5. If during constructor an exception is thrown the variable shall be deleted.
 
@@ -231,7 +231,7 @@ constructor before assigned to a variable of any type.
 
 1. `uninitilized` memory cannot be assigned. The user shall call the constructor in place
 
-  > uninitilized memory shall not be assigned.
+> uninitilized memory shall not be assigned.
 
 ```language-error
 function allocate_raw() lend uninitilized ref<i8>{
@@ -245,9 +245,9 @@ function main() {
 
 2. If a cycle is detected the compiler shall raise a semantic-error
 
-  > Cycle found at the following type constructors.
+> Cycle found at the following type constructors.
 
-  > '?type' at '?file:?line:?colum'
+> '?type' at '?file:?line:?colum'
 
 
 ### `own`
@@ -276,7 +276,7 @@ then proceed as point 3.
 
 5. If a structure returned by copy own memory it shall be assigned at call site.
 
-  > '?struct' holds memory but it's not assigned at call '?file:?line:?column'
+> '?struct' holds memory but it's not assigned at call '?file:?line:?column'
 
 *Example*
 
