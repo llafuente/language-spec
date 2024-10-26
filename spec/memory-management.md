@@ -82,7 +82,7 @@ function main() {
 4. If a constructor return uninitialized memory user shall call given
 constructor again, until all memory is initialized.
 
-  ```test
+    ```test
 type b = struct {
   int value
   new (int v) {
@@ -105,20 +105,20 @@ function main() {
   #assert var_a.b != null
   #assert var_a.b.value == 10
 }
-  ```
+    ```
 
-  ```language
+    ```language
 function main() {
   var a = new i8()
 }
-  ```
+    ```
 
-  ```compiled
+    ```compiled
 function main() {
   var ref<i8> a = global_alocator.calloca(i8.sizeof)
   a = 0 // <-- constructor call, optional as the memory is zero-allocated
 }
-  ```
+    ```
 
 5. If during constructor an exception is thrown the variable shall be deleted.
 
