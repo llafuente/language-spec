@@ -139,6 +139,7 @@ function antlr4(text, option) {
 
 // readDirSyncR("./spec")
 spec_files = [
+	"./spec/memory-management.md",
 	"./spec/language/types/structured.md",
 	"./spec/language/functions.md",
 	"./spec/language/control-flow.md",

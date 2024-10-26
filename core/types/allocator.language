@@ -28,7 +28,7 @@ type allocator<$t> = interface {
 	$t is primitive, zero is valid
 	$t is struct, zero is invalid, force to call constructor before use
 	*/
-	function calloca (size s) lend uninitialized ref<$t>
+	function calloca (size s) lend ref<$t>
 
 	/*
 	Deallocates memory
@@ -72,4 +72,4 @@ Holds the current default allocator.
 
 When a core function needs to allocate memory and no allocator is sent, the default_allocator will be used.
 */
-var global allocator<i8> default_allocator = global_allocator
+global allocator<i8> default_allocator = global_allocator

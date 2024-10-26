@@ -264,7 +264,7 @@ function main() {
 
 *Semantics*
 
-`function-exit` refer to all possible ways to quit a function.
+`function-exit` refer to all possible ways to quit a function in the language.
 
 * `return` (implicit or explicit)
 
@@ -392,6 +392,7 @@ function main() {
 }
 ```
 
+<a name="lend"></a>
 #### lend
 
 *Semantics*
@@ -422,6 +423,7 @@ will be freed at the end of call block.
 
 > Default value is `null` but nullable qualifier is not applied at '?'
 
+<a name="own"></a>
 #### own
 
 *Semantics*
@@ -432,7 +434,8 @@ can lend the memory again or the memory will be freed at `function-exit`.
 
 *Constrains*
 
-1. At all `function-exits` the memory should be lend or deleted.
+1. Compiler shall analyse each `function-exits` and the memory should be
+`lend` or deleted.
 
 ```language
 function implicit_delete(own array<$t> arr) {

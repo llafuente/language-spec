@@ -51,7 +51,7 @@ type i<$t> = interface {
 	$t a
 	function d($t a) any
 	function d(wrap<$t> a) any
-	function d(ref $t a) any
+	function d(ref<$t> a) any
 }
 
 // ¡
@@ -64,11 +64,11 @@ type point2 = struct {
 	float<i8[]> e
 	hoist float<i8[], pepe> f
 	float<i8[], pepe[]> f
-	float<i8[], lend pepe[]> f
+	float<i8[], readonly pepe[]> f
 	float<i8?> f
 	
 	// sematic-error
-	float<$xx[] is struct> f
+	float<xx[]> f
 
 	i8 a = 10
 	string b = "pepe"
@@ -85,7 +85,7 @@ type point2 = struct {
 		return this.f
 	}
 
-	set size length {
+	set length(size value) {
 		this.f = value
 	}
 

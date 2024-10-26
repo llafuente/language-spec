@@ -149,11 +149,12 @@ type Person = struct {
 > At type 'Person' Found a setter 'name' that do not modify the type.
 
 
+<a name="object-initialization"></a>
 ## Object initialization
 
 There are various ways to initialize an object.
 
-
+<a name="default-constructor"></a>
 ### Default constructor
 
 *Semantics*
@@ -766,13 +767,14 @@ function main () {
   #assert @(s.length) == @(s.count)
 }
 ```
-
+<a name="own"></a>
 ## `own`
 
 *Semantics*
 
-Mark the field as memory owner. This implies that the memory will be freed
-at destructor.
+The field will hold memory.
+
+This implies that the memory shall be freed at destructor.
 
 *Constraints*
 

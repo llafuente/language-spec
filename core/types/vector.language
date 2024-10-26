@@ -1,0 +1,29 @@
+// unbound memory access
+struct vector<$t> {
+#if arch == x64
+  i64 ptr
+#else
+  i32 ptr
+#if
+
+  clone(ref<$t> other) {
+    other.ptr = ptr
+  }
+
+  operator.() $t {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr))
+  }
+
+  operator=(ref<$t> other) ref<$t> {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) = cast<$t>(intrinsics_pointer_deref(this.ptr))
+  }
+  operator[](size i) ref<$t> {
+    return cast<ref<$t>>(this.ptr + i * $t.sizeof)
+  }
+  operator+(size i) ref<$t> {
+    return cast<ref<$t>>(this.ptr + i * $t.sizeof)
+  }
+  operator-(size i) ref<$t> {
+    return cast<ref<$t>>(this.ptr + i * $t.sizeof)
+  }
+}

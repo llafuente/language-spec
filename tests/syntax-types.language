@@ -1,5 +1,10 @@
-function main() {
+type thei8struct = struct {
+	i8 len
+}
 
+
+function main() {
+	// primitives
 	var i8 a = 15
 	var i16 a = 1
 	var i32 a = 1
@@ -10,22 +15,31 @@ function main() {
 	var u64 a = 1
 	var float a = 1.0
 
+	// get a struct field type
+	var thei8struct.len a = 1
+
 	// double as identifier
 	var xxx a = 2.0
 	var xxx<yyy> a = 2.0
+	var xxx<ref<yyy>> a = 2.0
+
+	// struct + template
 	var xxx<i8> a = 2.0
-	var xxx< ref<i8> > a = 2.0
-	var xxx< ref<i8>> a = 2.0
+	var xxx<thei8struct.len> a = 2.0
+	var xxx<ref<i8> > a = 2.0
+	var xxx<ref<thei8struct.len> > a = 2.0
 	var xxx<ref<i8>> a = 2.0
+	var xxx<ref<i8>> a = 2.0
+
 	// typeModifiers
 	var xxx<readonly ref<i8>> a = 2.0
 	var xxx<ref<readonly i8>> a = 2.0
-	var lend xxx<own ref<uninitialized i8>> a = null
 
 
 	// optional types
 	var i8? a = null
 	var ref<i8>? a = null
+	var ref<i8?> a = null
 
 	// arrays
 	var i8[] a = null
@@ -33,6 +47,12 @@ function main() {
 	var i8[] a = new(10)
 	// initialize
 	var i8[] a = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+}
+
+function a() lend uninitialized xxx<ref<i8>> {
+}
+
+function a(own ref<i8> ptr) {
 }
 
 // type in functions
@@ -60,8 +80,8 @@ type s = struct {}
 type s = struct extends b {}
 type s = struct implements b {}
 
-type s = struct <$t extends xxx implements yyy> extends a {}
-type s = struct<$t extends xxx implements yyy> {}
+type s<$t extends xxx implements yyy> = struct extends a {}
+type s<$t extends xxx implements yyy> = struct {}
 
 // enum
 
