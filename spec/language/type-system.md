@@ -130,7 +130,7 @@ typeImplementsDecl
   ;
 
 structTypeDecl
-  : 'struct' (typeExtendsDecl | typeImplementsDecl | 'noalign')* '{' endOfStmt? structProperty* '}'
+  : ('noalign' | 'lean')* 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'
   ;
 
 interfaceTypeDecl

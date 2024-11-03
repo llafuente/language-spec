@@ -1,3 +1,10 @@
+<!--
+  6.7.2.1 Structureand union specifiers
+
+
+  TODO support flexible array member?
+
+-->
 # Structured type (DRAFT 1)
 
 *Semantics*
@@ -6,17 +13,22 @@
 
 A struct is composed of:
 
-* fields: named value that occupy memory
-* getter/setters: named value that don't occupy memory (syntax sugar)
-* methods: named function that has the type as first parameter
-
-`properties` are the set of fields + getters + setters
-
-`members` are the set of fields + getters + setters + methods.
+* `fields`: Named values that are stored in memory
+* `setters` and `getters`: Named values that aren't stored in memory (syntax sugar)
+* `alias`: Name value that points directly to a field (syntax sugar)
+* `methods`: named function that manipulates the struct
+* `properties` are the set of `fields` + `aliases` + `getters` + `setters`
+* `members` are the set of `fields` + `aliases` + `getters` + `setters` + `methods`.
 
 *Constraints*
 
-1. Same as `c language`, struct shall be 100% compatible.
+1. It shall have the same constrains as `c language`. With the addition
+of two hidden fields:
+
+* `type` a pointer to the type to support rtti
+* `allocator` a pointer to the allocator so any memory allocated in the struct methods use the same allocator by default
+
+When used `lean` modifier this two field are removed and struct is 100% c compatible.
 
 *Example*
 
@@ -35,15 +47,21 @@ type Quaternion = struct extends Vector3 {
 }
 ```
 
-2. A structure shall not contain a field with incomplete
-
-Error
+2. A structure shall not contain a field with an incomplete type
 
 ```error
 type A = struct {
   B b
 }
 type B = struct {
+  A a
+}
+```
+
+or an instance of itself
+
+```error
+type A = struct {
   A a
 }
 ```
@@ -61,10 +79,9 @@ type B = struct {
 }
 ```
 
-3. A structure shall field name shall be unique, shall not contain a field with same name
-as a getter or a setter or a method or another field. A semantic-error shall raise
+3. A structure property name shall be unique or a semantic-error shall raise
 
-> redefinition of field '?' at '?'
+> property redefinition '?:name' at '?:file?:line?:column'
 
 
 ## Field declaration
@@ -419,10 +436,12 @@ Read more at [expressions](../expressions.md#operator-overloading)
 
 *Constraints*
 
-1. A property or fields in derived struct shall not collide with base struct properties.
+1. A property in derived struct shall not collide with base struct properties or a semantic error shall raise:
+
+> property redefinition '?:name' at '?:struct ?:file?:line?:column'
 
 2. A method in derived struct shall not collide with base struct method unless
-`overwrite`/`override` is used.
+`overwrite`/`override` modifier is used.
 
 2. 1. If parent struct has default constructor/destructor, child may have constructor/destructor.
 
@@ -500,6 +519,7 @@ function main () {
   var ref<end> value = new {1,2,3,4,5,6}
   // first position of the struct is the position of the first field
   #assert @value == @(value.a)
+  // TODO keep in mind type/allocator ?!
   #assert @value + 1 == @(value.b)
   #assert @value + 2 == @(value.c)
   #assert @value + 3 == @(value.d)
@@ -520,7 +540,7 @@ function main () {
 
 *Semantics*
 
-Remove default alignament, it will pack the structure-
+Remove default alignament (zero padding).
 
 *Constraints*
 
@@ -530,7 +550,7 @@ Remove default alignament, it will pack the structure-
 
 ```language
 // packed
-type x = struct noalign { // also known as packed
+type x = noalign struct { // also known as packed
   bool a
   bool b
   bool c
@@ -554,6 +574,20 @@ function main () {
   #assert x2.c.offset == 16
 }
 ```
+
+## `lean` (No type / No allocator)
+
+*Semantics*
+
+Remove rtti and allocator information from the `struct`
+thus making it 100% c compatible
+
+*Constraints*
+
+1. `lean` structures shall be allocated with default allocator
+or a semantic-error shall raise
+
+> struct '?:struct_name' has lean modifier cannot be allocated with '?:allocator_name'
 
 # Properties modifiers
 
