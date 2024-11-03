@@ -743,6 +743,7 @@ sum(10, 15)
 ## `defer`
 <!--
 https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2895.htm
+https://docs.swift.org/swift-book/documentation/the-swift-programming-language/controlflow#Deferred-Actions
 -->
 
 *Semantics*
@@ -755,27 +756,43 @@ A defer statement pushes the expression execution to the end of the surrounding 
 1. Defer shall be compiler feature and not a runtime.
 
 <!-- selected-by-pitfall: while this maybe be usefull is hard to follow for human eye. -->
-2. `defer` shall honor visual order (top-down) rather than execution order.
+<!--
+  Reviewed: why is in reverse order in many languages -> found valid example
+
+  {
+    var connection = database.open()
+    defer connection.close()
+
+    var table = connection.getTable("xxx")
+    defer table.save()
+
+    //now modify your table, and it will be saved!
+  }
+-->
+
+2. `defer` shall honor visual reverse order (bottom-top) rather than execution order.
 
 ```language
 function defer_order(ref<array<string>> ar) {
-  defer ar.push("start")
+  defer ar.push("end")
   goto end
 
-middle: {
-  defer ar.push("middle")
-  goto exit
-}
-end: {
-  defer ar.push("end")
-  goto middle
-}
-exit:{}
+  middle: {
+    defer ar.push("middle")
+    goto exit
+  }
+  end: {
+    defer ar.push("start")
+    goto middle
+  }
+  exit:{
+  }
 }
 
 function main() {
-  var a = new array<string>()
+  var a = new string[]
   defer_order(ar)
+
   #assert ar.length == 3
   #assert ar[0] == "start"
   #assert ar[1] == "middle"
