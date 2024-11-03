@@ -19,8 +19,6 @@ Implementations details:
 While the syntax of error handling is the common try/catch/finally.
 It does not rely on stack trickery or implementation details.
 
-The compiler shall annotate any function that throws and exception
-
 *Syntax*
 
 ```syntax
@@ -45,6 +43,8 @@ finallyBlock
 ```
 
 *Semantics*
+
+It's the process used by the language to react to non-conformant code.
 
 *Constraints*
 
@@ -76,16 +76,35 @@ function main() {
 
 5. Empty `throw` (re)throws current handled exception.
 
+6. Exceptions are values that need to be known at compile time (constexpr).
+
+7. The compilar shall enforce the handle of any exception until
+program entry point.
+
+
 *Examples*
 
-Exception as value
+Exception are values.
+
+```package
+package fs
+type error = enum {
+  fileNotFound = 1
+}
+
+function open(uri file_path) file {
+  throw error.fileNotFound
+}
+```
 
 ```language
 function main() {
 	try {
 		fs.open("file.txt")
-	} catch fs.fileNotFound {
+	} catch fs.error.fileNotFound {
 		print("File not found")
+	} catch {
+		throw
 	}
 }
 ```
@@ -94,13 +113,12 @@ function main() {
 
 ```compiled
 function main() void {
-	__lng_exception = null
+	λ_exception_value = null
 	fs.open("file.txt")
-	if (__lng_exception != null) {
-		if (__lng_ == fs.fileNotFound) {
+	if (λ_exception_value != null) {
+		if (λ_exception_type == int && λ_exception_value == fs.fileNotFound) {
 			print("File not found")
 		} else {
-			__lng_exception = null
 			return void.default
 		}
 	}
@@ -198,11 +216,108 @@ It assign current exception value and type and return the default value for curr
 
 This makes the caller to handle the exception.
 
+## try
+
+*Semantic*
+
+Define a block that an exception may occur and how to handle it.
+
+Can be use alone or as part of try/catch/finally.
+
+*Example*
+
+Exception handle
+
+```language
+function main() {
+  try {
+    fs.open("file.txt")
+  } catch fs.fileNotFound {
+    print("File not found")
+  } catch string e {
+    print("Exception with text: " + e)
+  }
+}
+```
+
+Exception eater
+
+```language
+enum result {
+  error = 0
+  ok = 1
+}
+
+function step1() result {
+  throw "unexpected error"
+}
+
+function step1_alternative() result {
+  return result.ok
+}
+
+function main() {
+  try step1()
+  try step2()
+  try step3()
+  try step4()
+  if (validate_steps()) {
+    // we are ok!
+  } else {
+    // show an error
+  }
+
+}
+```
+
+
+```language
+enum result {
+  error = 0
+  ok = 1
+}
+
+function step1() result {
+  throw "unexpected error"
+}
+
+function step1_alternative() result {
+  return result.ok
+}
+
+function main() {
+  request: try {
+    curl("http://www.contoso.com")
+  } catch (curlerr.CouldNotResolveHost) {
+    setup_proxy("http://proxy:8080")
+    goto request
+  } catch (curlerr.proxyAuthFailed) {
+    set_proxy_user("John")
+    set_proxy_password("Doe")
+    goto request
+  }
+
+  }
+  try step2()
+  try step3()
+  try step4()
+  if (validate_steps()) {
+    // we are ok!
+  } else {
+    // show an error
+  }
+
+}
+```
+
+
 ## catch
 
 *Semantic*
 
 Define an error handler by type or by value.
+
+Can be use alone or as part of try/catch/finally.
 
 *Example*
 
@@ -217,6 +332,29 @@ function main() {
 	}
 }
 ```
+
+```language
+function throws_int() int {
+  throw "expected error"
+  return 101
+}
+
+function throws_string() string {
+  throw "expected error"
+  return "hello world!"
+}
+
+
+function main() {
+  var x = catch throws_int() {
+    #assert x == int.default
+  }
+  var y = catch throws_string() {
+    #assert y == string.default
+  }
+}
+```
+
 
 ## finally
 
