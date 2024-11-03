@@ -306,7 +306,15 @@ Binary arithmetic operators operates over two types and return a new one.
 
 1. Definition for all binary arithmetic
 
-> lend? ref<struct> operator X (ref<struct> lhs, readonly ref<struct> rhs)
+> operator + (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator - (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator * (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator / (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator ^ (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
 
 *Example*
 
@@ -348,36 +356,65 @@ Assignament operators operates over two types, modify the first one and return a
 * `*=`: multiplication assignament
 * `/=`: division assignament
 * `^=`: power assignament
-* `~=`: floating point equality
 
 *Constraints*
 
 1. Definition for all assignaments
 
-> lend? ref<struct> operator X (ref<struct> lhs, readonly ref<struct> rhs)
+> operator = (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator += (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator -= (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator \*= (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator /= (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
+
+> operator ^= (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
 
 ### Comparison operators
 
-Comparison operators compare two types and return a boolean
+Comparison operators compare two types and returns a boolean
+
+* `==`: type equality
+* `!=`: type inequality
+* `>`: greater than
+* `>=`: greater than or equal
+* `<`: less than
+* `<=`: less than or equal
+* `~=`: floating point equality
 
 *Constraints*
 
 1. Definition for all comparison
 
-> bool operator X (ref<struct> lhs, readonly ref<struct> rhs)
+> operator == (ref<struct> lhs, readonly ref<struct> rhs) bool
 
-2. If `operator<` is defined the others are implicit as desrcibed
+> operator != (ref<struct> lhs, readonly ref<struct> rhs) bool
+
+> operator > (ref<struct> lhs, readonly ref<struct> rhs) bool
+
+> operator > (ref<struct> lhs, readonly ref<struct> rhs) bool
+
+> operator < (ref<struct> lhs, readonly ref<struct> rhs) bool
+
+> operator <= (ref<struct> lhs, readonly ref<struct> rhs) bool
+
+> operator ~= (ref<struct> lhs, readonly ref<struct> rhs) bool
+
+2. If `operator<` is defined the others are implicit as described
 
 ```language
-bool operator >  (readonly ref<$T> lhs, readonly ref<$T> rhs) { return rhs < lhs; }
-bool operator <= (readonly ref<$T> lhs, readonly ref<$T> rhs) { return !(lhs > rhs); }
-bool operator >= (readonly ref<$T> lhs, readonly ref<$T> rhs) { return !(lhs < rhs); }
+operator >  (readonly ref<$T> lhs, readonly ref<$T> rhs) bool { return rhs < lhs; }
+operator <= (readonly ref<$T> lhs, readonly ref<$T> rhs) bool { return !(lhs > rhs); }
+operator >= (readonly ref<$T> lhs, readonly ref<$T> rhs) bool { return !(lhs < rhs); }
 ```
 
-3. If `operator==` is defined the `!=` are implicit as desrcibed
+3. If `operator==` is defined the `!=` are implicit as described
 
 ```language
-bool operator != (readonly ref<$T> lhs, readonly ref<$T> rhs) { return !(lhs == rhs); }
+operator != (readonly ref<$T> lhs, readonly ref<$T> rhs) bool { return !(lhs == rhs); }
 ```
 
 *Example*
@@ -386,11 +423,11 @@ bool operator != (readonly ref<$T> lhs, readonly ref<$T> rhs) { return !(lhs == 
 type floatWapper = struct {
   float value
 
-  bool operator ==  (readonly ref<$T> rhs) { return this.value == lhs.value; }
-  bool operator <  (readonly ref<$T> rhs) { return this.value < lhs.value; }
-  bool operator >  (readonly ref<$T> rhs) { return this < lhs; }
-  bool operator <= (readonly ref<$T> rhs) { return !(this > rhs); }
-  bool operator >= (readonly ref<$T> rhs) { return !(this < rhs); }
+  operator == (readonly ref<floatWapper> rhs) bool { return this.value == lhs.value; }
+  operator <  (readonly ref<floatWapper> rhs) bool { return this.value < lhs.value; }
+  operator >  (readonly ref<floatWapper> rhs) bool { return this < lhs; }
+  operator <= (readonly ref<floatWapper> rhs) bool { return !(this > rhs); }
+  operator >= (readonly ref<floatWapper> rhs) bool { return !(this < rhs); }
 
 }
 ```
