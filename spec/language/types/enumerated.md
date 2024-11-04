@@ -3,6 +3,8 @@
   https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum
   https://en.wikipedia.org/wiki/Enumerated_type
 
+   c 6.7.2.2 Enumeration specifiers
+
 -->
 
 # Enumerated (DRAFT 1)
@@ -11,23 +13,49 @@
 
 *Syntax*
 
-See: enumTypeDecl
+```syntax
+enumTypeDecl
+  : 'enum' primitive? '{' endOfStmt? enumeratorList? '}'
+  ;
+
+enumeratorList
+  : (enumerator endOfStmt)+
+  | comments
+  ;
+
+enumerator
+  : identifier ('=' logical_or_expr)?
+  ;
+```
 
 *Semantics*
 
 An enumeration consists of a set of named constants (enumerators) that represent
-a value of a type.
+a the set of values of the type.
 
 *Constraints*
 
-Constraints are defined at [`enum & mask constraints`](#enum-mask-constraints)
+Constraints are defined at [`enum & mask constraints`](#enum-and-mask-constraints)
 
 
 ## `mask`
 
 *Syntax*
 
-See: maskTypeDecl
+```syntax
+maskTypeDecl
+  : 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'
+  ;
+
+maskEnumeratorList
+  : (maskEnumerator endOfStmt)+
+  | comments
+  ;
+
+maskEnumerator
+  : identifier ('=' logical_or_expr)
+  ;
+```
 
 *Semantics*
 
@@ -35,7 +63,7 @@ A `mask` is a special `enum` that allow assignment to any value.
 
 *Constraints*
 
-Constraints are defined at [`enum & mask constraints`](#enum-mask-constraints)
+Constraints are defined at [`enum & mask constraints`](#enum-and-mask-constraints)
 
 *Example*
 
@@ -51,7 +79,7 @@ io.open_file("./xxx", create_append)
 ```
 
 
-<a name="enum-mask-constraints"></a>
+<a name="enum-and-mask-constraints"></a>
 *enum & mask constraints*
 
 When the word: Enumeration is used refers to both `enum` and `mask`
@@ -60,20 +88,20 @@ When the word: Enumeration is used refers to both `enum` and `mask`
 
 > At least one enumerator shall be defined
 
-2. The underlying type is defined as follow
+2. If the underlying type is implicit is defined as follow
 
-* Numeric values: Integral big enough to fit all values: `i32`, `u32`, `i64`, `u64` 
-* String values (`enum` only): `readonly ref string`
+* Numeric values or no values defined: `i32`.
+* String values (`enum` only): `ref` (`readonly ref<static_string>`)
 
 If no integral type can represent all enumerator values a semantic-error shall raise:
 
-> No integral value can represent all enumerator values defined at enumerable '?'.
+> No integral value can represent all enumerator values defined at enumerable '?:name'.
 
 If string is used at `mask` a semantic-error shall raise:
 
-> Invalid value type at enumerator '?'
+> Invalid value type '?:type' at enumerator '?:name' at '?:file?:line?:column'
 
-```lanague-error
+```language-error
 // shall not mix strings and integral
 type e1 = enum {
   str = "hello",
@@ -92,7 +120,7 @@ same underlying type.
 
 4. The default value will be the value of the first enumerator.
 
-5. Enumerators shall be "namespaced" with the `enum` name. Enumerators shall not
+5. Enumerators shall be "namespaced" with the `enum` name. Enumerators identifiers shall not
 leak in global/file/package scope.
 
 6. `enum` and `mask` shall define the folowing properties if `compiler_rtti` is enabled.
@@ -100,62 +128,85 @@ leak in global/file/package scope.
 See [Introspection](../instrospection.md) for more information.
 
 * `size $length` - How many elements are defined
-* `(i32|u32|i64|u64|ref string)[] $values` - Array with all the values
+* `type[] $values` - Array with all the values
 * `type $underlyingType` - Underlying type
 * `string[] $enumerators` - Array with all identifiers name
+* `type default` - Default value
 
 Also the previous list are names forbidden to enumerator, if used a semantic-error shall raise
 
 > Forbidden enumerator name is used: $name, $length, $values, $underlyingType, $enumerators.
 
 <!-- https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12133-enumeration-logical-operators -->
-7. If underlying type is an integral the `enum` or `mask` shall define the following operators:
+7. Valid `enum` operators
+
+7. 1. Assignament operators
+
+* operator = <$t is mask>($t other) $t {}
+* operator = <$t is mask>($t.$underlyingType other) $t {}
+
+7. 2. Comparison operators
+
+* operator == <$t is enum>($t other) bool {}
+* operator != <$t is enum>($t other) bool {}
+* operator < <$t is enum>($t other) bool {}
+* operator > <$t is enum>($t other) bool {}
+* operator <= <$t is enum>($t other) bool {}
+* operator >= <$t is enum>($t other) bool {}
+
+8. Valid operators for `mask`
 
 8. 1. Logical operators
 
-* operator &
-* operator |
-* operator ^
+* operator &<$t is mask>($t other) $t {}
+* operator |<$t is mask>($t other) $t {}
+* operator ^<$t is mask>($t other) $t {}
 
 8. 2. Bitwise complement operator
 
-* operator ~
+* operator ~<$t is mask>() $t.$underlyingType {}
 
-8. 3. Forbidden in comparisson with other languages.
+8. 3. Arithmetic operators, only for mask.
 
-* operator +
-* operator -
-* operator ++
-* operator --
-
-All this operators may produce invalid values, so are forbidden because checking this at runtime make no sense.
+* operator +<$t is mask>($t other) $t {}
+* operator -<$t is mask>($t other) $t {}
+* operator ++<$t is mask>() $t {}
+* operator --<$t is mask>() $t {}
 
 <!-- https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#12126-enumeration-comparison-operators -->
-9. `enum` and `mask` shall define the following comparison operators
+8. 3. Assignament operators
 
-* operator ==
-* operator !=
-* operator <
-* operator >
-* operator <=
-* operator >=
+* operator = <$t is mask>($t other) $t {}
+* operator = <$t is mask>($t.$underlyingType other) $t {}
 
-10. `enum` and `mask` shall define the following assignment operators
+* operator &=<$t is mask>($t other) $t {}
+* operator &=<$t is mask>($t.$underlyingType other) $t {}
 
-* operator =
+* operator |=<$t is mask>($t other) $t {}
+* operator |=<$t is mask>($t.$underlyingType other) $t {}
 
-11. `mask` shall define the following assignament operators
+* operator ^=<$t is mask>($t other) $t {}
+* operator ^=<$t is mask>($t.$underlyingType other) $t {}
 
-* operator &=
-* operator |=
-* operator ^=
+8. 4. Comparison operators
 
-12. `mask` shall define the following methods
+* operator == <$t is mask>($t other) bool {}
+* operator != <$t is mask>($t other) bool {}
+* operator < <$t is mask>($t other) bool {}
+* operator > <$t is mask>($t other) bool {}
+* operator <= <$t is mask>($t other) bool {}
+* operator >= <$t is mask>($t other) bool {}
 
-* bool match(? mask)
-* bool has(i32 position)
-* bool set(i32 position)
-* bool unset(i32 position)
+
+9. `mask` shall define the following methods
+
+```
+function match<$t is mask>(ref<$> this, $t value) bool {}
+function match<$t is mask>(ref<$> this, $t.$underlyingType value) bool {}
+function has<$t is mask>(ref<$> this, i32 position) bool {}
+function set<$t is mask>(ref<$> this, i32 position) bool {}
+function unset<$t is mask>(ref<$> this, i32 position) bool {}
+```
 
 *Relaxable constraints*
 
@@ -196,7 +247,7 @@ this can be enforced via meta-programming.
 
 *Example*
 
-```
+```language
 type s_encoding = enum {
   BIN = "Binary"
   ASCII = "Ascii"
@@ -209,44 +260,6 @@ type s_encoding = enum {
 type s_encoding2 = enum {
   BIN = "Binary"
 }
-// enum type is only equal to itself
-#assert(typeof s_encoding == typeof s_encoding)
-#assert(typeof s_encoding2 == typeof s_encoding2)
-#assert(typeof s_encoding != typeof s_encoding2)
-
-// enumerator type are the same even from different enum when underlying type is the same!
-#assert(typeof s_encoding.BIN == typeof s_encoding.UTF_8)
-#assert(typeof s_encoding.BIN == typeof s_encoding2.BIN)
-
-var s1 = s_encoding.BIN
-var s2 = s_encoding2[0]
-
-// REVIEW
-// these will be valid
-// because the compiler will ensure all strings are stored unique
-// #assert(s1 == s2)
-
-// string comparisson, so equal
-#assert(s_encoding.BIN == s_encoding2.BIN)
-
-// composing the string will result in the "same" as enumerator assignament
-var string binary_label = "Binar"
-binary_label += "y"
-// they match, are equal
-#assert(s_encoding.BIN == binary_label)
-// no they aren't the same!
-#assert(@s_encoding.BIN != @binary_label)
-
-// call operator = and cannonize the assignament
-s1 = binary_label
-#assert(s_encoding.BIN == s1)
-#assert(@s_encoding.BIN == @s1)
-
-#assert(@binary_label != @s1)
-
-// this is a compiler error
-s1 = s2
-
 
 type bitmask = mask {
   b1 = 0x001
@@ -254,8 +267,52 @@ type bitmask = mask {
   b3 = 0x004
 }
 
-// it will works
-var bitmask bm = bitmask.b1 | bitmask.b2
+function main() {
+  // enum type is only equal to itself
+  #assert(s_encoding == s_encoding)
+  #assert(s_encoding2 == s_encoding2)
+  #assert(s_encoding != s_encoding2)
+
+  // enumerator type are the same even from different enum when underlying type is the same!
+  #assert(typeof s_encoding.BIN == typeof s_encoding.UTF_8)
+  #assert(typeof s_encoding.BIN == typeof s_encoding2.BIN)
+
+  var s1 = s_encoding.BIN
+  var s2 = s_encoding2[0]
+
+  // these will be valid
+  // because the compiler will ensure all strings are stored unique
+  #assert(s1 == s2)
+
+  // string comparisson, so equal
+  #assert(s_encoding.BIN == s_encoding2.BIN)
+
+  // composing the string will result in the "same" as enumerator assignament
+  var string binary_label = "Binar"
+  binary_label += "y"
+  // they match, are equal
+  #assert(s_encoding.BIN == binary_label)
+  // no they aren't the same!
+  #assert(@s_encoding.BIN != @binary_label)
+
+  // call operator = and cannonize the assignament
+  s1 = binary_label
+  #assert(s_encoding.BIN == s1)
+  #assert(@s_encoding.BIN == @s1)
+
+  #assert(@binary_label != @s1)
+
+  // this is a semantic-error
+  s1 = s2
+  // "runtime-error": it may will throw
+  var user_label = io.stdout.read_line()
+  s1 = user_label
+
+  // mask can contain a combination any values
+  var bitmask bm = bitmask.b1 | bitmask.b2
+  // or any value
+  var bitmask bm2 = 0b0010_0111_1011
+}
 ```
 
 ## Implementation

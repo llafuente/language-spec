@@ -88,7 +88,7 @@ var spec_files = [
 	"./spec/language/variables.md",
 	"./spec/language/types/array.md",
 	"./spec/language/error-handling.md",
-	// "./spec/language/types/enumerated.md",
+	"./spec/language/types/enumerated.md",
 ];
 
 spec_files.forEach((file) => {
@@ -146,6 +146,7 @@ spec_files = [
 	"./spec/language/variables.md",
 	"./spec/language/types/array.md",
 	"./spec/language/error-handling.md",
+  "./spec/language/types/enumerated.md",
 ]
 spec_files.forEach((file) => {
 	console.log(`Validating spec file: ${file}`)

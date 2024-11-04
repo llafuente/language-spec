@@ -72,12 +72,12 @@ type primitives = enum  {
   // variant is a struct
 }
 
-struct annotation {
+type annotation = struct {
   string name
   variant value
 }
 
-struct struct_field {
+type struct_field = struct  {
   string name
   type type
 
@@ -86,12 +86,12 @@ struct struct_field {
   i32 offset
   size position
 
-  optional<variant> defaultValue
-  optional<callable> setter
-  optional<callable> getter
+  variant? defaultValue
+  callable? setter
+  callable? getter
 
 
-  optional<annotation[]> annotations
+  annotation[]? annotations
 
   annotation? get_annotation(name) {
     if (this.annotations) {
@@ -115,12 +115,12 @@ struct struct_field {
 */
 }
 
-struct known_struct_field<$struct_t, $field_t> extends struct_field {
+type known_struct_field = struct <$struct_t, $field_t> extends struct_field {
   function get (ref $struct_t s) $field_t {}
   function set (ref $struct_t s, $field_t f) {}
 }
 
-struct type_template {
+type type_template = struct {
   string name
   typeid type
 
@@ -129,7 +129,7 @@ struct type_template {
   // TODO restrictions
 }
 
-struct type_method {
+type type_method = struct {
   string name
   typeid type
 

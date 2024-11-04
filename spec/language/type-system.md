@@ -150,14 +150,6 @@ templateTypeDecl
   : 'type' identifier templateDefinition? '=' (structTypeDecl | interfaceTypeDecl | anonymousFunctionDef | aggregateTypeDecl | aliasTypeDecl)
   ;
 
-enumTypeDecl
-  : 'enum' primitive? '{' endOfStmt? enumeratorList? '}'
-  ;
-
-maskTypeDecl
-  : 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'
-  ;
-
 // types that DON'T support templates
 primitiveTypeDecl
   : 'type' identifier '=' (enumTypeDecl | maskTypeDecl)
@@ -229,25 +221,6 @@ interfaceProperty
   : interfacePropertyDecl endOfStmt
   | comments endOfStmt
   ;
-
-enumerator
-  : identifier ('=' logical_or_expr)?
-  ;
-
-enumeratorList
-  : (enumerator endOfStmt)+
-  | comments
-  ;
-
-maskEnumerator
-  : identifier ('=' logical_or_expr)
-  ;
-
-maskEnumeratorList
-  : (maskEnumerator endOfStmt)+
-  | comments
-  ;
-
 
 structProperyInitializer
   // REVIEW json support is ok, '=' maybe the best as function arguments
