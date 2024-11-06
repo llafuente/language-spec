@@ -130,15 +130,19 @@ packageVariableDeclStmt
 *Syntax*
 
 ```syntax
+// infer variable declaration w/out initialization
+inferVariableDeclStmt
+  : ('var' | 'const' | 'readonly') identifier ('=' rhsExpr)?
+  ;
+
+// typed variable declaration and initialization
+typedVariableDeclStmt
+  : ('var' | 'const' | 'readonly') typeDefinition identifier ('(' argumentExprList? ')' | '=' rhsExpr)?
+  ;
+
 fileVariableDeclStmt
-  // infer variable with initialization
-  : ('var' | 'const' | 'readonly') identifier '=' rhsExpr
-
-  // typed variable with initialization
-  | ('var' | 'const' | 'readonly') typeDefinition identifier '=' rhsExpr
-
-  // typed variable no initialization
-  | 'var' typeDefinition identifier
+  : inferVariableDeclStmt
+  | typedVariableDeclStmt
   ;
 ```
 

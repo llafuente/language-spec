@@ -69,8 +69,10 @@ lexer.forEach((chunk) => {
 	});
 });
 
-console.log("TOKENS!");
-console.log(tokens);
+
+//console.log("TOKENS!");
+//console.log(tokens);
+
 // order is important for lexer at least!
 var parser = [];
 var spec_files = [
@@ -139,13 +141,15 @@ function antlr4(text, option) {
 
 // readDirSyncR("./spec")
 spec_files = [
-	"./spec/memory-management.md",
-	"./spec/language/types/structured.md",
-	"./spec/language/functions.md",
-	"./spec/language/control-flow.md",
-	"./spec/language/variables.md",
-	"./spec/language/types/array.md",
-	"./spec/language/error-handling.md",
+  "./spec/memory-management.md",
+  "./spec/language/type-system.md",
+  "./spec/language/types/structured.md",
+  "./spec/language/types/interface.md",
+  "./spec/language/functions.md",
+  "./spec/language/control-flow.md",
+  "./spec/language/variables.md",
+  "./spec/language/types/array.md",
+  "./spec/language/error-handling.md",
   "./spec/language/types/enumerated.md",
 ]
 spec_files.forEach((file) => {
@@ -166,11 +170,12 @@ spec_files.forEach((file) => {
 });
 
 [
-	'./tests/syntax-types.language',
-	'./tests/syntax-smoke-screen.language',
-	'./tests/preprocessor-smoke-screen.language'
+	'./tests/types.language',
+	//'./tests/syntax-smoke-screen.language',
+	//'./tests/preprocessor-smoke-screen.language'
 ].forEach((file) => {
-	antlr4(readFileSync(file, 'utf-8'), "-tree")
+	//antlr4(readFileSync(file, 'utf-8'), "-tree")
+  antlr4(readFileSync(file, 'utf-8'), "-trace")
 });
 
 /*
@@ -183,3 +188,6 @@ let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'pa
 });
 
 */
+
+
+// antlr4 -o compiler -Dlanguage=Cpp LanguageParser.g4 LanguageLexer.g4

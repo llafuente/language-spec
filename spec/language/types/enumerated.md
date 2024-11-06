@@ -74,8 +74,11 @@ type open_file_flags = mask {
   APPEND = 0x00004000
   // ...
 }
-create_append = open_file_flags.WRITE | open_file_flags.APPEND
-io.open_file("./xxx", create_append)
+
+function main() {
+  var create_or_append = open_file_flags.WRITE | open_file_flags.APPEND
+  io.file.open("./xxx", create_or_append)
+}
 ```
 
 
@@ -274,8 +277,8 @@ function main() {
   #assert(s_encoding != s_encoding2)
 
   // enumerator type are the same even from different enum when underlying type is the same!
-  #assert(typeof s_encoding.BIN == typeof s_encoding.UTF_8)
-  #assert(typeof s_encoding.BIN == typeof s_encoding2.BIN)
+  #assert(typeof (s_encoding.BIN) == typeof (s_encoding.UTF_8))
+  #assert(typeof (s_encoding.BIN) == typeof (s_encoding2.BIN))
 
   var s1 = s_encoding.BIN
   var s2 = s_encoding2[0]

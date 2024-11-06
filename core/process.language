@@ -46,10 +46,18 @@ type posixProcess = struct {
   function initgroups(i32 user, i32 extraGroup) {}
 }
 
+type winProcess = {
+  // https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects
+  bool isJob
+  bool canBreakAway
+}
+
 // static
 type process = struct {
-  ioProcess io = {}
+  hoist ioProcess io = {}
+  // do not hoist posix or win
   posixProcess posix = {}
+  winProcess win = {}
 
   /**
     Property that contains the command-line arguments passed when the process was launched,

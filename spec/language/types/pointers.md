@@ -2,7 +2,7 @@
 
 <!-- https://web1.eng.famu.fsu.edu/~haik/met.dir/hcpp.dir/notes.dir/cppnotes/node68.html -->
 
-## ptr<$type>
+## ref<$type>
 
 *Semantics*
 
@@ -12,15 +12,16 @@ Holds a reference to a single object in memory.
 
 *Constrains*
 
-1. A `ptr` shall not move. No operator+, operator-, operator++, operator--, operator[]
+1. A `ref` shall not move. No operator+, operator-, operator++, operator--, operator[]
 
 2. Dot operator auto-dereference the pointer.
+
 
 ## vector<$type>
 
 *Semantics*
 
-Holds a reference to a contiguous list of objects in memory.
+Holds a reference to a contiguous (unbound) list of objects in memory.
 
 This is the pure C-like pointer.
 
@@ -32,7 +33,7 @@ Unsafe because there is no length/capacity stored.
 
 2. Dot operator auto-dereference the pointer.
 
-3. operator[] returns a ptr
+3. operator[] returns a ref
 
 *Remarks*
 

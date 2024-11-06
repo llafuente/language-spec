@@ -1,19 +1,91 @@
 struct ref<$t> {
 #if arch == x64
-	i64 ptr
+  i64 ptr
 #else
   i32 ptr
 #if
 
-	clone(ref<$t> other) {
-		other.ptr = ptr
-	}
+  clone() {
+/* TODO
+  // 1. check copy constructor
+  // 2. check operator '='
+  // 3. memory_copy
+#if $t.new.
+    var p = new $t(this)
+    return p
+*/
+  }
 
-	operator.() $t {
-		return cast<$t>(intrinsics_pointer_deref(this.ptr))
-	}
-	
-	operator=(ref<$t> other) ref<$t> {
-		return cast<$t>(intrinsics_pointer_deref(this.ptr)) = cast<$t>(intrinsics_pointer_deref(this.ptr))
-	}
+  operator.() $t {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr))
+  }
+
+
+  // Binary arithmetic
+  operator +(readonly ref<$t> other) ref<$t> {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) + cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  operator -(readonly ref<$t> other) ref<$t> {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) - cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  operator *(readonly ref<$t> other) ref<$t> {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) * cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  operator /(readonly ref<$t> other) ref<$t> {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) / cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  operator ^(readonly ref<$t> other) ref<$t> {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) ^ cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  operator =(readonly ref<$t> other) ref<$t> {
+    // this could be a memory_copy or call assignament at $t
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) = cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  // Assignament operators
+  operator =(readonly ref<$t> other) ref<$t> {
+    this.ptr = cast<$t>(intrinsics_pointer_deref(this.ptr)) + cast<$t>(intrinsics_pointer_deref(other.ptr))
+    return this
+  }
+
+  operator -=(readonly ref<$t> other) ref<$t> {
+    this.ptr = cast<$t>(intrinsics_pointer_deref(this.ptr)) - cast<$t>(intrinsics_pointer_deref(other.ptr))
+    return this
+  }
+
+  operator *=(readonly ref<$t> other) ref<$t> {
+    this.ptr = cast<$t>(intrinsics_pointer_deref(this.ptr)) * cast<$t>(intrinsics_pointer_deref(other.ptr))
+    return this
+  }
+
+  operator /=(readonly ref<$t> other) ref<$t> {
+    this.ptr = cast<$t>(intrinsics_pointer_deref(this.ptr)) / cast<$t>(intrinsics_pointer_deref(other.ptr))
+    return this
+  }
+
+  operator ^=(readonly ref<$t> other) ref<$t> {
+    this.ptr = cast<$t>(intrinsics_pointer_deref(this.ptr)) ^ cast<$t>(intrinsics_pointer_deref(other.ptr))
+    return this
+  }
+
+  // Comparison operators
+  operator ==(readonly ref<$T> rhs) bool {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) == cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  operator <(readonly ref<$T> rhs) bool {
+    return cast<$t>(intrinsics_pointer_deref(this.ptr)) < cast<$t>(intrinsics_pointer_deref(other.ptr))
+  }
+
+  operator ~=(ref<$t> other) bool {
+    this.ptr = cast<$t>(intrinsics_pointer_deref(this.ptr)) ~= cast<$t>(intrinsics_pointer_deref(other.ptr))
+    return this
+  }
+
+
 }

@@ -1,49 +1,66 @@
-import index_iterator
+import safe_iterator
 
 // helper macro to loop from start to end, one by one
-#macro loop_range(#value start, #value end, #text index_name = "$index") block {
-  #uid L_UID
+#macro loop_range(#value iterable, #text value_id = "$index", #text index_id = "$index") block {
+  #uid LOOP_UID
+
+  var start
+  var end
+  var inc
 
 // restart statement target
-#L_UID#_loop_restart:
-  // cache input
-  var size #L_UID#_$index = start
-  var size #L_UID#_$max = end
+#LOOP_UID#_loop_restart:
 
-#L_UID#_loop_start:
-  if #L_UID#_$index < #L_UID#_$max {
-    const #index_name# #L_UID#_$index
+  if typeof(iterable) == range {
+    start = range.start
+    end = range.end
+    inc = range.inc
+  } else if typeof(iterable) == number) {
+    start = 0
+    end = range.end
+    inc = number > 0 ? 1 : -1
+  } else if implements(iterable) == number) {
+  }
+
+
+  // cache input
+  var size #LOOP_UID#_$index = start
+  var size #LOOP_UID#_$max = end
+
+#LOOP_UID#_loop_start:
+  if #LOOP_UID#_$index < #LOOP_UID#_$max {
+    const #index_id# #LOOP_UID#_$index
 
     #block#
 
 // continue statement target
-#L_UID#_loop_continue:
-    ++#L_UID#_$index
+#LOOP_UID#_loop_continue:
+    ++#LOOP_UID#_$index
 
-    goto #L_UID#_loop_start:
+    goto #LOOP_UID#_loop_start:
   }
 // break statement target
-#L_UID#_loop_break: {}
+#LOOP_UID#_loop_break: {}
 }
 
 // loop macro will generate code based on val type
-#macro loop(#value value, #text index_name = "$index", #text value_name = "$value") block {
+#macro loop(#value value, #text index_id = "$index", #text value_name = "$value") block {
 // loop <number> {}
 #if value is number
   #if #value_name# != "$value"
     #semantic_error "Invalid loop value, when looping a number there is no value."
   #fi
 
-  #loop_range(0, value, #index_name#) #block#
+  #loop_range(0, value, #index_id#) #block#
 // loop <number>..<number> {}
 #else if value is range
-  #loop_range(value.start, value.end, #index_name#) #block#
+  #loop_range(value.start, value.end, #index_id#) #block#
 
 // loop arr {} <-- aka iterable
 #else if value implements index_iterator
-  #loop_range(0, value.length, #index_name#) {
+  #loop_range(0, value.length, #index_id#) {
     // copy
-    var #value_name# value[#index_name#]
+    var #value_name# value[#index_id#]
     #block#
   }
 #else

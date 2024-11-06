@@ -23,18 +23,26 @@ It does not rely on stack trickery or implementation details.
 
 ```syntax
 errorHandlingStmts
-	: tryBlock catchBlock? finallyBlock?
-	| 'try' expression
-	| 'catch' expression functionBody
+	: tryBlock catchBlock* finallyBlock?
   | 'throw' expression?
 	;
+
+errorHandlingExprs
+  : 'try' conditional_expr
+  | 'catch' conditional_expr functionBody
+  | conditional_expr
+  ;
 
 tryBlock
 	: 'try' functionBody
 	;
 
 catchBlock
-	: 'catch' (typeDefinition identifier | postfix_expr) functionBody
+	: 'catch' (
+      typeDefinition identifier
+      | '(' typeDefinition identifier ')'
+      | postfix_expr
+    )? functionBody
 	;
 
 finallyBlock
@@ -243,7 +251,7 @@ function main() {
 Exception eater
 
 ```language
-enum result {
+type result = enum {
   error = 0
   ok = 1
 }
@@ -272,7 +280,7 @@ function main() {
 
 
 ```language
-enum result {
+type result = enum {
   error = 0
   ok = 1
 }
@@ -297,7 +305,6 @@ function main() {
     goto request
   }
 
-  }
   try step2()
   try step3()
   try step4()

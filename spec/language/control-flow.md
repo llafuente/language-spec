@@ -92,26 +92,37 @@ function main() {
   } else {
     print("x and y are false")
   }
+
+  // parenthesis is optional
+  if (x) {
+    print("x is true")
+  } else if (y) {
+    print("y is true")
+  } else {
+    print("x and y are false")
+  }
 }
 ```
-
-### `switch` (`case`, `break` and `fallthrough`)
-
 <!--
+  STUDY: swift has a functionality monster around switch
+  https://docs.swift.org/swift-book/documentation/the-swift-programming-language/controlflow/#Switch
+
   https://clang.llvm.org/doxygen/classclang_1_1SwitchStmt.html
 -->
+
+### `switch` (`case`, `break` and `fallthrough`)
 
 *Syntax*
 
 ```syntax
 switchCaseStmt
   // REVIEW syntax require block here ? also required colon ?
-  : 'case' expression ':'  functionBodyStmtList
+  : 'case' expressionList ':'  functionBodyStmtList
   | 'default' ':' functionBodyStmtList
   ;
 
 switchStmt
-  : 'switch' expression '{' endOfStmt? switchCaseStmt? '}'
+  : 'switch' expression '{' (endOfStmt? switchCaseStmt)+ '}'
   ;
 ```
 
@@ -157,19 +168,26 @@ We can check a value against a variety of conditions of different types.
 
 ```language
 function main() {
-  switch string_value {
-    case string_a, string_b, string_c:
+  var a = io.stdin.read_line()
+
+  switch a {
+    case string_a, string_b, string_c: {
       fallthrough
-    case string_d:
+    }
+    case string_d: {
       // do something
       break
-    case "constant-string":
+    }
+    case "constant-string": {
       // do something
       break
-    case /^abc/:
+    }
+    case /^abc/: {
       // do something
       break
-    default
+    }
+    default: {
+    }
   }
 }
 ```
@@ -182,7 +200,7 @@ As mentioned `switch` use `operator ==` so for example this is how we support re
 //   return true
 // }
 
-operator ==(string input, regex check) bool {
+operator ==(ref<string> input, ref<regex> check) bool {
   return check.test(input)
 }
 ```
@@ -208,38 +226,17 @@ by the named label
 
 *Constraints*
 
-The identifier in a goto statement shall name a label located somewhere in the enclosing
-function.
+1. The label identifier in a goto statement shall target a labeled statement
+located in the enclosing function.
 
-A jump shall not skip the declaration or initilization of any variable used
-later.
+> labeled statement with name '?:label_identifier' not found at function '?:function_name'
 
-
-*Example*
-
-```language
-function x() i8 {
-  //start
-  goto end
-
-end:
-  return 1;
-}
-
-```
-
-Error Example:
-
-```language
-// STUDY: which error ?
-// first -> labels must be unique
-// second -> labels can repeat, but not inside the same function
-// semantic error: goto's target label must be inside the same function
-// semantic error: could not find 'end' label inside 'x' function
+```language-semantic-error
 function y() i8 {
 end:
   return 1;
 }
+
 function x() i8 {
   //start
   goto end
@@ -247,28 +244,37 @@ function x() i8 {
   return 0;
 }
 ```
+<!--
+  https://stackoverflow.com/questions/12992108/crosses-initialization-of-variable-only-when-initialization-combined-with-decl
+-->
+2. A jump shall not skip the declaration or initilization of any variable used
+later or a semantic error shall raise
 
-Invalid usage.
-While goto statement can jump anywhere inside a function should not skip
-variable declaration or initialization.
-This example is valid syntactically and semantically but yields an error
+> goto ':?identifier' crosses initialization of ':?var_identifier' declared at ':?file:?line:?column'
 
-```
+```language
 function main() {
-  goto skip_decl; // semantic error: jump bypasses initialization of variable
-  {
-    var x = 1
-skip_decl:
-    print(x)
+  var int a = 5;
+  goto JUMP;
+
+  var b = 1;
+
+  JUMP: {
+    printf("a = ", a);
+    printf("b = ", b);
   }
 }
+
 ```
 
-## Loop Statements
+## Iteration statements
 
-We have a few loop statements: `loop`, `for`, `foreach`, `while` and `do-while`.
+* [`loop`](#loop)
+* [`for`](#for)
+* [`foreach`](#`foreach)
+* [`while`](while) and [`do-while`](#do-while).
 
-There are special statements inside loop with specific behaviour, explained below:
+With the following jump statements
 
 * `restart` will affect all.
 * `continue` will affect all.
@@ -285,7 +291,6 @@ loopStmt
   ;
 ```
 
-
 *Semantics*
 
 1. `loop` will repeat `loop body` a pre-defined number of times.
@@ -294,21 +299,69 @@ loopStmt
 `$value` that will hold the value of given structure if needed. Both magic
 variables can have custom names if provided.
 
+```language
+function main() {
+  var counter = 0
+  loop 10 {
+    print($index)
+    print($value)
+    ++counter
+  }
+
+  #assert counter == 10
+  counter = 0
+
+  loop value, 10 {
+    print($index)
+    print(value)
+    ++counter
+  }
+
+  #assert counter == 10
+  counter = 0
+
+  loop index, value, 10 {
+    print(index)
+    print(value)
+    ++counter
+  }
+  #assert counter == 10
+  counter = 0
+}
+```
 
 *Constraints*
 
-`loop` shall cache the loop-expression, so it's safe to expression modifications,
+1. `loop` shall cache the loop-expression, so it's safe to expression modifications,
 see example below for more info. If your loop need to change behaviour for example
 because the length of the string is changes use another loop statement like:
 [`for`](#for) / [`foreach`](#foreach) / [`while`](#while) or [`do-while`](#do-while)
 
-There is no way to increment a number different than one,
-use [`for`](#for) instead.
+```
+global var called = false
+function get_count() {
+  #assert !called
+  called = true
+  return 10
+}
+function main() {
+  var counter = 0
+  loop get_count() {
+    print($value)
+    ++counter
+  }
+  #assert called
+  #assert counter == 10
+}
+```
 
-The controlling expression shall have numeric, range or implement index_iterator.
-* `numeric`: it shall repeat `loop-body` given number of times.
+2. The loop-expression shall have numeric, range or implement index_iterator.
+
+* `numeric`: it shall repeat `loop-body` given number of times, from 0 till given name.
+
 * `range`: it shall repeat `loop-body` starting and ending according to given range.
-* `safe_iterator` it shall loop the structure cloning if necessary.
+
+* `safe_iterator` it shall loop the type up to start state and be safe to modifications.
 
 <!--
 * if expression is a struct
@@ -317,9 +370,13 @@ The controlling expression shall have numeric, range or implement index_iterator
  * It loop each property and value is `as` has two literals (separated by commas).
 -->
 
-*Example: number*
+*Remarks*
 
-It will print from 0 to 10
+There is no way to increment a number different than one, use [`for`](#for) instead.
+
+*Examples*
+
+Using positive *number*. It will print from 0 to 10
 
 ```language
 function main() {
@@ -329,9 +386,7 @@ function main() {
 }
 ```
 
-*Example: number*
-
-It will print from 0 to -10
+Using negative *number*. It will print from 0 to -10
 
 ```language
 function main() {
@@ -341,35 +396,62 @@ function main() {
 }
 ```
 
+Using *range*: The following example will print 1 to 10 and continue.
 
-*Example: range*
-
-The following example will print 1 to 10 and continue.
-It won't fall into infinite loop because the expression is cached at start.
+It's not an infinite loop because the loop-expression is cached at start.
 
 ```language
 function main() {
   var i = 10
-  loop 1..i {
+  loop range(1, i) {
     ++i
     print($index)
   }
 }
 ```
 
-*Example: safe_iterator*
-
-The following example will print all keys and elements in the array and remove one (last)
-At the end the array will be empty but loop is safe :)
+Using *safe_iterator*
 
 ```language
 function main() {
-  var arr = [1, 2, 3, 4, 5]
-  loop arr {
-    print($index, $value)
-    arr.pop()
+  var original = [1, 2, 3, 4, 5]
+  var loopClone = []
+
+  // 5th won't be looped as is invalid when the iterator arrive.
+  loop v in original {
+      loopClone.push(v)
+      if (i == 0) {
+        original.pop()
+      }
   }
-  print(arr)
+
+  #assert original.length == 4
+  #assert loopClone.length == 4
+
+  // 5th element (99) won't be looped as it does not exist when loop starts
+  loopClone = []
+  loop v in original {
+      loopClone.push(v)
+      if (i == 0) {
+        original.push(99)
+      }
+  }
+
+  #assert original.length == 5
+  #assert loopClone.length == 4
+
+  // 5th element value will be 88
+  loopClone = []
+  loop k, v in original {
+      loopClone.push(v)
+      if (i == 0) {
+        original[4] = 88
+      }
+  }
+
+  #assert original.length == 5
+  #assert loopClone.length == 5
+  #assert loopClone[4] == 88
 }
 ```
 

@@ -34,7 +34,7 @@ arrayItemList
   ;
 
 arrayInitializer
-  : '[' arrayItemList ','? ']'
+  : '[' arrayItemList? ','? ']'
   ;
 
 // TODO

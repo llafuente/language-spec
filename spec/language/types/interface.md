@@ -1,15 +1,17 @@
 <!--
 
   https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/interface
-
+  https://peps.python.org/pep-3119/
 -->
-# interface
+# interfaces
 
 *Semantics*
 
 Interfaces defines contract a `struct` shall implement: properties, getter, setters and methods
 
-*Remarks*: `implements` is not required to match an interface it just tells the compiler to report errors if something is missing.
+*Remarks*
+
+`implements` is not required to match an interface it just tells the compiler to report errors if something is missing.
 
 *Constraints*
 
@@ -23,31 +25,14 @@ Interfaces defines contract a `struct` shall implement: properties, getter, sett
 
 > At least one property or method is required.
 
-2. To match an interface a `struct` shall match the properties and methods defined.
-
-3. `interface` shall no contains aliases
-
-> An alias found at interface '?'
-
-4. Alias can be used to match an interface property or getter
-
-```language
-type has_length = interface {
-  size length
-}
-
-type xxx = struct {
-  size len
-  alias length len
-}
-```
+2. `interface` shall no contains aliases a syntax-error shall raise
 
 <!-- CS0144 -->
-5. instancing an interface shall raise a semantic-error
+3. instancing an interface shall raise a semantic-error
 
-> Cannot create an instance of the interface '?'
+> Cannot create an instance of an interface '?:interface_name'
 
-# implements (Explicit Interface Implementation)
+## implements (Explicit Interface Implementation)
 
 *Semantics*
 
@@ -55,96 +40,102 @@ type xxx = struct {
 
 *Constraints*
 
-1. To match an `interface` a `struct` shall defined all the properties, getter, setters, and methods defined at the `interface`.
+1. To match an `interface` a `struct` shall defined all the members defined at the `interface`.
 
-> Missing property '?' of type '?' at struct '?' that implements interface '?'
+1. 1. Match field by name. The child shall have: a `field`, a `getter` and `setter`, or an `alias` with the same name or a semantic error shall raise:
 
-> Missing getter '?' of type '?' at struct '?' that implements interface '?'
+> Missing field '?:interface_field_name' of type '?:interface_field_type' at struct '?:struct_name' that implements interface '?:interface_name'
 
-> Missing setter '?' of type '?' at struct '?' that implements interface '?'
+```language-semantic-error
+type iterator = interface {
+  size length
+}
 
-> Missing method '?' of type '?' at struct '?' that implements interface '?'
+type myarray = struct implements iterator {
+}
+```
+
+1. 2. Match field by type, same rules as 1.1 for name now match the type aplying `self` and `any` rules.
+
+> Expected type '?:interface_field_type' for field '?:interface_field_name' of type '?:struct_field_type' at struct '?:struct_name' that implements interface '?:interface_name'
+
+```language-semantic-error
+type iterator = interface {
+  size length
+}
+
+type myarray = struct implements iterator {
+  ref<size> length
+}
+```
+
+1. 3. Match getter/setter by name. The child shall have: a field, a getter/setter or an `alias` with the same name or a semantic error shall raise:
+
+> Missing getter '?:interface_getter_name' of type '?:interface_getter_type' at struct '?:struct_name' that implements interface '?:interface_name'
+
+> Missing setter '?:interface_setter_name' of type '?:interface_setter_type' at struct '?:struct_name' that implements interface '?:interface_name'
+
+1. 4. Match getters/setter by type, same rules as 1.3 for name now match the type aplying `self` and `any` rules.
+
+> Expected type '?:interface_getter_type' for getter '?:interface_getter_name' of type '?:struct_field_type' at struct '?:struct_name' that implements interface '?:interface_name'
+
+> Expected type '?:interface_getter_type' for setter '?:interface_setter_name' of type '?:struct_field_type' at struct '?:struct_name' that implements interface '?:interface_name'
+
+1. 5. Match method by name
+
+> Missing method '?:interface_method_name' of type '?:interface_method_type' at struct '?:struct_name' that implements interface '?:interface_name'
+
+1. 6. Match method by type
+
+> Expected type '?:interface_method_type' for method '?:interface_method_name' of type '?:struct_field_type' at struct '?:struct_name' that implements interface '?:interface_name'
 
 *Examples*
 
+Alias can be used to match interfaces
+
 ```language
-type index_iterator<template $t> = interface {
+type has_length = interface {
+  get size length
+  get size capacity
+}
+
+type xxx = struct implements has_length {
+  size len
+  size cap
+  alias length len
+  alias capacity cap
+}
+```
+
+```language
+type index_iterator<$t> = interface {
   size length
-  function operator[](size i) $t
+  operator [](size i) $t
 }
 
 type marray<$t> = struct implements index_iterator<$t> {
   size length = 0
   vector<$t> list
 
-  function operator[](size i) $t {
+  operator [](size i) $t {
     return list[i]
   }
 }
 ```
 
-## Type: self
-
-*Semantics*
-
-`self` will match the current type name.
-
-*Remarks*: Self enable covariant result types.
-
-*Constrains*
-
-1. `self` shall be only inside interface or a semantic-error shall raise
-
-> self shall be used only in interfaces.
-
-2. When checking if a type fulfill the interface `self` points to the current type.
-
-*Example*
-
-```language
-type plus_able = interface {
-  operator + (self other) self
-}
-
-type point = struct extends plus_able {
-  float x
-  float y
-
-  // this will implement: plus_able.operator +
-  operator + (point other) point {
-    x += other.x
-    y += other.y
-    return this
-  }
-}
-```
-
-## Type: any
-
-*Semantics*
-
-`any` will match any type except void.
-
-*Constrains*
-
-1. `any` shall be only inside interface or a semantic-error shall raise
-
-> any shall be used only in interfaces.
-
-1. `any` is ? if ? is not void
 
 
-## multiple interfaces
+## Multiple interfaces
 
 To compose multiple interfaces into one, just create a type with all interfaces and the desired operator.
 
 ```language
-type Printer = interface {
-    Print()
+type printer = interface {
+    function print()
 }
 
-type Scanner = interface {
-    Scan()
+type scanner = interface {
+    function scan()
 }
 
 type Printer_AND_Scanner = Printer & Scanner

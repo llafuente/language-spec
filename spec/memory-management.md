@@ -22,11 +22,11 @@ allocator
   ;
 
 typeNewExpression
-  : 'new' typeDefinition? ('(' argumentExprList? ')')+ (allocator)?
+  : 'new' typeDefinition? ('(' argumentExprList? ')')+ allocator?
   ;
 
 arrayNewExpression
-  : 'new' typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? (allocator)?
+  : 'new' typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? allocator?
   ;
 
 unaryNewExpression: typeNewExpression | arrayNewExpression;

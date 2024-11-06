@@ -1,0 +1,308 @@
+/**
+START_TEST
+flags:
+
+stdout:
+
+stderr:
+
+stdin:
+
+END_OF_TEST
+*/
+// interfaces
+type custom_itr = interface {
+  size len
+}
+
+type custom_get = interface {
+  function get2(int i) int
+}
+
+// structs
+type thei8struct = struct {
+  i8 len
+}
+
+type astruct = struct {
+  i32 a
+}
+
+type bstruct = struct {
+  i32 b
+}
+
+type cstruct = struct {
+  i32 c
+}
+
+type abstruct = struct extends a extends b {}
+
+type abcstruct = struct extends a extends b extends c {}
+
+type iterable_s = struct implements custom_itr {
+  size len
+}
+
+type full_iterable_s = struct implements custom_itr implements custom_get {
+  size len
+
+  function get2(int i) int {
+    return 0
+  }
+}
+// each mini array has more constrains for templates
+type mini_array<$t> = struct {
+  ref<$t> values
+  size len
+}
+
+type mini_array2<$t implements custom_itr> = struct {
+  ref<$t> values
+  size len
+}
+
+type mini_array3<$t extends astruct>  = struct {
+  ref<$t> values
+  size len
+}
+
+type use_mini_array = struct {
+  mini_array<i64> arr
+  mini_array<ref<i64>?> arr2
+  mini_array2<iterable_s> arr3
+  mini_array3<abcstruct> arr4
+}
+
+// self usage
+
+type namewillchange<$t> = struct {
+  int field01
+  int field02
+
+  function duplicate() self {
+    var self c(this.field01, this.field02)
+    return c
+  }
+
+  function copy(ref<self> other) {
+    this.field01 = other.field01
+
+  }
+}
+
+// enums
+
+type enum01 = enum {}
+type enum02 = enum {
+  a
+  b
+  c
+  d
+}
+
+type mask01 = mask {}
+type mask02 = mask {
+  a = 0b0001
+  b = 0b0010
+  c = 0b0100
+  d = 0b1000
+}
+
+
+function test_primitive_declarations() {
+  // primitives
+  var i8 a = -8
+  var i16 a = -16
+  var i32 a = -32
+  var i64 a = -64
+  var u8 a = 8
+  var u16 a = 16
+  var u32 a = 32
+  var u64 a = 64
+  var f32 a = 32.32
+  var f64 a = 64.64
+
+  var float a = 32.32
+  var int a = -32
+}
+
+
+function get2_user_len() int
+{
+  return io.stdin.read_line().as_int()
+}
+
+function test_array_decl_initialization() {
+  // dynamic arrays
+  var i8[] ar1 = []
+  // optional dynamic array
+  var ref<i8[]>? ar2 = null
+  // dynamic array with 10 capacity
+  var i8[] ar3 = new(10)
+  // dynamic array initialization
+  var i8[] ar4 = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+  // static array size known at compile time
+  var i8[10] sar1
+  // static array with initilization
+  var i8[15] sar2 = [1, 2, 3]
+  // static array unkown size at compile time
+  var n = get_user_len()
+  var i8[n] sar3
+  var i8[get_user_len()] sar4
+
+  #assert ar.capacity == array.default_capacity
+  #assert ar.len == 0
+
+  #assert ar3.capacity == 10
+  #assert ar3.len == 0
+
+  #assert ar4.capacity == 10
+  #assert ar4.len == 9
+
+  #assert sar1.capacity == 10
+  #assert sar1.len == 0
+
+  #assert sar2.capacity == 15
+  #assert sar2.len == 3
+
+  #assert sar3.capacity == n
+
+  // this value can be tested, but 0 -> thow an exception!
+  #assert sar4.capacity > 0
+}
+
+function test_struct_extends() {
+  #assert thei8struct.get_fields().length == 1
+  #assert thei8struct.len == i8
+  #assert astruct.get_fields().length == 1
+  #assert bstruct.get_fields().length == 1
+  #assert cstruct.get_fields().length == 1
+
+  #assert abstruct.get_fields().length == 2
+  #assert abcstruct.get_fields().length == 3
+
+  // runtime
+  var abstruct ab_s(1, 2)
+  var abcstruct abc_s(1, 2, 3)
+
+  #assert ab_s instanceof abstruct
+  #assert ab_s instanceof astruct
+  #assert ab_s instanceof bstruct
+  #assert ab_s.a == 1
+  #assert ab_s.b == 2
+
+  #assert abc_s instanceof abcstruct
+  #assert abc_s instanceof astruct
+  #assert abc_s instanceof bstruct
+  #assert abc_s instanceof cstruct
+  #assert abc_s.a == 1
+  #assert abc_s.b == 2
+  #assert abc_s.c == 3
+}
+
+function main() {
+  test_primitive_declarations();
+  test_array_decl_initialization()
+  test_struct_extends()
+}
+
+
+function declarations() {
+  // get a struct field as type
+  var thei8struct.len same_as_len = 1
+  // get a enum $underlyingType field as type
+  var enum01.$underlyingType same_as_enum01_type
+
+  // double as identifier
+  var f32 a = 1.0
+  var ref<f32> a = 2.0
+  var ref<ref<f32>> a = 3.0
+  readonly ref<ref<f32>> a = 4.0
+  const ref<ref<f32>> a = 5.0
+
+  // templated struct
+  var xxx<i8> a = 2.0
+  var xxx<thei8struct.a> a = 2.0
+  var xxx<thei8struct.b.c> a = 2.0
+  var xxx<ref<i8>> a = 2.0
+  var xxx<ref<thei8struct.len>> a = 2.0
+  var xxx<ref<thei8struct.len?>> a = 2.0
+  var xxx<ref<i8>> a = 2.0
+  var xxx<ref<i8>>? a = 2.0
+
+  // typeModifiers
+  var xxx<readonly ref<i8>> a = 2.0
+  var xxx<ref<readonly i8>> a = 2.0
+
+
+  // some optional types
+  var i8? a = null
+  var ref<i8>? a = null
+  var ref<i8?> a = null
+}
+// functions
+
+// lend param and return type
+function lend01() lend ref<i8> {
+}
+
+function lend02(lend ref<i8> output) void {
+}
+
+// uninitialized
+function a() lend uninitialized xxx<ref<i8>> {
+}
+
+// own
+function a(own ref<i8> ptr) {
+}
+
+// templates in functions
+function template_single_instance<$t is i8>() {}
+function template_single_instance<$t is struct>() {}
+function template_single_instance<$t is enum>() {}
+function template_single_instance<$t is mask>() {}
+function template_single_instance<$t is function>() {}
+
+function template_that_implements<$t implements xxx>() {}
+function template_that_extends<$t extends xxx>() {}
+function template_that_implements_and_extends<$t implements xxx extends yyy>() {}
+function template_that_extends_and_implements<$t extends xxx implements yyy>() {}
+function template_ref<$b>(ref<$b> first) {}
+// optionals
+function template_ref<$b>(ref<$b>? first) {}
+
+// as type declaration
+type x = function<$b>(ref<$b> first)
+
+// complex examples
+function a_ref_to_a_type_we_want<$t is ref<$b>>($b first) {}
+// this means our function will modify ?
+// this is in fact a template "un-trait"
+function a_ref_to_a_readonly_type_we_want<$t is ref<readonly $b>>($b first) {}
+
+// struct
+
+
+
+
+function xxx<$t extends xxx implements yyy>() {}
+
+
+
+/*
+STUDY
+
+this means ar will be in the stack and it's optional -> without a pointer how we implement optional ?
+var i8[]? ar = null
+
+
+could lend be optional ?
+lend ref<i8>?
+
+how the compiler know if needs to free or not ?
+
+
+*/

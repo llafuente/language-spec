@@ -11,7 +11,7 @@
 
 1. A `struct` is an aggregate type with contiguous memory type which fields can have distinct types.
 
-A struct is composed of:
+Used nomenclature:
 
 * `fields`: Named values that are stored in memory
 * `setters` and `getters`: Named values that aren't stored in memory (syntax sugar)
@@ -100,12 +100,18 @@ A `struct` field is a identifier that point to a defined offset/type in a struct
 
 > duplicated field '?' on type '?'
 
+<!--
 
+  https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/using-properties
+
+-->
 ## Getters and Setters
 
 *Semantics*
 
-Getters and setters are just syntax sugar for field manipulation/validation. Do not occupy memory.
+Getters and setters are just syntax sugar for field manipulation/validation.
+
+They are struct properties that have no storage.
 
 *Constraints*
 
@@ -119,9 +125,9 @@ Getters and setters are just syntax sugar for field manipulation/validation. Do 
 
 3. Getter/setter name shall no collide with fields
 
-> duplicated getter name '?' on type '?'
+> duplicated field/property name '?' on type '?'
 
-> duplicated setter name '?' on type '?'.
+> duplicated field/property name '?' on type '?'.
 
 *Example*
 
@@ -166,10 +172,102 @@ type Person = struct {
 > At type 'Person' Found a setter 'name' that do not modify the type.
 
 
-<a name="object-initialization"></a>
-## Object initialization
+## Field decorators (observers)
 
-There are various ways to initialize an object.
+*Semantics*
+
+Field decorators make a fields validation (set) / observation reusable.
+
+
+```todo-language
+decorator range(int x, int min, int max) int {
+  return (x > max ? max : (x < min ? min : x))
+}
+
+decorator log(int x) int {
+  print("value = ", x)
+  return x
+}
+
+type Person = struct {
+  @range(0, 99)
+  @log()
+  int age
+}
+
+function main() {
+  var p = Person()
+  p.age = -1
+  #assert p.age == 0
+  p.age = 101
+  #assert p.age == 99
+}
+```
+
+```compiled
+decorator range(int x, int min, int max) int {
+  return (x > max ? max : (x < min ? min : x))
+}
+type Person = struct {
+  int age
+  get int λage { return this._age}
+  set λage(int a) {
+    this._age = range(a, 0, 99)
+    return this._age
+  }
+
+  @range(0, 99)
+
+}
+
+function main() {
+  var p = Person()
+  p.age = -1
+  #assert p.age == 0
+  p.age = 101
+  #assert p.age == 99
+}
+```
+<!--
+  https://learn.microsoft.com/en-us/dotnet/csharp/advanced-topics/reflection-and-attributes/
+-->
+## Attributes
+
+*Semantics*
+
+It stores data into the type.
+
+*Example*
+
+```todo-language
+attribute json = struct()
+attribute json = field(string key)
+
+function fromJson<$t>(string jsonstr) {
+  var hash = jsonHash(jsonstr)
+  var $t ret()
+
+  foreach k,v in $t.get_fields() {
+    var jsonKey = $t.#k#.getAtribute<string>("json")
+    ret.#k# = hash.get<typeof $t.#k#>(jsonKey, (typeof $t.#k#).default)
+  }
+}
+
+
+[JsonSerializable]
+type point = struct {
+  [json("x")]
+  float x
+  [json("y")]
+  float y
+}
+var p = fromJson<point>("{\"x\": 0.0, \"y\": 1.1}")
+
+```
+
+
+<a name="constructors"></a>
+## Constructors
 
 <a name="default-constructor"></a>
 ### Default constructor
@@ -213,7 +311,7 @@ function main () {
 
 *Semantics*
 
-There is no empty constructor, if a developer need it, declare a default value for all fields.
+The empty constructor is defined when for all fields have default values.
 
 *Example*
 
@@ -228,6 +326,35 @@ function main () {
   var vector2 x = new()
 }
 ```
+
+### User / Custom constructor
+
+*Semantics*
+
+Explicit defined constructor.
+
+*Constraints*
+
+1. A non optional `ref` need to be initialized.
+
+*Example*
+
+```language
+type vector2 = struct {
+  float x = 0.0
+  float y = 0.0
+}
+
+function main () {
+  var x = new vector2()
+  var vector2 x = new()
+}
+```
+
+<a name="object-initialization"></a>
+## Object initialization
+
+There are various ways to initialize an object.
 
 ### Braces Initializer (JS Object)
 
@@ -329,6 +456,8 @@ The default destructor is defined as a function that will free the memory owned 
 
 1. Destruction order is the same as the fields are defined.
 
+2. Delete all memory owned by the `struct`
+
 *Example*
 
 ```language
@@ -353,15 +482,47 @@ type a = struct {
 
 *Semantics*
 
-An object method is a function declared inside its body that operates with the structure (specially the first parameter is `ref<?> this`)
+An object method is a function declared inside a `struct` body that.
 
 A function can be used as an object method but no the other way, because the methods are namespaced.
 
 *Constraints*
 
-1. A function can be used as a method if the compiler can cast the object as first argument.
+1. The compiler will add a new paramter to the left of type `ref<self>` and name `this`.
 
-```error
+```language
+type user = struct {
+  string name
+  function toString() {
+    return "name = " + this.name
+  }
+}
+function main() {
+  var john = new user("John")
+  user.toString.call(john)
+  john.toString()
+}
+```
+
+```compiled
+type user = struct {
+  string name
+}
+// once the method leave the struct body: self shall be replaced by "user"
+function prefix_toString(ref<self> this) {
+  return "name = " + this.name
+}
+
+function main() {
+  var john = new user("John")
+  prefix_toString(john)
+  prefix_toString(john)
+}
+```
+
+2. A function can be used as a method if the first parameters is a reference to the type or the compiler can `autocast`.
+
+```language-semantic-error
 function fn_by_copy (i8 a, i8b) {
   // ...
 }
@@ -516,7 +677,7 @@ type end = struct extends middle {
 }
 
 function main () {
-  var ref<end> value = new {1,2,3,4,5,6}
+  var ref<end> value = new(1,2,3,4,5,6)
   // first position of the struct is the position of the first field
   #assert @value == @(value.a)
   // TODO keep in mind type/allocator ?!

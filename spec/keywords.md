@@ -6,6 +6,7 @@
 * type
 * struct
 * noalign
+* lean
 * enum
 * mask
 * extends
@@ -14,28 +15,7 @@
 * is
 * any
 * self
-* typeof
-
-## primitives
-
-* i8
-* i16
-* i32
-* i64
-* u8
-* u16
-* u32
-* u64
-* f32
-* f64
-* float
-* int
-* size
-* bool
-* ptrdiff
-* address
-* void
-
+* instanceof
 
 ### declaration
 
@@ -57,6 +37,8 @@
 * out
 * override
 * overwrite
+* hoist
+* readonly
 
 <!-- TODO tokens.md -->
 ## templates

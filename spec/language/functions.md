@@ -790,7 +790,7 @@ function defer_order(ref<array<string>> ar) {
 }
 
 function main() {
-  var a = new string[]
+  var string[] a = new()
   defer_order(ar)
 
   #assert ar.length == 3

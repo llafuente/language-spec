@@ -21,13 +21,13 @@ constant
     : 'true'                  # trueLiteralExpr
     | 'false'                 # falseLiteralExpr
     | 'null'                  # nullLiteralExpr
+    | 'type'                  # typeLiteralExpr
     | 'default'               # defaultValueExpr
     | 'new'                   # newValueExpr
+    | 'cast'                  # castLiteralExpr
     | stringLiteral           # stringLiteralExpr
     | numberLiteral           # numberLiteralExpr
     | identifier              # identifierExpr
-    // typeof is only available inside postfixCallExpr
-    | 'typeof'                # typeofIdentifierExpr
     | preprocessorExpr        # preprocessorExpr2
     ;
 
@@ -58,7 +58,8 @@ postfix_expr
     | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
     //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'     # preprocessorMemberMacroCallExpr
     //| preprocessorMacroCallExpr                                                      # preprocessorMacroCallExpr2
-    | primary_expr ( '++' | '--' )*                                                    # postfixIndecrementExpr
+    | postfix_expr ( '++' | '--' )+                                                    # postfixIndecrementExpr
+    | primary_expr                                                                     # primaryExprFwExpr
     ;
 
 namedArgument
@@ -85,15 +86,15 @@ unary_expr
     : unaryNewExpression                                        # unaryNewExpr
     | unaryDeleteExpression                                     # unaryDeleteExpr
     // NOTE:  there is not sizeof operator
-    | ('++' |  '--')* (postfix_expr | unary_operator cast_expr) # operatorUnityExpr
+    | ('++' |  '--')* (postfix_expr | unaryOperators cast_expr) # operatorUnityExpr
     ;
 
-unary_operator
+unaryOperators
     :   '@' | '&' | '*' | '+' | '-' | '~' | '!' | 'not'
     ;
 
 cast_expr
-    :   'cast' '<' typeDefinition '>' '(' cast_expr ')'
+    :   'cast' unary_expr
     |   unary_expr
     ;
 
@@ -136,6 +137,10 @@ equality_expr
     | equality_expr '==' relational_expr # equality_expr_eq
     // type inequality
     | equality_expr '!=' relational_expr # equality_expr_neq
+    | equality_expr 'is' relational_expr # equality_expr_is
+    | equality_expr 'extends' relational_expr # equality_expr_extends
+    | equality_expr 'implements' relational_expr # equality_expr_implements
+    | equality_expr 'instanceof' relational_expr # equality_expr_instanceof
     | relational_expr                    # equality_expr_fw
     ;
 
@@ -164,7 +169,8 @@ conditional_expr
     ;
 
 assignment_expr
-    :   conditional_expr
+    //:   conditional_expr
+    :   errorHandlingExprs
     |   unary_expr assignment_operator assignment_expr
     ;
 
@@ -176,8 +182,12 @@ expression
     : assignment_expr (',' assignment_expr)*
     ;
 
+expressionList
+    : expression (',' expression)*
+    ;
+
 rhsExpr
-  : conditional_expr
+  : errorHandlingExprs
   | anonymousFunctionDef functionBody
   ;
 
@@ -194,7 +204,7 @@ operators
   | '-' | '+'
   | '*' | '/' | '%'
   | '<' | '>'
-  | unary_operator
+  | unaryOperators
   | '--' | '++'
   ;
 
@@ -207,12 +217,12 @@ operators
 | Category               | Operator                                                  | Associativity |
 |------------------------|-----------------------------------------------------------|---------------|
 | Postfix                | () ?[] ![] [] !. ?. . ++ --                               | Left to right |
-| Unary                  | +  -  !  ~  ++  -- &amp; typeof new delete                | Right to left |
+| Unary                  | +  -  !  ~  ++  -- &amp; new delete                       | Right to left |
 | Multiplicative         | *  /  %                                                   | Left to right |
 | Additive               | +  -                                                      | Left to right |
 | Shift                  | &lt;&lt; &gt;&gt;                                         | Left to right |
 | Relational             | &lt; &lt;=  &gt; &gt;=                                    | Left to right |
-| Equality               | ==  !=                                                    | Left to right |
+| Equality               | ==  != is extends implements instanceof                   | Left to right |
 | Bitwise AND            | &amp;                                                     | Left to right |
 | Bitwise XOR            | ^                                                         | Left to right |
 | Bitwise OR             | \|                                                        | Left to right |
@@ -246,15 +256,18 @@ Change the type to another compatible.
 
 *Constrains*
 
-1. It shall not lose precision.
+1. It shall not lose precision or range.
+<!--
+  TODO
+| source/destination | i8 | u8 | i16 | u16
+-->
 
-2. It shall not lose width.
-
-*Error examples*
-```language
-var i32 a = 10
-var i16 b = a            // error
-var i16 c = cast<i16>(a) // error
+```language-semantic-error
+function main() {
+  var i32 a = 10
+  // error: requires casting
+  var i16 b = a
+}
 ```
 
 ### Explicit castings
@@ -265,14 +278,22 @@ Change the type to another compatible.
 
 *Constrains*
 
-1. It shall not change shape of the type.
+1. It shall not change shape of the type. For example number to struct
+
+2. If type is ommited it will cast to the required type using the same algorithm
+as inference.
 
 *Example*
 
 ```language
-var x = cast<i32>(10)
+function main() {
+  var i32 a = 10
+  // implicit cast without type, compiler will guess by lhs type
+  var i16 b = cast a
+  // implicit cast with type
+  var c = cast<i16>(a)
+}
 ```
-
 
 <!--
 unsafe_cast < type > ( expression )
@@ -338,7 +359,7 @@ function main() {
 
   #assert c.x ~== 4
   #assert c.y ~== 6
-  #assert typeof c.y == point
+  #assert typeof(c.y) == point
   
   c = a + 5.5
   #assert c.x ~== 6.5

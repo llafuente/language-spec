@@ -8,6 +8,7 @@
 TYPE_TK : 'type';
 STRUCT_TK : 'struct';
 NOALIGN_TK : 'noalign';
+LEAN_TK : 'lean';
 ENUM_TK : 'enum';
 MASK_TK : 'mask';
 EXTENDS_TK : 'extends';
@@ -16,34 +17,15 @@ INTERFACE_TK : 'interface';
 IS_TK : 'is';
 ANY_TK : 'any';
 SELF_TK : 'self';
-TYPEOF_TK : 'typeof';
+HOIST_TK : 'hoist';
+READONLY_TK : 'readonly';
+INSTANCEOF_TK : 'instanceof';
 
 // constants
 TRUE_TK : 'true';
 FALSE_TK : 'false';
 NULL_TK : 'null';
 
-// primitives
-
-I8_TK : 'i8';
-I16_TK : 'i16';
-I32_TK : 'i32';
-I64_TK : 'i64';
-U8_TK : 'u8';
-U16_TK : 'u16';
-U32_TK : 'u32';
-U64_TK : 'u64';
-F32_TK : 'f32';
-F64_TK : 'f64';
-FLOAT_TK : 'float';
-INT_TK : 'int';
-SIZE_TK : 'size';
-BOOL_TK : 'bool';
-PTRDIFF_TK : 'ptrdiff';
-PTRADDR_TK : 'ptraddr';
-VOID_TK : 'void';
-HOIST_TK : 'hoist';
-READONLY_TK : 'readonly';
 
 
 // variables
