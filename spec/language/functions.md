@@ -31,6 +31,12 @@ functionModifiers
   // | '@mock'
   // | '@debug'
 
+functionReturnTypeModifiers
+  : 'lend'
+  | 'own'
+  | 'uninitialized'
+  ;
+
 anonymousFunctionDef
   : functionModifiers* 'function' templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
@@ -128,6 +134,14 @@ functionBodyStmt
 
 functionParameterList
   : functionParameter (',' functionParameter)*
+  ;
+
+functionParametersTypeModifiers
+  : 'lend'
+  | 'own'
+  | 'uninitialized' // why ? <-- real usage ?
+  | 'autocast'
+  | 'out'
   ;
 
 functionParameter

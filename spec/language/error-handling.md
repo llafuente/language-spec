@@ -28,7 +28,7 @@ errorHandlingStmts
 	;
 
 errorHandlingExprs
-  : 'try' conditional_expr
+  : 'try' conditional_expr ('catch' conditional_expr)?
   | 'catch' conditional_expr functionBody
   | conditional_expr
   ;
@@ -359,6 +359,7 @@ function main() {
   var y = catch throws_string() {
     #assert y == string.default
   }
+  var z = try throws_int() catch 101
 }
 ```
 
