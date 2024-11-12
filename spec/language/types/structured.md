@@ -7,6 +7,92 @@
 -->
 # Structured type (DRAFT 1)
 
+*Syntax*
+
+```syntax
+structTypeDecl
+  : ('noalign' | 'lean')* 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'
+  ;
+
+typeExtendsDecl
+  : 'extends' typeDefinition
+  ;
+
+typeImplementsDecl
+  : 'implements' typeDefinition
+  ;
+
+structProperty
+  : structPropertyDecl endOfStmt
+  | comments endOfStmt
+  ;
+
+structPropertyDecl
+  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  // TODO REVIEW aliasing operator?
+  | propertyAlias
+  | functionDef functionBody
+  | memoryFunctionDecl
+  | operatorFunctionDecl
+  | structGetterDecl
+  | structSetterDecl
+  ;
+
+// TODO do not repeat at parser level ?
+structPropertyModifiers
+  : 'own'
+  | 'hoist'
+  | 'readonly'
+  ;
+
+propertyAlias
+  : 'alias' identifier identifier
+  ;
+
+structGetterDecl
+  : structGetterDef functionBody
+  ;
+
+structGetterDef
+  : 'get' typeDefinition identifier
+  ;
+
+structSetterDecl
+  : structSetterDef functionBody
+  ;
+
+structSetterDef
+  : 'set' identifier '(' typeDefinition identifier ')'
+  ;
+
+structInitializer
+  : typeDefinition? '{' structProperyInitializerList? '}' #    cStructInitializer
+  | typeDefinition? '{' jsonInitializerList '}'                           # jsonStructInitializer
+  ;
+
+structProperyInitializerList
+  : structProperyInitializer (',' structProperyInitializer)*
+  ;
+
+structProperyInitializer
+  : identifier ('.' identifier)* ('='|':') rhsExpr       #   namedStructProperyInitializer
+  | rhsExpr                                        # orderedStructProperyInitializer
+  ;
+
+jsonInitializerList
+  : jsonInitializerPair (',' jsonInitializerPair)* ','?
+  ;
+
+jsonInitializerPair
+  : stringLiteral ':' constant
+  ;
+
+// TODO
+structConstantInitializer
+  : '{' structProperyInitializerList? '}'
+  ;
+```
+
 *Semantics*
 
 1. A `struct` is an aggregate type with contiguous memory type which fields can have distinct types.
@@ -356,11 +442,11 @@ function main () {
 
 There are various ways to initialize an object.
 
-### Braces Initializer (JS Object)
+### Braces Initializer
 
 *Semantics*
 
-Initialize an `struct` by setting it's fields instead of using the constructors (syntax similar to C/Javascript/JSON).
+Initialize an `struct` by setting it's fields instead of using the constructors.
 
 *Constraints*
 
@@ -368,28 +454,29 @@ Initialize an `struct` by setting it's fields instead of using the constructors 
 
 > Cannot find '?' as field of type '?'
 
-2. Constructor resolution has the same resolution algorithm as function call with named parameters against all constructors.
+2. If at least one constructor is defined by the developer, a constructor shall be used instead od default constructor.
 
-If a valid constructor can't be not found a semantic-error shall raise
+If a valid constructor can't be found a semantic-error shall raise
 
 > No constructor match given initializer
 
-> expected 'N': new(?, ?, ?)
+> Given: new(?, ?, ?)
 
-> Found:    new(?, ?, ?)
+> Available constructors
 
+> [?:n] new(?, ?, ?)
+
+<!-- this can happend ? find an example... -->
 If more than one constructor is found
 
 > Found '?' possible constructors. Disambiguation is needed
 
+> Given: new(?, ?, ?)
+
 > Found 'N': new(?, ?, ?)
 
 <!-- test: struct.init.ordered -->
-3. If fields names are omitted, the order shall be the same as declared.
-
-4. JS Object initialization shall be used only if default constructor is defined or a semantic-error shall raise:
-
-> A custom constructor is defined, use it instead.
+3. If fields names are omitted, use the default constructor.
 
 *Example*
 
@@ -408,6 +495,7 @@ type person = struct {
   string? address = null
   size born = 1900
 }
+
 function main () {
   // ordered initialization using the default constructor
   // left type inferred
@@ -418,9 +506,9 @@ function main () {
   var vec02 = v2{0, 0}
 
   var l1 = line {{0, 0}, {10, 10}}
-  var l2 = line {start.x : 0, start.y: 0, end.x: 10, end.y: 10}
-  var l3 = line {start: {x : 0, y: 0}, end: {x: 10, y: 10}}
-  var l4 = line {start: {0, 0}, end: {10, 10}}
+  var l2 = line {start.x = 0, start.y = 0, end.x = 10, end.y = 10}
+  var l3 = line {start = {x = 0, y = 0}, end = {x = 10, y = 10}}
+  var l4 = line {start = {0, 0}, end = {10, 10}}
 
   // braced ordered initialization with default values
   var person01 = person { "John", "Doe" }
@@ -431,18 +519,16 @@ function main () {
   #assert person02.address ==  person.address.default
   #assert person02.born    ==  2011
 
-  // braced named initialization / JS Object
+  // braced named initialization
   // full
-  var v2 vec03 = {x: 0, y: 0}
-  // partial
-  var v2 vec04 = {x: 0, 0}
-  var v2 vec05 = {0, y: 0}
+  var v2 vec03 = {x = 0, y = 0}
+  // braced named initialization (partial)
+  var v2 vec04 = {x = 0, 0}
+  var v2 vec05 = {0, y = 0}
 
-  // single/double quotes are not necessary, as fields names are identifiers
+  // JSON-like
   var v2 vec05 = {"x": 0, "y": 0}
   var vec06 = v2 {"x": 0, "y": 0}
-  var v2 vec07 = {'x': 0, 'y': 0}
-  var vec08 = v2 {'x': 0, 'y': 0}
 }
 ```
 
@@ -523,20 +609,20 @@ function main() {
 2. A function can be used as a method if the first parameters is a reference to the type or the compiler can `autocast`.
 
 ```language-semantic-error
-function fn_by_copy (i8 a, i8b) {
+function fn_by_copy (i8 a, i8 b) {
   // ...
 }
-function fn_by_reference (ref<i8> a, i8b) {
+function fn_by_reference (ref<i8> a, i8 b) {
   // ...
 }
-function fn_invalid_cast (array<i8> a, i8b) {
+function fn_invalid_cast (array<i8> a, i8 b) {
   // ...
 }
 
-function fn_autocast_point (array<i8> a, i8b) {
+function fn_autocast_point (array<i8> a, i8 b) {
   // ...
 }
-type point = struct { float x; float y }
+type point = struct { float x; float y; }
 function autocast(i8 a) point {
   return point(a, 0)
 }

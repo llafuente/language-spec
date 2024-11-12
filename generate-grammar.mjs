@@ -91,6 +91,8 @@ var spec_files = [
 	"./spec/language/types/array.md",
 	"./spec/language/error-handling.md",
 	"./spec/language/types/enumerated.md",
+  "./spec/language/types/interface.md",
+  "./spec/language/types/structured.md",
 ];
 
 spec_files.forEach((file) => {
@@ -156,17 +158,19 @@ spec_files.forEach((file) => {
 	console.log(`Validating spec file: ${file}`)
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
-	parseCode(contents, "language").forEach((text) => {
-		if (!text.length) {
-			return
-		}
+  ["language", "language-semantic-error"].forEach((annotation) => {
+  	parseCode(contents, annotation).forEach((text) => {
+  		if (!text.length) {
+  			return
+  		}
 
-		var result = antlr4(text, "-tree")
-		if (result.status != 0) {
-			console.log(text)
-			process.exit(1);
-		}
-	});
+  		var result = antlr4(text, "-tree")
+  		if (result.status != 0) {
+  			console.log(text)
+  			process.exit(1);
+  		}
+  	});
+  });
 });
 
 [

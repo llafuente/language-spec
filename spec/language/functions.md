@@ -334,12 +334,12 @@ type point = struct {
 
 // ok
 function func_add_ok(readonly p1 point, readonly p2 point) point {
-  return point {x: p1.x + p2.x, y: p1.y + p2.y };
+  return point(p1.x + p2.x, p1.y + p2.y);
 }
 
 // Constrains 1
 function sum_func1(readonly p1 point, float x, float y) point {
-  p1 = point{x: x, y: y}
+  p1 = point{x = x, y = y}
 
   return p1
 }

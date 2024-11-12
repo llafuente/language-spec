@@ -11,7 +11,7 @@ This language is:
 
 The language is `weakly typed` because it has `unsafe_cast` and pointer
 arithmetic. Any of those techniques allow to see a value in different and
-maybe erroneous ways. But it's the programmer the one that need to allow it.
+maybe erroneous ways. But it's the developer the one that need to allow it.
 There is no implicit conversions that allow this behavior, everything
 must be marked with `unsafe_cast`.
 
@@ -29,15 +29,15 @@ corruption may occur.
 That means casting from `i8` to `i16` it's allowed, the other way around is not.
 Also signed to unsigned casting is disallowed.
 
-Some types are immutable (readonly), that means that it's memory won't change after the
-first initialization. Those type creates a foundation to build those that can
-be muted. A good example are: `istring` or `iarray`.
+Types are built in functionality layers from *inmmutable* (`readonly`) to
+*static* (mutable but can't grow) to *dynamic*.
+A good example is `string` or `array` types both has the three layers.
 
-The language also exposes a heavy type introspection `types information` at runtime.
+The language also exposes a heavy type introspection, `types information` at runtime.
 And it also generate a fair amount of function to manipulate types.
 See: [Types at runtime](./introspection.md)
 
-A variable or a type can have a static value as it's type. This is how we
+A variable or a type can have a static values as it's type. This is how we
 support `tagged unions`.
 
 ```language
@@ -50,10 +50,7 @@ type table = struct {
 type ikea = chair | table;
 ```
 
-<!--
-Most of the types start as Inmutables like
-`static_array`, this array cannot grow. `static_string`
--->
+*Syntax*
 
 ```syntax
 primitive
@@ -65,20 +62,6 @@ typeModifiers
 
 type
   : typeModifiers? (primitive | dollarIdentifier | identifier);
-
-functionParametersTypeModifiers
-  : 'lend'
-  | 'own'
-  | 'uninitialized' // why ? <-- real usage ?
-  | 'autocast'
-  | 'out'
-  ;
-
-functionReturnTypeModifiers
-  : 'lend'
-  | 'own'
-  | 'uninitialized'
-  ;
 
 templateDefinition
   : '<' templateParameter (',' templateParameter)* '>'
@@ -122,24 +105,6 @@ templateTypeDef
   : type templateId
   ;
 
-typeExtendsDecl
-  : 'extends' typeDefinition
-  ;
-
-typeImplementsDecl
-  : 'implements' typeDefinition
-  ;
-
-structTypeDecl
-  : ('noalign' | 'lean')* 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'
-  ;
-
-interfaceTypeDecl
-  : 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'
-  ;
-
-
-
 aggregateTypeAndDecl
     :   typeDefinition (('&' | 'and') aggregateTypeAndDecl)*
     ;
@@ -169,88 +134,6 @@ primitiveTypeDecl
 typeDecl
   : templateTypeDecl
   | primitiveTypeDecl
-  ;
-
-// TODO do not repeat at parser level ?
-structPropertyModifiers
-  : 'own'
-  | 'hoist'
-  | 'readonly'
-  ;
-
-structPropertyDecl
-  // TODO anonymousFunction
-  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
-  // TODO REVIEW aliasing operator?
-  | propertyAlias
-  // Notice: do not support anonymous function
-  | functionDef functionBody
-  | memoryFunctionDecl
-  | operatorFunctionDecl
-  | structGetterDecl
-  | structSetterDecl
-  ;
-
-interfacePropertyDecl
-  // TODO keep assignament ? it clash with the redefined one ?
-  // TODO constrains to not initialize again ?
-  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
-  | propertyAlias
-  | functionDef
-  | memoryFunctionDef
-  | operatorFunctionDef
-  | structGetterDef
-  | structSetterDef
-  ;
-
-propertyAlias
-  : 'alias' identifier identifier
-  ;
-
-structGetterDecl
-  : structGetterDef functionBody
-  ;
-
-structGetterDef
-  : 'get' typeDefinition identifier
-  ;
-
-structSetterDecl
-  : structSetterDef functionBody
-  ;
-
-structSetterDef
-  : 'set' identifier '(' typeDefinition identifier ')'
-  ;
-
-structProperty
-  : structPropertyDecl endOfStmt
-  | comments endOfStmt
-  ;
-
-interfaceProperty
-  : interfacePropertyDecl endOfStmt
-  | comments endOfStmt
-  ;
-
-structProperyInitializer
-  // REVIEW json support is ok, '=' maybe the best as function arguments
-  : identifier ('.' identifier)* ':' rhsExpr       # namedStructProperyInitializer
-  | rhsExpr                                        # orderStructProperyInitializer
-  ;
-
-structProperyInitializerList
-  : structProperyInitializer (',' structProperyInitializer)*
-  ;
-
-structInitializer
-  : typeDefinition '{' structProperyInitializerList? '}' # implicitStructInitializer
-  | '{' structProperyInitializerList? '}'                # inferenceStructInitializer
-  ;
-
-// TODO
-structConstantInitializer
-  : '{' structProperyInitializerList? '}'
   ;
 ```
 
@@ -312,10 +195,6 @@ In the body of an object method is a pointer to the object for which the functio
 *Semantics*
 
 `self` will match the current type.
-
-*Remarks*
-
-Self enable covariant result types.
 
 *Rationale*
 
@@ -393,7 +272,7 @@ type point = struct {
 
 > any shall be used only in interfaces.
 
-1. `any` is ? if ? is not void
+2. When checking if a type fulfill an interface `any` matches any type except void.
 
 *Examples*
 
@@ -507,7 +386,7 @@ function typeof<$t>($t a) type {
 
 *Semantics*
 
-Test if both side has the same exact type.
+Tests if both sides has the same exact type.
 
 *Example*
 
@@ -602,7 +481,15 @@ Checks if an object or type is an implements given interface
 
 *Example*
 
-see [interface type any](./types/interface.md#any)
+```language
+type hasLengthProperty = interface {
+  get size length
+}
+
+function main() {
+  #assert array implements hasLengthProperty
+}
+```
 
 *implementation*
 

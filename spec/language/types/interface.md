@@ -5,6 +5,31 @@
 -->
 # interfaces
 
+*Syntax*
+
+```syntax
+interfaceTypeDecl
+  : 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'
+  ;
+
+interfacePropertyDecl
+  // TODO keep assignament ? it clash with the redefined one ?
+  // TODO constrains to not initialize again ?
+  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  | propertyAlias
+  | functionDef
+  | memoryFunctionDef
+  | operatorFunctionDef
+  | structGetterDef
+  | structSetterDef
+  ;
+
+interfaceProperty
+  : interfacePropertyDecl endOfStmt
+  | comments endOfStmt
+  ;
+```
+
 *Semantics*
 
 Interfaces defines contract a `struct` shall implement: properties, getter, setters and methods
