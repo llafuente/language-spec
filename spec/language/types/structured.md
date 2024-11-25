@@ -43,6 +43,7 @@ structPropertyModifiers
   : 'own'
   | 'hoist'
   | 'readonly'
+  | 'static'
   ;
 
 propertyAlias

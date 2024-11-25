@@ -20,6 +20,7 @@ SELF_TK : 'self';
 HOIST_TK : 'hoist';
 READONLY_TK : 'readonly';
 INSTANCEOF_TK : 'instanceof';
+STATIC_TK : 'static';
 
 // constants
 TRUE_TK : 'true';

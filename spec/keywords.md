@@ -16,6 +16,7 @@
 * any
 * self
 * instanceof
+* static
 
 ### declaration
 
