@@ -200,6 +200,15 @@ Getters and setters are just syntax sugar for field manipulation/validation.
 
 They are struct properties that have no storage.
 
+*Rationale*
+
+* Setters allow field validation
+* Getters expose fields in diferent representations
+* Future change encapsulation
+* Debuggin, the developercan change a field and intercept/debug each usage.
+
+Syntax is split to support documentation of each part.
+
 *Constraints*
 
 1. A getter shall no modify struct memory or a semantic-error shall raise
@@ -258,21 +267,287 @@ type Person = struct {
 
 > At type 'Person' Found a setter 'name' that do not modify the type.
 
+## Decorators (EXPERIMENTAL)
 
-## Field decorators (observers)
+<!--
+  https://peps.python.org/pep-0318/
+
+  STUDY: decorator may be part of meta-programming and be a compile-time feature, not a mix one like now?
+-->
+
+*syntax*
+
+```todo-syntax
+setDecoratorDecl
+  : 'decorator' 'set' identifier '(' functionParameterList ')' typeDefinition functionBody
+  ;
+
+getDecoratorDecl
+  : 'decorator' 'get' identifier '(' functionParameterList ')' functionBody
+  ;
+
+newDecoratorDecl
+  : 'decorator' 'new' identifier '(' functionParameterList ')' functionBody
+  ;
+
+deleteDecoratorDecl
+  : 'decorator' 'delete' identifier '(' functionParameterList ')' functionBody
+  ;
+
+functionDecoratorDecl
+  : 'decorator' 'function' identifier '(' functionParameterList ')' typeDefinition functionBody
+  ;
+```
+
+
+### Struct decorators
 
 *Semantics*
 
-Field decorators make a fields validation (set) / observation reusable.
+Struct decorators allows validation, initialization, dependency injection, observation, etc. reusable.
 
+*Constraints*
+<!-- STUDY: function could be applied to all methods -->
+<!-- STUDY: set/get could be applied to all fields -->
+1. Only `new` and `delete` decorators can be applied to `struct`.
+
+2. Apply the same constraints as function decorators.
+
+3. `new decorator` and `delete decorator` shall have only one parameters a ref to a `struct`, `interface` or template.
+
+3. `new decorator` will be applied after the constructor.
+
+4. `delete decorator` will be applied before destructor.
 
 ```todo-language
-decorator range(int x, int min, int max) int {
+decorator new log<$t>(ref<$t> this) {
+  print(this)
+}
+decorator delete log<$t>(ref<$t> this) {
+  print(this)
+}
+
+@log
+type user = struct {
+  own ref<string> name
+
+  new () {
+    print("new starts")
+    this.name = "Jhon"
+    print("new end")
+  }
+
+  delete() {
+    print("delete starts")
+    // ?
+    print("delete end")
+  }
+}
+
+function main() {
+  var x = new user()
+}
+
+```
+
+```compiled
+type user = struct {
+  string name
+}
+function new(ref<user> this) {
+  print("new starts")
+  this.name = "Jhon"
+  print("new end")
+
+  new_log(this)
+}
+
+function delete(ref<user> this) {
+  delete_log(this)
+
+  print("delete starts")
+  // ?
+  print("delete end")
+}
+
+function main() {
+  var memory = allocate memory
+  var x = user.new(memory)
+  user.delete(memory)
+  deallocate memory
+}
+```
+
+
+### Function decorators
+
+*Semantics*
+
+Functions decorators encapsulate a function inside another.
+
+1. Only `get` decorators can be applied to `parameters`.
+
+2. First argument shall be a function type with the same singnature as the decorated function.
+
+3. The rest of the parameters shall match the decorated function.
+
+<!-- STUDY, at least once in each code path ? -->
+4. First argument shall be called inside the body at least once
+
+5. `function decorators` generates a modification of each decorated `function call`.
+
+*Example*
+
+```todo-language
+var decorator_is_called = false
+var decorated_is_called = false
+type str_to_str = function (string) string
+decorator function log(str_to_str f, string input) string {
+  decorator_is_called = true
+  log(input)
+  output = f()
+  log(output)
+
+  return output
+}
+
+@log
+function decorated(string s) string {
+  decorated_is_called = true
+  return s
+}
+
+function main() {
+  #assert decorator_is_called == false
+  #assert decorated_is_called == false
+  var s = decorated(" x ")
+  #assert decorated_is_called == true
+  #assert decorator_is_called == true
+}
+
+```
+
+```compiled
+function main() {
+  #assert decorator_is_called == false
+  #assert decorated_is_called == false
+  var s = log(decorated, " x "))
+  #assert decorated_is_called == true
+  #assert decorator_is_called == true
+}
+```
+
+
+### Parameters decorators
+
+*Semantics*
+
+Parameters decorators makes an argument validation, transformation, observation, etc. reusable.
+
+*Constraints*
+
+1. Only `set` and `get` decorators can be applied to `parameters`.
+
+2. A `set` or `get` decorator can be applied to a field if the first argument has the same type or a semantic-error shall raise:
+
+3. When a decorator is applied to a parameter it will change to a function call at the start of the function.
+
+3. 1. The compiler search for `get decorators` with given name and it will add a function call in visual order at the start of the function.
+
+3. 2. The compiler search for `set decorators` with given name and it will add a function call in visual order at the start of the function.
+
+*Example*
+
+```todo-language
+decorator set range(int x, int min, int max) int {
+  return (x > max ? max : (x < min ? min : x))
+}
+decorator get log(int x) {
+  print("get value = ", x)
+  return x
+}
+
+function sum(
+  @log @range(0, 100) i32 a,
+  @range(0, 64) i32 b
+) {
+  return a + b
+}
+
+function main() {
+  #assert sum(i32.max, i32.max) == 164
+  #assert sum(-1, -1) == 0
+  #assert sum(1, 1) == 2
+}
+
+```
+
+```compiled
+function sum(
+  i32 a,
+  i32 b
+) {
+  log(a)
+  a = range(a, 0, 100)
+  b = range(b, 0, 64)
+  return a + b
+}
+
+function main() {
+  #assert sum(i32.max, i32.max) == 164
+  #assert sum(-1, -1) == 0
+  #assert sum(1, 1) == 2
+}
+```
+
+
+### Field decorators (aka observers)
+
+*Semantics*
+
+Field decorators makes a field validation, observation, etc. reusable.
+
+*Constraints*
+
+1. Only `set` and `get` decorators can be applied to `fields`.
+
+2. A `set` or `get` decorator can be applied to a field if the first argument has the same type or a semantic-error shall raise:
+
+> Applied a decorator but type don't match
+
+> field type "?:field_type:"
+
+> decorator first argument type "?:decorator_args_0:"
+
+3. Apply same constraints to decorator arguments as any function arguments except all arguments shall be constant, global, file or static.
+
+4. When a decorator is applied to a field it it will change to a setter/getter with the same name, the field will be renamed to a unique name in the same position.
+
+4. 1. The compiler search for `get decorators` with given name and arguments and apply them in visual order inside the getter.
+
+4. 2. The compiler search for `set decorators` with given name and arguments and apply them in visual order inside the setter.
+
+5. set/get decorator shall not lend or own memory.
+
+<!-- STUDY -->
+6. set/get decorator shall not contains templates.
+
+7. get decorators has implicit readonly parameters.
+
+*Example*
+
+```todo-language
+decorator set range(int x, int min, int max) int {
   return (x > max ? max : (x < min ? min : x))
 }
 
-decorator log(int x) int {
-  print("value = ", x)
+decorator set log(int x) int {
+  print("set value = ", x)
+  return x
+}
+
+decorator get log(int x) {
+  print("get value = ", x)
   return x
 }
 
@@ -292,15 +567,28 @@ function main() {
 ```
 
 ```compiled
-decorator range(int x, int min, int max) int {
+set decorator range(int x, int min, int max) int {
   return (x > max ? max : (x < min ? min : x))
 }
+get decorator log(int x) int {
+  print("value = ", x)
+  return x
+}
 type Person = struct {
-  int age
-  get int λage { return this._age}
-  set λage(int a) {
-    this._age = range(a, 0, 99)
-    return this._age
+  // 3
+  int λage
+  get int age {
+    // 3.1
+    this.λage = log(this.λage)
+    return this.λage
+  }
+  set age(int a) {
+    this.λage = a
+    // 3.2
+    this.λage = range(this.λage, 0, 99)
+    this.λage = log(this.λage, 0, 99)
+
+    return this.λage
   }
 
   @range(0, 99)
@@ -315,40 +603,87 @@ function main() {
   #assert p.age == 99
 }
 ```
+
+
+
 <!--
   https://learn.microsoft.com/en-us/dotnet/csharp/advanced-topics/reflection-and-attributes/
+
+  https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/AnnotatedElement.html
+
 -->
-## Attributes
+## Attributes / Annotations (EXPERIMENTAL)
+
+*Syntax*
+
+```todo-syntax
+attribute
+  : typeDefinition identifier
+
+attributeList
+  : attribute endOfStmt? attributeList?
+
+attributeDecl
+  : 'attribute' identifier '=' ('struct' | 'field' | 'function' | 'parameter') '{' attributeList? '}'
+```
 
 *Semantics*
 
 It stores data into the type.
 
+*Constraints*
+
+1. Developer can declare attributes for structs, fields, methods and parameters.
+
 *Example*
 
 ```todo-language
-attribute json = struct()
-attribute json = field(string key)
+attribute field json = struct {
+  string key
+}
 
-function fromJson<$t>(string jsonstr) {
-  var hash = jsonHash(jsonstr)
-  var $t ret()
+type JsonSerializable = interface {
+  function to_json(string jsonstr) {
+    var str = "{"
 
-  foreach k,v in $t.get_fields() {
-    var jsonKey = $t.#k#.getAtribute<string>("json")
-    ret.#k# = hash.get<typeof $t.#k#>(jsonKey, (typeof $t.#k#).default)
+    // #foreach -> constexpr -> expand in compile time
+    #foreach k, field in $t.get_fields() {
+      var jsonKey = field.getAttribute<string>("json") || field.name
+      str += json.encode<string>(jsonKey) + ":" + json.encode<field.type>(this[field.name])
+    }
+
+    str += "}"
+    return str
+  }
+
+  function from_json(string jsonstr) {
+    var hash = json.parse_hash(jsonstr)
+    var $t ret()
+
+    // #foreach -> constexpr -> expand in compile time
+    #foreach k, field in $t.get_fields() {
+      var jsonKey = field.getAttribute<string>("json") || field.name
+
+      this[field.name] = hash.get<field.type>(jsonKey)
+    }
   }
 }
 
 
-[JsonSerializable]
-type point = struct {
+type point = struct extends JsonSerializable {
   [json("x")]
   float x
   [json("y")]
   float y
 }
-var p = fromJson<point>("{\"x\": 0.0, \"y\": 1.1}")
+function main() {
+  var str_json = "{\"x\": 0.0, \"y\": 1.1}"
+  var p = fromJson<point>(str_json)
+
+  #assert p.x == 0.0
+  #assert p.y == 1.1
+  #assert p.to_json() == str_json
+}
 
 ```
 
@@ -683,6 +1018,21 @@ Read more at [expressions](../expressions.md#operator-overloading)
 `extends` creates new `struct` with all the previous fields, properties and methods at the beginings of the current.
 
 *Constraints*
+
+1. Extends a `struct` will prepend the extended structure, with the hidden fields.
+
+So two structures won't always have the same size when they have the same fields.
+
+```language
+type a = struct { float a; }
+type b = struct extends a { float b; }
+type ab = struct { float b; float a; }
+
+function main() {
+  #assert b.size != ab.size
+  #assert b.size > ab.size
+}
+```
 
 1. A property in derived struct shall not collide with base struct properties or a semantic error shall raise:
 
