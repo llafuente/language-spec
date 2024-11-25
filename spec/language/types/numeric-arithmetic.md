@@ -38,11 +38,13 @@ representation.
 
 Example:
 
-```
+```language
+function main() {
   print(i8.MAX) // 128
   print(i8.MIN) // -127
   print(i8.BYTES) // 1
   print(i8.BITS) // 8
+}
 ```
 
 
@@ -136,6 +138,8 @@ Like array length, capacity.
 <!--
   https://en.cppreference.com/w/cpp/types/size_t
 -->
+
+### `ptrsize`
 
 ### `ptrdiff`
 

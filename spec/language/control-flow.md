@@ -110,14 +110,14 @@ function main() {
   https://clang.llvm.org/doxygen/classclang_1_1SwitchStmt.html
 -->
 
-### `switch` (`case`, `break` and `fallthrough`)
+### `switch` (`case`, `default` `break` and `fallthrough`)
 
 *Syntax*
 
 ```syntax
 switchCaseStmt
   // REVIEW syntax require block here ? also required colon ?
-  : 'case' expressionList ':'  functionBodyStmtList
+  : 'case' expressionList ':' functionBodyStmtList
   | 'default' ':' functionBodyStmtList
   ;
 

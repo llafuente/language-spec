@@ -74,6 +74,13 @@ type use_mini_array = struct {
   mini_array3<abcstruct> arr4
 }
 
+type v2 = struct {
+  float x
+  float y
+  static v2 ZERO = v2 {0, 0}
+  static v2 ZERO2 = {0, 0}
+}
+
 // self usage
 
 type namewillchange<$t> = struct {
