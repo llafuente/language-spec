@@ -244,6 +244,9 @@ function x() i8 {
   return 0;
 }
 ```
+
+
+
 <!--
   https://stackoverflow.com/questions/12992108/crosses-initialization-of-variable-only-when-initialization-combined-with-decl
 -->
@@ -252,7 +255,7 @@ later or a semantic error shall raise
 
 > goto ':?identifier' crosses initialization of ':?var_identifier' declared at ':?file:?line:?column'
 
-```language
+```language-semantic-error
 function main() {
   var int a = 5;
   goto JUMP;
@@ -260,11 +263,10 @@ function main() {
   var b = 1;
 
   JUMP: {
-    printf("a = ", a);
-    printf("b = ", b);
+    #assert a == 1
+    #assert b == 0
   }
 }
-
 ```
 
 ## Iteration statements
@@ -337,31 +339,26 @@ see example below for more info. If your loop need to change behaviour for examp
 because the length of the string is changes use another loop statement like:
 [`for`](#for) / [`foreach`](#foreach) / [`while`](#while) or [`do-while`](#do-while)
 
-```
-global var called = false
-function get_count() {
-  #assert !called
-  called = true
-  return 10
-}
+```language-spec
 function main() {
-  var counter = 0
-  loop get_count() {
-    print($value)
-    ++counter
+  var i = 5
+  var iterations = []
+  loop i {
+    i = 10
+    iterations.push($index)
   }
-  #assert called
-  #assert counter == 10
+  #assert i == 10
+  #assert iterations == [0, 1, 2, 3, 4]
 }
 ```
 
 2. The loop-expression shall have numeric, range or implement index_iterator.
 
-* `numeric`: it shall repeat `loop-body` given number of times, from 0 till given name.
+* `numeric`: it shall repeat `loop-body` given number of times, from 0 till given number (+1/-1) depending on positive or negative number.
 
 * `range`: it shall repeat `loop-body` starting and ending according to given range.
 
-* `safe_iterator` it shall loop the type up to start state and be safe to modifications.
+* `safe_iterator` it shall loop the type from start to end according to `safe_iterator`.
 
 <!--
 * if expression is a struct
@@ -376,23 +373,22 @@ There is no way to increment a number different than one, use [`for`](#for) inst
 
 *Examples*
 
-Using positive *number*. It will print from 0 to 10
-
-```language
+*Numeric* input.
+```language-spec
 function main() {
+  // Using positive *number*.
+  var values = []
   loop 10 {
-    print($index)
+    values.push($index)
   }
-}
-```
+  #assert values == [0,1,2,3,4,5,6,7,8,9]
 
-Using negative *number*. It will print from 0 to -10
-
-```language
-function main() {
+  // Using negative *number*.
+  var values = []
   loop -10 {
-    print($index)
+    values.push($index)
   }
+  #assert values == [0,-1,-2,-3,-4,-5,-6,-7,-8,-9]
 }
 ```
 
@@ -403,7 +399,7 @@ It's not an infinite loop because the loop-expression is cached at start.
 ```language
 function main() {
   var i = 10
-  loop range(1, i) {
+  loop 1 .. i {
     ++i
     print($index)
   }
@@ -414,44 +410,27 @@ Using *safe_iterator*
 
 ```language
 function main() {
-  var original = [1, 2, 3, 4, 5]
-  var loopClone = []
+  var src = [1, 2, 3, 4, 5]
+  var dst = []
 
-  // 5th won't be looped as is invalid when the iterator arrive.
-  loop v in original {
-      loopClone.push(v)
-      if (i == 0) {
-        original.pop()
-      }
+  loop v in src {
+      dst.push(v)
+      src.pop()
   }
 
-  #assert original.length == 4
-  #assert loopClone.length == 4
+  #assert src.length == 0
+  #assert dst == [1, 2, 3, 4, 5]
 
-  // 5th element (99) won't be looped as it does not exist when loop starts
-  loopClone = []
-  loop v in original {
-      loopClone.push(v)
-      if (i == 0) {
-        original.push(99)
-      }
+  loop v in dst {
+      src.push(v)
+      dst.push(99)
+      dst[$index + 1] = 1
   }
 
-  #assert original.length == 5
-  #assert loopClone.length == 4
-
-  // 5th element value will be 88
-  loopClone = []
-  loop k, v in original {
-      loopClone.push(v)
-      if (i == 0) {
-        original[4] = 88
-      }
-  }
-
-  #assert original.length == 5
-  #assert loopClone.length == 5
-  #assert loopClone[4] == 88
+  #assert src.length == 5
+  #assert src == [1, 2, 3, 4, 5]
+  #assert dst.length == 10
+  #assert dst == [1, 1, 1, 1, 1, 1, 99, 99, 99, 99]
 }
 ```
 
