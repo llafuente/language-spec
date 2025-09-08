@@ -56,9 +56,10 @@ It's the process used by the language to react to non-conformant code.
 
 *Constraints*
 
-1. `goto` is forbidden inside `tryBlock` or `catchBlock` or `finallyBlock`
+1. `goto` is forbidden inside `tryBlock`
+<!-- study: `catchBlock` or `finallyBlock` -->
 
-2. `break` shall not leave `tryBlock` or `catchBlock` or `finallyBlock`
+2. A `break` statements inside: `tryBlock`, `catchBlock` or `finallyBlock` will reset error handling
 
 ```error
 function main() {
@@ -111,8 +112,6 @@ function main() {
 		fs.open("file.txt")
 	} catch fs.error.fileNotFound {
 		print("File not found")
-	} catch {
-		throw
 	}
 }
 ```
@@ -124,12 +123,12 @@ function main() void {
 	λ_exception_value = null
 	fs.open("file.txt")
 	if (λ_exception_value != null) {
-		if (λ_exception_type == int && λ_exception_value == fs.fileNotFound) {
+		if (λ_exception_type == fs.error && λ_exception_value == fs.error.fileNotFound) {
 			print("File not found")
-		} else {
-			return void.default
 		}
-	}
+    }
+
+    return void.default
 }
 ```
 
@@ -168,8 +167,8 @@ type λt_location = struct {
 }
 
 global λt_location[] λ_call_stack = new
-global own ptr<void>? λ_exception_value = null
-global type λ_exception_type = i8
+global ref<void>? λ_exception_value = null
+global type λ_exception_type = void
 
 function function_that_throws(bool b) i8 {
 	if (b) {
@@ -392,3 +391,78 @@ Open file
 File not found
 This is the end, my only friend
 ```
+
+
+## retry
+
+```syntax
+retryUntilWhileStmt
+  : 'retry' functionBody ('while' expression | 'until' expression)
+  ;
+```
+
+*Semantics*
+
+Retry body block until expression is met or Retry body block while expression is met.
+
+`retry` statement in a compiler construct around other features. It purpose is to be idiomatic.
+
+*Constraints*
+
+1. `retry` statement create a magic variable with name $index, that count how many iterations are being performed. Stating from 0.
+
+2. `retry` statement create a magic variable with name $exception, that store the exception throw in the last iteration. It will be zero in the first try.
+
+3. `retry` statement is repleaced by a: try-catch-if
+
+*Examples*
+
+```language
+function main() {
+  retry {
+    doMagic()
+  } while ($index < 5)
+}
+```
+
+```language
+function main() {
+retry_loop_001: loop {
+	var exception
+	try {
+    	doMagic()
+	} catch e {
+		$exception = e
+		if ($index < 5) {
+			continue retry_loop_001
+		}
+	}
+  }
+}
+```
+
+```language
+function main() {
+  retry {
+    doMagic()
+  } until ($index > 5)
+}
+```
+
+```language
+function main() {
+retry_loop_001: loop {
+	var exception
+	try {
+    	doMagic()
+	} catch e {
+		$exception = e
+		if (!($index > 5)) {
+			continue retry_loop_001
+		}
+	}
+  }
+}
+```
+
+
