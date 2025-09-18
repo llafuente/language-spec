@@ -38,6 +38,7 @@ The controlling expression shall have bool type, there won't be implicit convers
 
 <!--
   https://clang.llvm.org/doxygen/classclang_1_1IfStmt.html
+  cpp - 8.5.1 The if statement [stmt.if]
 -->
 
 *syntax*
@@ -63,10 +64,7 @@ ifStmt
 If the else part of the selection statement is present and "if-condition"
 yields false, "else-then-block" will be executed.
 
-2. If a statement of "if-then-block" is reached via a label, the "if-condition" is not evaluated and the "else-then-block" is not executed.
-
-3. If a statement of "else-then-block" is reached via a label, the "if-condition" is not evaluated.
-
+2. If a statement of "if-then-block" or "else-then-block" is reached via a label, note that none of "if-condition" will be evaluated.
 
 *Constraints*
 
@@ -77,29 +75,32 @@ yields false, "else-then-block" will be executed.
 
 > This branch can never execute. Its condition is a duplicate or is covered by a previous if-condition
 
-
 *Example*
 
 ```language
 function main() {
-  var x = false
+  var x = true
+  if (x) {
+    print("ok")
+  } else {
+    throw "unexpected else condition, x shall be true"
+  }
+
+  x = false
+  if (x) {
+    throw "unexpected if condition, x shall be false"
+  } else {
+    print("ok")
+  }
+
   var y = true
 
   if x {
-    print("x is true")
-  } else if y {
-    print("y is true")
+    throw "unexpected if condition, x shall be false"
+  } else if (y) { // parenthesis are optional
+    print("ok")
   } else {
-    print("x and y are false")
-  }
-
-  // parenthesis is optional
-  if (x) {
-    print("x is true")
-  } else if (y) {
-    print("y is true")
-  } else {
-    print("x and y are false")
+    throw "unexpected else condition, y shall be true"
   }
 }
 ```
@@ -108,6 +109,8 @@ function main() {
   https://docs.swift.org/swift-book/documentation/the-swift-programming-language/controlflow/#Switch
 
   https://clang.llvm.org/doxygen/classclang_1_1SwitchStmt.html
+
+  cpp -  8.5.2 The switch statement [stmt.switch]
 -->
 
 ### `switch` (`case`, `default` `break` and `fallthrough`)
@@ -118,49 +121,100 @@ function main() {
 switchCaseStmt
   // REVIEW syntax require block here ? also required colon ?
   : 'case' expressionList ':' functionBodyStmtList
-  | 'default' ':' functionBodyStmtList
+  ;
+switchDefaultStmt
+  : 'default' ':' functionBodyStmtList
   ;
 
 switchStmt
-  : 'switch' expression '{' (endOfStmt? switchCaseStmt)+ '}'
+  : 'switch' expression '{' (endOfStmt? switchCaseStmt)+ (endOfStmt? switchDefaultStmt)? '}'
   ;
 ```
 
 
 *Semantics*
 
-The switch statement causes control to be transferred to one of several
-statements depending on the value of a condition. If no match is found and
-`default` part is present it will be executed.
+1. The switch statement causes control to be transferred to one of several
+statements depending on the value of a condition.
 
-A `case` could have multiple conditions comma separated.
+2. if all cases yields false and a `default` case is present it will be executed.
+
+3. A `case` could have multiple conditions comma separated.
 If one check yields true, the `case-block` will be executed.
 
-`break` will exit switch statement.
+4. `break` will exit switch statement.
 
-`fallthrough` will jump to the first statement in the next `case-block` or
-`default-block`.
+5. `fallthrough` will jump to the first statement in the next `case-block` or
+`default-block`. It will not execute the `case` expression.
 
 
 *Constraints*
 
-`switch condition expression` will be evaluated once, the cached value will be
-used in each case condition check.
+1. `default` case shall be the last.
+
+2. the `switch-condition` expression will be evaluated only once.
+
+```language-test
+global v = 0
+function add_one() {
+  ++v
+}
+
+function main() {
+  var defaultCase = false
+  #assert v == 0
+  switch(add_one()) {
+    case 0:
+    case 2:
+    case 3,4 ,5:
+      throw "invalid!"
+    default:
+      defaultCase = true
+  }
+
+  #assert v == 1
+  #assert defaultCase
+}
+```
 
 <!--
 The compiler will search for an `operator switch` that match input condition
 and case condition types. If not found
 -->
-The compiler will search for an `operator ==`
-that match input condition and case condition types.
+3. if the `switch-condition` type is not int, it will check against `operator ==`
 
-There shall be at most one `default` within a `switch` statement.
+```language-test
+struct point {
+  int x
+  int y
+  
+  operator==(point other) {
+    return other.x == x && other.y == y
+  }
+}
 
-There shall be at least one `case` or `default` within a `switch` statement.
+function main() {
+  var p = new point(10,10)
+  var p2 = new point(10,10)
 
-`fallthrough` shall be the last statement in a `case-block`.
+  switch(p) {
+    case p2:
+      print('ok')
+    default:
+      throw "default case shall not be reached
+  }
 
-The last statement of a `case-block` must be `break` or `fallthrough`.
+  #assert p == p2
+}
+
+```
+
+4. There shall be at most one `default` within a `switch` statement.
+
+5. There shall be at least one `case` or `default` within a `switch` statement.
+
+<!-- TODO this requires some grammar modifications -->
+6. `fallthrough` or `break` shall be the last statements in a `case-block` can't be in the middle.
 
 *Example*
 
@@ -168,25 +222,24 @@ We can check a value against a variety of conditions of different types.
 
 ```language
 function main() {
+  var string_a = "a"
   var a = io.stdin.read_line()
 
   switch a {
-    case string_a, string_b, string_c: {
+    case string_a, "b", "c": {
+      print("it's a, b or c")
       fallthrough
     }
-    case string_d: {
-      // do something
+    case "d": {
+      print("it's a, b, c or d")
       break
     }
-    case "constant-string": {
-      // do something
-      break
-    }
-    case /^abc/: {
-      // do something
+    case /^[e-z]/: {
+      print("starts with letter from e to z")
       break
     }
     default: {
+      print("maybe a number or uppercase?")
     }
   }
 }
@@ -220,7 +273,7 @@ gotoStmt
 
 *Semantics*
 
-A goto statement causes an unconditional jump to the statement prefixed
+1. A goto statement causes an unconditional jump to the statement prefixed
 by the named label
 
 
@@ -269,6 +322,23 @@ function main() {
 }
 ```
 
+3. A jump shall not skip the declaration or initilization of any magic variable used
+later or a semantic error shall raise
+
+> goto ':?identifier' crosses initialization of magic ':?var_identifier' declared at ':?file:?line:?column'
+
+```language-semantic-error
+function main() {
+  goto JUMP;
+
+  loop 10 {
+    JUMP: {
+      #assert $index >= 0
+    }
+  }
+}
+```
+
 ## Iteration statements
 
 * [`loop`](#loop)
@@ -278,9 +348,9 @@ function main() {
 
 With the following jump statements
 
-* `restart` will affect all.
-* `continue` will affect all.
-* `break` will affect all and `switch`
+* `restart` can be used in any iteration.
+* `continue` can be used in any iteration.
+* `break` can be used in any iteration and `switch`
 
 <a name="loop"></a>
 ### `loop`
@@ -625,7 +695,7 @@ whileStmt
 
 ```syntax
 doWhileStmt
-  : 'do' functionBody 'while' expression
+  : 'do' functionBody ('while' | 'until') expression
   ;
 ```
 

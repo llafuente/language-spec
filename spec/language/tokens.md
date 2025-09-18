@@ -64,6 +64,7 @@ FOREACH_TK : 'foreach';
 FOR_TK : 'for';
 DO_TK : 'do';
 WHILE_TK : 'while';
+UNTIL_TK : 'until';
 CONTINUE_TK : 'continue';
 RESTART_TK : 'restart';
 BREAK_TK : 'break';
@@ -82,6 +83,7 @@ CAST_TK : 'cast';
 
 // error handling
 TRY_TK : 'try';
+RETRY_TK : 'retry';
 CATCH_TK : 'catch';
 FINALLY_TK : 'finally';
 THROW_TK : 'throw';
