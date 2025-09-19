@@ -1,7 +1,20 @@
-import { openSync, readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+// pip install antlr4-tools
+import { openSync, readFileSync, writeFileSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { spawn, spawnSync }  from 'node:child_process';
 
+// extract lexer and grammer from markdown files
+// lexer is marked as "lexer" source code
+// syntax is marked as "syntax" source code
+// syntax is marked as "syntax" source code
+// then it will test documentation examples
+// language and language-semantic-error, but it won't check language-syntax-error
 
+
+// reset
+try {
+	unlinkSync("./LanguageLexer.g4")
+	unlinkSync("./LanguageParser.g4")
+} catch (e) {}
 
 function readDirSyncR(dir) {
     var results = [];
@@ -23,7 +36,7 @@ function readDirSyncR(dir) {
 
 function parseCode(fileContents, annotation) {
 	return fileContents.filter((line) => {
-		return line.indexOf(`${annotation}\n`) == 0
+		return line.indexOf(`${annotation}\n`) == 0 || line.indexOf(`${annotation}\r\n`) == 0
 	}).map((line) => {
 		return line.substr(`${annotation}\n`.length)
 	});
@@ -56,6 +69,7 @@ var lexer = [];
 	lexer.push(`//file: ${file}`)
 	lexer.push(extractAllCode(contents, "lexer"))
 });
+
 writeFileSync("./LanguageLexer.g4", `lexer grammar LanguageLexer;\n` + lexer.join("\n"))
 
 var tokens = [];
@@ -96,10 +110,16 @@ var spec_files = [
 ];
 
 spec_files.forEach((file) => {
+	//console.log(file)
+
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
+
 	parser.push(`//file: ${file}`)
 	parser.push(replaceTokens(tokens, extractAllCode(contents, "syntax")))
+
+	//console.log(parser)
+	//process.exit(0)
 
 	// search for tokens and replace them!
 });
@@ -113,11 +133,17 @@ function antlr4(text, option) {
 	var tmp_file = "./temp.language";
 	writeFileSync(tmp_file, text);
 	let fd_stdin = openSync(tmp_file, 'r');
-	let result =  spawnSync('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', option], {
+	let result =  spawnSync('C:\\Users\\luis\\.pyenv\\pyenv-win\\shims\\antlr4-parse.bat', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', option], {
 	  // stdio: [fd_stdin, 1, 2]
+	  stdio: [fd_stdin],
 	  encoding: 'utf-8',
-	   stdio: [fd_stdin]
+	  shell: true,
 	});
+
+	if (result.error) {
+		console.log(result.error);
+		process.exit(1)
+	}
 	
 	/*
 	console.log(result.stdout)
@@ -158,7 +184,7 @@ spec_files.forEach((file) => {
 	console.log(`Validating spec file: ${file}`)
 	var contents = readFileSync(file, {encoding: "utf-8"})
 	contents = contents.split("```");
-  ["language", "language-semantic-error"].forEach((annotation) => {
+  ["language", "language-test", "language-semantic-error"].forEach((annotation) => {
   	parseCode(contents, annotation).forEach((text) => {
   		if (!text.length) {
   			return
