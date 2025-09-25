@@ -60,6 +60,7 @@ CASE_TK : 'case';
 FALLTHROUGH_TK : 'fallthrough';
 GOTO_TK : 'goto';
 LOOP_TK : 'loop';
+WHERE_TK : 'where';
 FOREACH_TK : 'foreach';
 FOR_TK : 'for';
 DO_TK : 'do';

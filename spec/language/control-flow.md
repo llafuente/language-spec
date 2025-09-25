@@ -322,10 +322,7 @@ function main() {
 }
 ```
 
-3. A jump shall not skip the declaration or initilization of any magic variable used
-later or a semantic error shall raise
-
-> goto ':?identifier' crosses initialization of magic ':?var_identifier' declared at ':?file:?line:?column'
+This includes, compiler variables.
 
 ```language-semantic-error
 function main() {
@@ -355,50 +352,196 @@ With the following jump statements
 <a name="loop"></a>
 ### `loop`
 
+*Preamble*
+
+`loop` is a swiss army knife to iterate it enforces readability of what is the intend of the programmer
+
+It's safe from infinite loops and it's should be safe from modifications.
+
+Here is a few examples of what you can achieve.
+
+* loop elements from start to last (default)
+  ```language
+  function main() {
+    var iterable = [1, 2, 3, 4, 5]
+    var chk = []
+    loop iterable {
+      chk.push($value)
+    }
+    #assert chk == [1,2,3,4,5]
+  }
+  ```
+
+* loop a slice of elements (create the safe iterator)
+  ```language
+  function main() {
+    var iterable = [1, 2, 3, 4, 5]
+    var chk = []
+    // start at 3rd element (index = 2), 3 elements
+    loop iterable.safe_iterator(2,3) {
+      chk.push($value)
+    }
+    #assert chk == [3, 4, 5]
+  }
+  ```
+
+* loop elements until a condition is met:
+  ```language
+  function main() {
+    var iterable = [1, 2, 3, 4, 5]
+    var chk = []
+    loop iterable until $value == 4 {
+      chk.push($value)
+    }
+    #assert chk == [1,2,3]
+  }
+  ```
+
+* loop elements while a confitionn is met:
+  ```language
+  function main() {
+    var iterable = [1, 2, 3, 4, 5]
+    var chk = []
+    loop iterable while < 5 {
+      chk.push($value)
+    }
+    #assert chk == [1,2,3,4]
+  }
+  ```
+
+* loop only element that match certain criteria
+  ````language
+  function main() {
+    var iterable = [1, 2, 3, 4, 5]
+    var chk = []
+    // only odds
+    loop iterable where $value % 2 == 0 {
+      chk.push($value)
+    }
+    #assert chk == [2,4]
+  }
+  ```
+
+If you want to iterate starting below the start, send a built iterator for example:
+
+```language-spec
+function main() {
+  var arr = [1, 2, 3, 4, 5, 6]
+  var check = []
+  
+  // 3rd element will be the first, 5th will be the last
+  loop arr.iterator(3, 2)  {
+    check.push($value);
+  }
+  #assert check == [3,4,5]
+  #assert typeof arr == array<i64>
+  #assert typeof check == array<i64>
+}
+```
+
 *Syntax*
 
 ```syntax
 loopStmt
-  : 'loop' (identifier (',' identifier)? 'in')?  expression functionBody
+  : 'loop'
+    ((value=identifier 'in') | (key=identifier ',' value=identifier 'in'))?
+    loop_limit_expr=expression
+    ('where' where_expr=expression)?
+    (('until' until_expr=expression) | ('while' while_expr=expression))?
+    loop_body=functionBody
   ;
 ```
 
 *Semantics*
 
-1. `loop` will repeat `loop body` a pre-defined number of times.
+1. `loop` will repeat `loop_body` a pre-defined number of times, defined prior the first iteration.
 
-2. It will create a magic variable `$index` for the numeric index value, and
-`$value` that will hold the value of given structure if needed. Both magic
-variables can have custom names if provided.
-
-```language
+```language-test
 function main() {
-  var counter = 0
+  var arr = []
+  var i = 10
+  // it will loop 10 times.
+  loop i {
+    i = 20 // regardless i being modified inside the loop
+    arr.push(i)
+  }
+  #assert arr == [0,1,2,3,4,5,6,7,8,9]
+}
+```
+
+2. Inside `loop_body` there will be two compiler variables available. If defined they shall be renamed.
+
+  * `$keyType $index`: holds the index value, key_type depends on the `safe_iterator` used.
+
+  * `$valueType $value`: hold the value of given structure if needed, value_type depends on the `safe_iterator` used.
+
+```language-test
+function main() {
+  // numeric loop: $index and $value are the same.
+  var indexes = []
+  var values = []
   loop 10 {
-    print($index)
-    print($value)
-    ++counter
+    indexes.push($index)
+    values.push($value)
   }
+  #assert indexes == [0,1,2,3,4,5,6,7,8,9]
+  #assert values == [0,1,2,3,4,5,6,7,8,9]
 
-  #assert counter == 10
-  counter = 0
-
+  indexes = []
+  values = []
   loop value, 10 {
-    print($index)
-    print(value)
-    ++counter
+    indexes.push($index)
+    values.push(value)
   }
 
-  #assert counter == 10
-  counter = 0
+  #assert indexes == [0,1,2,3,4,5,6,7,8,9]
+  #assert values == [0,1,2,3,4,5,6,7,8,9]
 
+  indexes = []
+  values = []
   loop index, value, 10 {
-    print(index)
-    print(value)
-    ++counter
+    indexes.push(index)
+    values.push(value)
   }
-  #assert counter == 10
-  counter = 0
+
+  #assert indexes == [0,1,2,3,4,5,6,7,8,9]
+  #assert values == [0,1,2,3,4,5,6,7,8,9]
+}
+```
+
+3. `where_expr` can be defined so `loop_body` will be executed only when it yields true.
+Inside the condition $key,$value will be available.
+
+```language-test
+function main() {
+  var indexes = []
+  var values = []
+  loop 10 where $index > 4 {
+    indexes.push($index)
+    values.push($value)
+  }
+  #assert indexes == [5,6,7,8,9]
+  #assert values == [5,6,7,8,9]
+}
+```
+
+3. `until_expr` or `while_expr` can be defined.
+
+* `loop_body` will be executed until `until_expr` yields true
+
+* `loop_body` will be executed while `while_expr` yields true
+
+
+```language-test
+function main() {
+  var indexes = []
+  var values = []
+  loop 10 where $index > 4 {
+    indexes.push($index)
+    values.push($value)
+  }
+  #assert indexes == [5,6,7,8,9]
+  #assert values == [5,6,7,8,9]
 }
 ```
 
@@ -409,7 +552,7 @@ see example below for more info. If your loop need to change behaviour for examp
 because the length of the string is changes use another loop statement like:
 [`for`](#for) / [`foreach`](#foreach) / [`while`](#while) or [`do-while`](#do-while)
 
-```language-spec
+```language-test
 function main() {
   var i = 5
   var iterations = []
@@ -422,13 +565,20 @@ function main() {
 }
 ```
 
-2. The loop-expression shall have numeric, range or implement index_iterator.
+2. `loop_limit_expr` shall have on of the following types:
 
-* `numeric`: it shall repeat `loop-body` given number of times, from 0 till given number (+1/-1) depending on positive or negative number.
+* `numeric`: It shall repeat `loop_body` given number of times
+  * If `loop_limit_expr` is positive, from 0 till given number adding one.
+  * If `loop_limit_expr` is negative from 0 till given number substracting one.
+  * `$keyType` and `$valueType` will be `i64`
 
-* `range`: it shall repeat `loop-body` starting and ending according to given range.
+* `range`: It shall repeat `loop_body` starting and ending according to given range.
+  * `$keyType` and `$valueType` will be `i64`
 
-* `safe_iterator` it shall loop the type from start to end according to `safe_iterator`.
+* `safe_iterator<$keyType, $valueType>`: It shall loop the type from start to end.
+  * Call `next()` to move the next elements.
+  * Call `get_key()` to get the key value.
+  * Call `get_ref_value()` to get a reference to the value.
 
 <!--
 * if expression is a struct
@@ -439,12 +589,12 @@ function main() {
 
 *Remarks*
 
-There is no way to increment a number different than one, use [`for`](#for) instead.
+There is no (meaningful) way to increment a number different than one, use [`for`](#for) instead.
 
 *Examples*
 
 *Numeric* input.
-```language-spec
+```language-test
 function main() {
   // Using positive *number*.
   var values = []
@@ -466,19 +616,22 @@ Using *range*: The following example will print 1 to 10 and continue.
 
 It's not an infinite loop because the loop-expression is cached at start.
 
-```language
+```language-test
 function main() {
   var i = 10
+  var arr = []
   loop 1 .. i {
     ++i
-    print($index)
+    arr.push($index)
   }
+  #assert arr == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  #assert i == 19
 }
 ```
 
 Using *safe_iterator*
 
-```language
+```language-test
 function main() {
   var src = [1, 2, 3, 4, 5]
   var dst = []
@@ -494,15 +647,33 @@ function main() {
   loop v in dst {
       src.push(v)
       dst.push(99)
-      dst[$index + 1] = 1
+      dst[$index] = 1
   }
 
   #assert src.length == 5
   #assert src == [1, 2, 3, 4, 5]
+
   #assert dst.length == 10
-  #assert dst == [1, 1, 1, 1, 1, 1, 99, 99, 99, 99]
+  #assert dst == [1, 1, 1, 1, 1, 99, 99, 99, 99, 99]
 }
 ```
+
+
+<a name="loop-rationale"></a>
+*Rationale* 
+
+Why it's expression is cached?
+* `for` and `do` do not cache, so someone has to do it.
+* `foreach` is unsafe to
+ Because it use safe iterator. It's an optimization for 
+most usages. You can use regular [#for](`for`) instead.
+
+most of the time people loop a list to filter, that exactly what you do in SQL Select,
+so we could have a similar syntax.
+
+* `select key, value from objects where value.favourite = TRUE`
+* `loop key,value in objects where value.favourite`
+
 
 <a name="loop-implementation"></a>
 *Implementation*
@@ -582,31 +753,54 @@ forStmt
 
 ```syntax
 foreachStmt
-  : 'foreach' (identifier (',' identifier)? 'in')? expression functionBody
+  : 'foreach'
+    ((value=identifier 'in') | (key=identifier ',' value=identifier 'in'))?
+    foreach_expr=expression
+    foreach_body=functionBody
   ;
 ```
 
-`foreach` will loop a structure.
+*Preamble*
 
-`foreach` key has no performance impact.
+Unlike `loop` it's not safe. You can fall into infinite loops, it's also not safe to some modifications but It will try to follow your modifications to the structure.
 
-`foreach` key and value has, mostly with structs, because value will be copied
-in each iteration to the stack.
+```language-spec
+function main() {
+  var arr = [1, 2, 3, 4, 5]
+  // it will loop 5 times.
+  loop arr {
+    arr.push($value)
+  }
+  #assert arr == [1,2,3,4,5,1,2,3,4,5]
+
+  // but foreach will "infinite loop"
+  var arr2 = [0]
+  // it will loop 5 times.
+  foreach arr2 {
+    arr2.push($index)
+    if ($index == 20) {
+      break
+    }
+  }
+  #assert arr2 == [0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+}
+```
 
 *Semantics*
 
-`foreach` shall repeat `foreach-body` for each value that given expression holds.
+1. `foreach` shall repeat `foreach_body` one per element.
 
-It will create two magic variables:
+2. Inside `foreach_body` there will be two compiler variables available. If defined they shall be renamed.
 
-* `$index` of type index for the numeric index value
-* `$value` that will hold the value of given structure.
+  * `key_type $index`: holds the index value, type will be defined by the iterator.
 
-Both magic variables can have custom names if provided.
+  * `value_type $value`: holds the value, type will be defined by the iterator.
 
-The input is safe to be modified, change, add or remove are allowed.
-*Note* Removing/changing current `$value` could make the value unusable
-depending on the implementations.
+3. `foreach_expr` shall implement `index_iterator<$keyType, $valueType>`
+
+  * Call `next()` to move to next element
+
+  * Call `get_key()`
 
 *Constraints*
 
