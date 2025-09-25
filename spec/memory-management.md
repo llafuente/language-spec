@@ -54,7 +54,7 @@ It also allocates memory from a custom [memory-pool](#memory-pool).
   * `lend static_array<type>` for `arrayNewExpression` with length
   * `lend array<type>` for `arrayNewExpression` without length
 
-```test
+```language-test
 type point = struct {
   float x
   float y
@@ -82,7 +82,7 @@ function main() {
 4. If a constructor return uninitialized memory user shall call given
 constructor again, until all memory is initialized.
 
-```test
+```language-test
 type b = struct {
   int value
   new (int v) {
@@ -113,7 +113,7 @@ function main() {
 }
 ```
 
-```compiled
+```language-compiled
 function main() {
   var ref<i8> a = global_alocator.calloca(i8.sizeof)
   a = 0 // <-- constructor call, optional as the memory is zero-allocated
@@ -141,7 +141,7 @@ function main() {
 }
 ```
 
-```compiled
+```language-compiled
 //...
 
 function main() {
@@ -233,7 +233,7 @@ constructor before assigned to a variable of any type.
 
 > uninitilized memory shall not be assigned.
 
-```language-error
+```language-syntax-error
 function allocate_raw() lend uninitilized ref<i8>{
   return libc.malloc<i8>(10)
 }

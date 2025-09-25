@@ -136,7 +136,7 @@ type Quaternion = struct extends Vector3 {
 
 2. A structure shall not contain a field with an incomplete type
 
-```error
+```language-semantic-error
 type A = struct {
   B b
 }
@@ -147,7 +147,7 @@ type B = struct {
 
 or an instance of itself
 
-```error
+```language-semantic-error
 type A = struct {
   A a
 }
@@ -157,7 +157,7 @@ type A = struct {
 
 But using a ref is ok, because a pointer is always of the same size regarless the type it points.
 
-```error
+```language-semantic-error
 type A = struct {
   ref<B> b
 }
@@ -350,7 +350,7 @@ function main() {
 
 ```
 
-```compiled
+```language-compiled
 type user = struct {
   string name
 }
@@ -427,7 +427,7 @@ function main() {
 
 ```
 
-```compiled
+```language-compiled
 function main() {
   #assert decorator_is_called == false
   #assert decorated_is_called == false
@@ -482,7 +482,7 @@ function main() {
 
 ```
 
-```compiled
+```language-compiled
 function sum(
   i32 a,
   i32 b
@@ -566,7 +566,7 @@ function main() {
 }
 ```
 
-```compiled
+```language-compiled
 set decorator range(int x, int min, int max) int {
   return (x > max ? max : (x < min ? min : x))
 }
@@ -926,7 +926,7 @@ function main() {
 }
 ```
 
-```compiled
+```language-compiled
 type user = struct {
   string name
 }
@@ -977,7 +977,7 @@ function main() {
 
 *Example*
 
-```error
+```language-semantic-error
 type point = struct {
   add(ref<point> b) {
     // ...
@@ -1219,7 +1219,7 @@ This ease composition patterns.
 
 *Error*
 
-```language-error
+```language-semantic-error
 type abc = struct {
   i32 a
   i32 b

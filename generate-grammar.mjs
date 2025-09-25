@@ -1,6 +1,7 @@
 // pip install antlr4-tools
 import { openSync, readFileSync, writeFileSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { spawn, spawnSync }  from 'node:child_process';
+import assert from 'node:assert';
 
 // extract lexer and grammer from markdown files
 // lexer is marked as "lexer" source code
@@ -9,11 +10,13 @@ import { spawn, spawnSync }  from 'node:child_process';
 // then it will test documentation examples
 // language and language-semantic-error, but it won't check language-syntax-error
 
+const LEXER_FILE = "./LanguageLexer.g4";
+const PARSER_FILE = "./LanguageParser.g4";
 
 // reset
 try {
-	unlinkSync("./LanguageLexer.g4")
-	unlinkSync("./LanguageParser.g4")
+	unlinkSync(LEXER_FILE)
+	unlinkSync(PARSER_FILE)
 } catch (e) {}
 
 function readDirSyncR(dir) {
@@ -33,8 +36,33 @@ function readDirSyncR(dir) {
     return results;
 }
 
+const fileCache = {};
+function readFile(file) {
+	if (fileCache[file]) {
+		return fileCache[file]
+	}
+
+	var contents = readFileSync(file, {encoding: "utf-8"}).split("```")
+	assert(contents.length % 2 == 1);
+
+	return (fileCache[file] = contents)
+}
+
 
 function parseCode(fileContents, annotation) {
+	const out = []
+	for (let i = 0; i < fileContents.length; ++i) {
+		const line = fileContents[i];
+
+		if (line.indexOf(`${annotation}\n`) == 0 || line.indexOf(`${annotation}\r\n`) == 0) {
+			fileContents.splice(i, 1);
+			--i;
+			out.push(line.substr(`${annotation}\n`.length))
+		}
+	}
+
+	return out
+
 	return fileContents.filter((line) => {
 		return line.indexOf(`${annotation}\n`) == 0 || line.indexOf(`${annotation}\r\n`) == 0
 	}).map((line) => {
@@ -64,13 +92,13 @@ var lexer = [];
 	"./spec/language/identifiers.md",
 	"./spec/language/literals.md",
 ].forEach((file) => {
-	var contents = readFileSync(file, {encoding: "utf-8"})
-	contents = contents.split("```");
+	var contents = readFile(file)
+
 	lexer.push(`//file: ${file}`)
 	lexer.push(extractAllCode(contents, "lexer"))
 });
 
-writeFileSync("./LanguageLexer.g4", `lexer grammar LanguageLexer;\n` + lexer.join("\n"))
+writeFileSync(LEXER_FILE, `lexer grammar LanguageLexer;\n` + lexer.join("\n"))
 
 var tokens = [];
 
@@ -112,8 +140,7 @@ var spec_files = [
 spec_files.forEach((file) => {
 	//console.log(file)
 
-	var contents = readFileSync(file, {encoding: "utf-8"})
-	contents = contents.split("```");
+	var contents = readFile(file)
 
 	parser.push(`//file: ${file}`)
 	parser.push(replaceTokens(tokens, extractAllCode(contents, "syntax")))
@@ -124,7 +151,7 @@ spec_files.forEach((file) => {
 	// search for tokens and replace them!
 });
 
-writeFileSync("./LanguageParser.g4", `parser grammar LanguageParser;
+writeFileSync(PARSER_FILE, `parser grammar LanguageParser;
 // options { tokenVocab=LanguageLexer; }
 ` + parser.join("\n"));
 
@@ -133,12 +160,13 @@ function antlr4(text, option) {
 	var tmp_file = "./temp.language";
 	writeFileSync(tmp_file, text);
 	let fd_stdin = openSync(tmp_file, 'r');
-	let result =  spawnSync('C:\\Users\\luis\\.pyenv\\pyenv-win\\shims\\antlr4-parse.bat', ['LanguageParser.g4', 'LanguageLexer.g4', 'program', option], {
+	let result =  spawnSync('C:\\Users\\luis\\.pyenv\\pyenv-win\\shims\\antlr4-parse.bat', [PARSER_FILE, LEXER_FILE, 'program', option], {
 	  // stdio: [fd_stdin, 1, 2]
 	  stdio: [fd_stdin],
 	  encoding: 'utf-8',
 	  shell: true,
 	});
+	console.log(result)
 
 	if (result.error) {
 		console.log(result.error);
@@ -182,8 +210,9 @@ spec_files = [
 ]
 spec_files.forEach((file) => {
 	console.log(`Validating spec file: ${file}`)
-	var contents = readFileSync(file, {encoding: "utf-8"})
-	contents = contents.split("```");
+	
+	var contents = readFile(file);
+
   ["language", "language-test", "language-semantic-error"].forEach((annotation) => {
   	parseCode(contents, annotation).forEach((text) => {
   		if (!text.length) {
@@ -195,8 +224,27 @@ spec_files.forEach((file) => {
   			console.log(text)
   			process.exit(1);
   		}
+
   	});
   });
+
+  contents.forEach((l, i) => {
+	if (i > 0) {
+		const intro = l.split(/(\r\n|\n)/)[0]
+		switch (intro) {
+			case "language-package": // TODO test it!
+
+			case "language-compiled":
+			case "language-syntax-error":
+			case "todo-language":
+			case "todo-syntax":
+			case "output":
+			break;
+			default:
+				assert(intro.length == 0, `unexpected text[${intro.length}]: ${JSON.stringify(intro)}`);
+		}
+	}
+  })
 });
 
 [
@@ -213,11 +261,13 @@ spec_files.forEach((file) => {
 //let fd_stdin = openSync('./core/os.language', 'r');
 //let fd_stdin = openSync('./core/index_iterator.language', 'r');
 let fd_stdin = openSync('./core/types/allocator.language', 'r');
-let antlr4 = spawn('antlr4-parse', ['LanguageParser.g4', 'LanguageLexer.g4', 'packageProgram', '-gui'], {
+let antlr4 = spawn('antlr4-parse', [PARSER_FILE, LEXER_FILE, 'packageProgram', '-gui'], {
   stdio: [fd_stdin, 1, 2]
 });
 
 */
 
 
-// antlr4 -o compiler -Dlanguage=Cpp LanguageParser.g4 LanguageLexer.g4
+// antlr4 -o compiler/cpp -Dlanguage=Cpp LanguageParser.g4 LanguageLexer.g4
+// antlr4 -o compiler/python -Dlanguage=Python3 LanguageParser.g4 LanguageLexer.g4
+

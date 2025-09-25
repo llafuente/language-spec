@@ -16,7 +16,7 @@ TODO review c - 6.9.2 External object definitions
 
 *Example*
 
-```language-error
+```language-semantic-error
 struct point = {
   float x
   float y
@@ -298,7 +298,7 @@ function main() {
 
 > multiple return types found
 
-```language-error
+```language-semantic-error
 function x(int i) {
   if (i > 10) {
     return i // i32
@@ -311,7 +311,7 @@ function x(int i) {
 
 > Variable is used before initialization.
 
-```language-error
+```language-semantic-error
 var x
 x += 1
 x = 10
@@ -322,7 +322,7 @@ one by one from left to right.
 
 > multiple return types found
 
-```language-error
+```language-semantic-error
 function sum<$t>($t a, $t b) {
   if (a > 10) {
     return 10
@@ -330,46 +330,55 @@ function sum<$t>($t a, $t b) {
   return a + b
 }
 
-sum<i32>(10, 10) // wrong, multiple return types
-sum(10, 10) // ok
+function main() {
+  sum<i32>(10, 10) // wrong, multiple return types
+  sum(10, 10) // ok
+}
 ```
 
 > multiple template types found
 
-```language-error
+```language-semantic-error
 function sum<$t>($t a, $t b) {
   return a + b
 }
-var i64 x = 10
-var i32 y = 10
-sum(x, y)
+
+function main() {
+  var i64 x = 10
+  var i32 y = 10
+  sum(x, y)
+}
 ```
 
 > template type couldn't be resolved
 
-```language-error
+<!-- TODO REVIEW null is type void? -->
+
+```language-semantic-error
 function do_something<$t>(ptr<$t> b) {
 }
 
-sum(null)
+function main() {
+  sum(null)
+}
 ```
 
 
 *Remarks*: Nevertheless enforcing types makes your program more stable to refactoring.
 
-# Magic variables
+# Compiler variables
 
 *Semantics*
 
-We call magic variables those that the programmer don't explicitly declare.
+1. A compiler variables are those that the programmer don't explicitly declare.
 
 *Constraints*
 
-1. Magic variable shall be prefixed by `$` (dollar sign)
+1. Compiler variables shall be prefixed by `$` (dollar sign)
 
-2. Magic variables shall not be shadowed or shadow another variable if used.
+2. Compiler variables shall not be shadowed or shadow another variable if used.
 
-```language
+```language-semantic-error
 function main() {
   loop 5 {
     print("index = " + $index)
@@ -384,7 +393,7 @@ function main() {
 
 > variable $index redeclared at line 2:1
 
-```language-error
+```language-syntax-error
 function main() {
   var $index = 0
   loop 5 {
@@ -395,9 +404,9 @@ function main() {
 
 2. 2. Shall no shadow another magic variable or semantic-error shall raise.
 
-> variable $index redeclared at line 2:3
+> variable $index redeclared at line: 3 previous declaration at line: 2
 
-```language-error
+```language-semantic-error
 function main() {
   loop 5 {
     loop 5 {

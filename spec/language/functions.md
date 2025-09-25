@@ -660,7 +660,7 @@ Shall not be allowed, a semantic error shall raise
 
 *Example*
 
-```todo
+```todo-language
 // same type is supported.
 function return_data(string[] list..., string separator) string?[]{
   return [list, null, separator]
@@ -680,7 +680,7 @@ function main() {
 
 *Example 2*
 
-```todo
+```todo-language
 function join(string[] list...) {
   var str = ""
   for (s in str) {
@@ -786,7 +786,7 @@ A defer statement pushes the expression execution to the end of the surrounding 
 
 2. `defer` shall honor visual reverse order (bottom-top) rather than execution order.
 
-```language
+```language-test
 function defer_order(ref<array<string>> ar) {
   defer ar.push("end")
   goto end
@@ -820,16 +820,17 @@ any [function-exit](#function-exit).
 
 > variable '?' is out of scope at this function exit '?'
 
-```language
+```language-semantic-error
 function out_of_scope() void {
   {
     var b = 10
     defer print (b)
+    b = 11
   }
 }
 ```
 
-```compiled
+```language-compiled
 function out_of_scope() void {
   var defer_001 = false
   {
@@ -861,7 +862,7 @@ function out_of_scope_but_lambda2() void {
 }
 ```
 
-```compiled
+```language-compiled
 function out_of_scope_but_lambda2() void {
   var defer_001 = false
   var defer_001_callable
@@ -882,7 +883,7 @@ function out_of_scope_but_lambda2() void {
 
 4. Defer statement shall not be a constant.
 
-```error
+```language-semantic-error
 function error() void {
   defer 1
   defer "string"
@@ -929,7 +930,7 @@ function add_one(i32 a) void {
 
 *Generation*
 
-```compiled
+```language-compiled
 function add_one(i32 a) i32 {
   bool defer_001 = false
 
@@ -955,7 +956,7 @@ function defer2() void {
 
 *Generation*
 
-```compiled
+```language-compiled
 function add_one(i32 a) i32 {
   bool defer_001 = false
 
@@ -1002,7 +1003,7 @@ function main() {
 
 2. `readonly` stack variables shall raise an error
 
-```language-error
+```language-semantic-error
 // error, as shared_ptr will be modificied if copied!
 function sum_error (readonly shared_ptr<int> a, int b) {
   return function () {
@@ -1094,7 +1095,7 @@ function z<$a, $b, $d>($a a, $b b, $a c, $d d) {}
 
 2. Implicit call will be filled from left to right
 
-```language
+```language-semantic-error
 function add($t a, $t b) {
   return a + b
 }

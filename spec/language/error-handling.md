@@ -61,7 +61,7 @@ It's the process used by the language to react to non-conformant code.
 
 2. A `break` statements inside: `tryBlock`, `catchBlock` or `finallyBlock` will reset error handling
 
-```error
+```language
 function main() {
 	outter: loop 10 {
 		inner: loop 20 {
@@ -87,29 +87,35 @@ function main() {
 
 6. Exceptions are values that need to be known at compile time (constexpr).
 
-7. The compilar shall enforce the handle of any exception until
+7. The compiler shall enforce the handle of any exception until
 program entry point.
+
+> Unhandled exception
 
 
 *Examples*
 
 Exception are values.
 
-```package
+```language-package
 package fs
-type error = enum {
+
+type errors = enum {
   fileNotFound = 1
 }
 
 function open(uri file_path) file {
-  throw error.fileNotFound
+	// ...
+	throw errors.fileNotFound
 }
 ```
 
 ```language
+import fs
+
 function main() {
 	try {
-		fs.open("file.txt")
+		var x = fs.open("file.txt")
 	} catch fs.error.fileNotFound {
 		print("File not found")
 	}
@@ -118,15 +124,24 @@ function main() {
 
 *Compiler*
 
-```compiled
+```language-compiled
+function open(uri file_path) file {
+	// ...
+	λ_exception_value = errors.fileNotFound
+	λ_exception_type = errors
+	return file.default
+}
+
 function main() void {
-	λ_exception_value = null
-	fs.open("file.txt")
-	if (λ_exception_value != null) {
-		if (λ_exception_type == fs.error && λ_exception_value == fs.error.fileNotFound) {
-			print("File not found")
+	{
+		λ_exception_value = null
+		var x = fs.open("file.txt")
+		if (λ_exception_value != null) {
+			if (λ_exception_type == fs.error && λ_exception_value == fs.error.fileNotFound) {
+				print("File not found")
+			}
 		}
-    }
+	}
 
     return void.default
 }
@@ -151,15 +166,15 @@ function main() {
 
 	try {
 		function_that_throws(true)
-	} catch (string x) {
-		print("Error found " + x)
+	} catch e, e is string {
+		print("Error found " + e)
 	}
 }
 ```
 
 *Compiler*
 
-```compiled
+```language-compiled
 type λt_location = struct {
 	uint line
 	uint column
@@ -386,7 +401,7 @@ function main() {
 }
 ```
 
-```test-output
+```output
 Open file
 File not found
 This is the end, my only friend

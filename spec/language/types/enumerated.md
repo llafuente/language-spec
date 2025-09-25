@@ -104,7 +104,7 @@ If string is used at `mask` a semantic-error shall raise:
 
 > Invalid value type '?:type' at enumerator '?:name' at '?:file?:line?:column'
 
-```language-error
+```language-semantic-error
 // shall not mix strings and integral
 type e1 = enum {
   str = "hello",
@@ -221,7 +221,7 @@ function unset<$t is mask>(ref<$> this, i32 position) bool {}
 
 1. `enum` assignament (operator =) shall ensure that only enumerators values are assigned.
 
-```language-error
+```language-semantic-error
 type bitmask = enum {
   b1 = 0x001
   b2 = 0x002
