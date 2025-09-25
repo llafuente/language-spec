@@ -548,11 +548,11 @@ function main() {
   https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arguments-exotic-objects
   varargs (c style)
 -->
-### `arguments` keyword
+### `$arguments` keyword
 
 *Semantics*
 
-It's a magic variable that holds the arguments passed with type:
+It's a compiler variable that holds the arguments passed with type:
 *array&lt;variant&gt;*
 
 
@@ -562,7 +562,7 @@ It's a compiler construct that has runtime cost.
 
 *Constraints*
 
-1. `arguments` shall be used only in function body.
+1. `$arguments` shall be used only in a function body.
 
 2. At least one parameters shall be declared to use arguments inside 
 a function or a semantic-error shall raise.
@@ -583,12 +583,12 @@ function sum (int a, int b) {
 
 // same but using arguments, slower - using index_iterator
 function sum2 (int a, int b) {
-  return arguments[0] + arguments[1]
+  return $arguments[0] + $arguments[1]
 }
 
 // same but using arguments, even slower - using string_iterator
 function sum2 (int a, int b) {
-  return arguments["a"] + arguments["b"]
+  return $arguments["a"] + $arguments["b"]
 }
 
 ```
@@ -762,8 +762,9 @@ https://docs.swift.org/swift-book/documentation/the-swift-programming-language/c
 
 *Semantics*
 
-A defer statement pushes the expression execution to the end of the surrounding function ([function-exits](#function-exit)).
+1. A defer statement pushes the expression execution to the end of the surrounding function ([function-exits](#function-exit)).
 
+2. It creates a compiler variable `bool $exception` wich value is if the function will exit normally or with and exception.
 
 *Constraints*
 
@@ -1103,11 +1104,10 @@ function add($t a, $t b) {
 function main () {
   #assert add(5, 6) == 11
   #assert add(3.1, 3.1) ~= 6.2
+  
+  // semantic-error
+  add(5, "hello")
 }
-````
-
-```error
-add(5, "hello")
 ```
 
 > invalid template specification 'add($t a, $t b)', '$t' is a 'int' and 'string' at the same time.
