@@ -137,27 +137,58 @@ switchStmt
 1. The switch statement causes control to be transferred to one of several
 statements depending on the value of a condition.
 
-2. if all cases yields false and a `default` case is present it will be executed.
+2. If all cases yields false and a `default` case is present it will be executed.
 
 3. A `case` could have multiple conditions comma separated.
-If one check yields true, the `case-block` will be executed.
+They shall be check from left to right, when any yields true: stop and execute the `case_block`.
+
+```language-test
+// declare a type with operator ==, and count the calls
+global var called = 0;
+struct point {
+  int x
+  int y
+
+  operator ==(point p2) {
+    ++called
+    return x == p2.x && y == p2.y
+  }
+}
+
+function main() {
+  var p = new point(10, 10)
+  var p2 = new point(11, 11)
+  var p3 = new point(12, 12)
+  switch(10) {
+    case p2,p,p3: {
+      #assert called == 2
+      break
+    }
+    default: {
+      #assert false
+    }
+  }
+  #assert true
+}
+```
 
 4. `break` will exit switch statement.
 
-5. `fallthrough` will jump to the first statement in the next `case-block` or
-`default-block`. It will not execute the `case` expression.
+5. `fallthrough` will jump to the first statement in the next `case_block` or
+`default_block`. It will not execute the `case` expression.
 
 
 *Constraints*
 
 1. `default` case shall be the last.
 
-2. the `switch-condition` expression will be evaluated only once.
+2. The `switch-condition` expression will be evaluated only once at the start.
 
 ```language-test
 global v = 0
 function add_one() {
   ++v
+  return 10 // default
 }
 
 function main() {
@@ -166,8 +197,8 @@ function main() {
   switch(add_one()) {
     case 0:
     case 2:
-    case 3,4 ,5:
-      throw "invalid!"
+    case 3, 4, 5:
+      #assert false
     default:
       defaultCase = true
   }
@@ -181,7 +212,7 @@ function main() {
 The compiler will search for an `operator switch` that match input condition
 and case condition types. If not found
 -->
-3. if the `switch-condition` type is not int, it will check against `operator ==`
+3. If the `switch_condition` type is not int, it will check against `operator ==`
 
 ```language-test
 struct point {
@@ -211,7 +242,7 @@ function main() {
 
 4. There shall be at most one `default` within a `switch` statement.
 
-5. There shall be at least one `case` or `default` within a `switch` statement.
+5. There shall be at least one `case` within a `switch` statement.
 
 <!-- TODO this requires some grammar modifications -->
 6. `fallthrough` or `break` shall be the last statements in a `case-block` can't be in the middle.
@@ -257,6 +288,9 @@ operator ==(ref<string> input, ref<regex> check) bool {
   return check.test(input)
 }
 ```
+
+5. There shall be no empty `case`
+
 
 ## Conditional Operator Statement
 
@@ -471,9 +505,9 @@ function main() {
 
 2. Inside `loop_body` there will be two compiler variables available. If defined they shall be renamed.
 
-  * `$keyType $index`: holds the index value, key_type depends on the `safe_iterator` used.
+  * `$keyType $index`: holds the index value, key_type depends on the `has_safe_iterator` used.
 
-  * `$valueType $value`: hold the value of given structure if needed, value_type depends on the `safe_iterator` used.
+  * `$valueType $value`: holds the value of given structure if needed, value_type depends on the `has_safe_iterator` used.
 
 ```language-test
 function main() {
@@ -509,8 +543,11 @@ function main() {
 }
 ```
 
-3. `where_expr` can be defined so `loop_body` will be executed only when it yields true.
-Inside the condition $key,$value will be available.
+3. `where_expr` can be defined.
+
+* `loop_body` will be executed when `where_expr` yields true. If yields false it will continue with the next element.
+
+Inside `where_expr`: `$key` and `$value` (or the user defined names) will be available.
 
 ```language-test
 function main() {
@@ -527,27 +564,28 @@ function main() {
 
 3. `until_expr` or `while_expr` can be defined.
 
-* `loop_body` will be executed until `until_expr` yields true
+* `loop_body` will be executed until `until_expr` yields false, it stops stops the `loop` if yields true.
 
-* `loop_body` will be executed while `while_expr` yields true
+* `loop_body` will be executed while `while_expr` yields true, it stops stops the `loop` if yields false.
 
+Inside `until_expr` and `while_expr`: `$key` and `$value` (or the user defined names) will be available.
 
 ```language-test
 function main() {
   var indexes = []
   var values = []
-  loop 10 where $index > 4 {
+  loop 10 where $index > 4 until $index == 8 {
     indexes.push($index)
     values.push($value)
   }
-  #assert indexes == [5,6,7,8,9]
-  #assert values == [5,6,7,8,9]
+  #assert indexes == [5,6,7]
+  #assert values == [5,6,7]
 }
 ```
 
 *Constraints*
 
-1. `loop` shall cache the loop-expression, so it's safe to expression modifications,
+1. `loop` shall cache the `loop_limit_expr`, so it's safe to expression modifications,
 see example below for more info. If your loop need to change behaviour for example
 because the length of the string is changes use another loop statement like:
 [`for`](#for) / [`foreach`](#foreach) / [`while`](#while) or [`do-while`](#do-while)
@@ -575,7 +613,7 @@ function main() {
 * `range`: It shall repeat `loop_body` starting and ending according to given range.
   * `$keyType` and `$valueType` will be `i64`
 
-* `safe_iterator<$keyType, $valueType>`: It shall loop the type from start to end.
+* `has_safe_iterator<$keyType, $valueType>`: It shall loop the type from start to end.
   * Call `next()` to move the next elements.
   * Call `get_key()` to get the key value.
   * Call `get_ref_value()` to get a reference to the value.
@@ -678,7 +716,7 @@ so we could have a similar syntax.
 <a name="loop-implementation"></a>
 *Implementation*
 
-`loop` it's in fact a `macro`.
+`loop` it's in fact a `macro`, depending on the input.
 
 The compiler shall replace the `loop` statement with a `macro` call to
 [core/loop.language](../../core/loop.language)
