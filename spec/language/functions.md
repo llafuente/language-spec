@@ -976,7 +976,6 @@ function add_one(i32 a) i32 {
 
 ## lambda / anonymous functions
 
-
 *Semantics*
 
 A lambda / anonymous functions is the way the simplest way to create a
@@ -984,7 +983,17 @@ function object.
 
 *Constraints*
 
-1. Stack variables are captured by value.
+<!-- TODO is this what the user expect ?
+
+js
+function sum (a, b) {
+  const r = function () { return a + b; }
+  ++a;
+  return r;
+}
+sum (10, 10)();
+-->
+1. Stack variables are captured by reference.
 
 ```language
 function sum (int a, int b) {
@@ -998,11 +1007,11 @@ function sum (int a, int b) {
 }
 
 function main() {
-  #assert sum(10, 10)() == 20
+  #assert sum(10, 10)() == 21
 }
 ```
 
-2. `readonly` stack variables shall raise an error
+2. `readonly` stack variables shall raise an error if the `clone` is not readonly
 
 ```language-semantic-error
 // error, as shared_ptr will be modificied if copied!
@@ -1013,13 +1022,6 @@ function sum_error (readonly shared_ptr<int> a, int b) {
 }
 ```
 
-```language
-function sum_works (shared_ptr<readonly int> a, int b) {
-  return function () {
-    return a + b
-  }
-}
-```
 
 3. Lambda shall not capture global variables implicitily.
 
@@ -1034,6 +1036,20 @@ function sum_works (shared_ptr<readonly int> a, int b) {
 * create a `shared_ptr<lambda.callable>`
 * assign all parameters
 
+```language
+struct point {
+  int x
+  int y
+  operator clone(readonly p) ref<point> {
+    return new point(p.x, p.y)
+  }
+}
+function sum_works (point a, point b) {
+  return function () {
+    return a + b
+  }
+}
+```
 
 ```language
 function sum (autocast ref<int> a, autocast ref<int> b) {
