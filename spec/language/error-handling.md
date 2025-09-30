@@ -19,6 +19,8 @@ Implementations details:
 While the syntax of error handling is the common try/catch/finally.
 It does not rely on stack trickery or implementation details.
 
+It also ensure the programmer to handle the exceptions.
+
 *Syntax*
 
 ```syntax
@@ -308,14 +310,17 @@ function step1_alternative() result {
 }
 
 function main() {
+	var http.Request options = new("GET", "http://www.contoso.com")
+
+  var first = true
   request: try {
-    curl("http://www.contoso.com")
-  } catch (curlerr.CouldNotResolveHost) {
-    setup_proxy("http://proxy:8080")
+    var response = http.fetch(options)
+	print(response.body)
+  } catch (curl.error.CouldNotResolveHost) {
+    options.setProxy("http://proxy:8080")
     goto request
-  } catch (curlerr.proxyAuthFailed) {
-    set_proxy_user("John")
-    set_proxy_password("Doe")
+  } catch (curl.error.proxyAuthFailed) {
+    options.setProxyAuth("John", "Doe")
     goto request
   }
 
@@ -340,7 +345,75 @@ Define an error handler by type or by value.
 
 Can be use alone or as part of try/catch/finally.
 
+*Constraints*
+
+1. `catch` inside an expression do not have access to the left hand side of the expression.
+
+```language-semantic-error
+function main() {
+  var x = catch something_that_throws() {
+    #assert x == 0 // x is undefined
+	#assert $exception == 0 // x is undefined
+  }
+}
+```
+
+2. `catch` match against the value or the type
+
+```language-semantic-error
+const err = "something goes wrong"
+var str_type
+
+function a() {
+	throw err
+}
+
+function main() {
+	try {
+		a()
+	} catch err e { // match by value
+		print(e)
+	}
+
+	try {
+		a()
+	} catch string e { // match by type
+		print(e)
+	}
+	
+	str_type = string
+	try {
+		a()
+	} catch str e { // match by type, also valid
+		print(e)
+	}
+}
+```
+
+
 *Example*
+
+```language
+import http
+
+function main() {
+	var retries = 3
+:retry
+  if (--retries == 0) {
+	print("could not get url")
+	exit(1)
+  }
+  var response = catch http.get("xxx") as err {
+    if (err == http.errors.couldNotResolveHost) {
+		sleep(1000)
+		goto retry
+	}
+	throw err
+  }
+
+  print(response.body)
+}
+```
 
 ```language
 function main() {
@@ -351,29 +424,6 @@ function main() {
 	} catch string e {
 		print("Exception with text: " + e)
 	}
-}
-```
-
-```language
-function throws_int() int {
-  throw "expected error"
-  return 101
-}
-
-function throws_string() string {
-  throw "expected error"
-  return "hello world!"
-}
-
-
-function main() {
-  var x = catch throws_int() {
-    #assert x == int.default
-  }
-  var y = catch throws_string() {
-    #assert y == string.default
-  }
-  var z = try throws_int() catch 101
 }
 ```
 
@@ -479,5 +529,3 @@ retry_loop_001: loop {
   }
 }
 ```
-
-
