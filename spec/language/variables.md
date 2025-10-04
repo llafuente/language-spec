@@ -17,7 +17,7 @@ TODO review c - 6.9.2 External object definitions
 *Example*
 
 ```language-semantic-error
-struct point = {
+type point = struct {
   float x
   float y
 
@@ -27,25 +27,27 @@ struct point = {
   }
 }
 
-// var can be assign, re-assign and modified
-var p1 = new point(0, 0)
-p1 = new point(1, 1)
-p1.x = 10
-p2.y = 10
+function main() {
 
-// const can be assign and modified but not re-assign
-const p2 = new point(0, 0)
-p2 = new point(1, 1) // <<- semantic error
-p2.x = 10
-p2.y = 10
+  // var can be assign, re-assign and modified
+  var p1 = new point(0, 0)
+  p1 = new point(1, 1)
+  p1.x = 10
+  p2.y = 10
 
-// readonly can be assign not modified and not re-assign
-readonly p3 = new point(0, 0)
+  // const can be assign and modified but not re-assign
+  const p2 = new point(0, 0)
+  p2 = new point(1, 1) // <<- semantic error
+  p2.x = 10
+  p2.y = 10
 
-p3 = new point(1, 1) // <<- semantic error
-p3.x = 10 // <-- semantic error
-p3.reset() // <-- semantic error
+  // readonly can be assign not modified and not re-assign
+  readonly p3 = new point(0, 0)
 
+  p3 = new point(1, 1) // <<- semantic error
+  p3.x = 10 // <-- semantic error
+  p3.reset() // <-- semantic error
+}
 ```
 
 3. The scope of a variable tells the compiler the life cycle of the variable. There are two scopes:
@@ -173,7 +175,7 @@ var ten = 10
 blockVariableDeclStmt
   : fileVariableDeclStmt
   // infer variable with first initialization
-  | 'var' identifier
+  | 'var' identifier ('=' rhsExpr)?
   ;
 ```
 
@@ -312,9 +314,11 @@ function x(int i) {
 > Variable is used before initialization.
 
 ```language-semantic-error
-var x
-x += 1
-x = 10
+function main() {
+  var x
+  x += 1
+  x = 10
+}
 ```
 
 2. 5. When calling a generic function, parameters shall be resolved first,

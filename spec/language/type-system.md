@@ -58,10 +58,11 @@ primitive
 
 typeModifiers
   : 'readonly'
+  | 'uninitialized'
   ;
 
 type
-  : typeModifiers? (primitive | dollarIdentifier | identifier);
+  : typeModifiers* (primitive | dollarIdentifier | identifier);
 
 templateDefinition
   : '<' templateParameter (',' templateParameter)* '>'
@@ -339,7 +340,7 @@ Returns the type of a variable, type or template
 1. If the type can be determined at compile time, the call is replaced by the type.
 
 ```language-test
-struct point {
+type point = struct {
   float x
   float y
 }
