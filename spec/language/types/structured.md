@@ -979,7 +979,7 @@ function main() {
 
 ```language-semantic-error
 type point = struct {
-  add(ref<point> b) {
+  function add(ref<point> b) {
     // ...
   }
 }

@@ -145,7 +145,7 @@ They shall be check from left to right, when any yields true: stop and execute t
 ```language-test
 // declare a type with operator ==, and count the calls
 global var called = 0;
-struct point {
+type point = struct {
   int x
   int y
 
@@ -185,7 +185,7 @@ function main() {
 2. The `switch-condition` expression will be evaluated only once at the start.
 
 ```language-test
-global v = 0
+global var v = 0
 function add_one() {
   ++v
   return 10 // default
@@ -215,7 +215,7 @@ and case condition types. If not found
 3. If the `switch_condition` type is not int, it will check against `operator ==`
 
 ```language-test
-struct point {
+type point = struct {
   int x
   int y
   
@@ -230,9 +230,9 @@ function main() {
 
   switch(p) {
     case p2:
-      print('ok')
+      print("ok")
     default:
-      throw "default case shall not be reached
+      throw "default case shall not be reached"
   }
 
   #assert p == p2
@@ -436,7 +436,7 @@ Here is a few examples of what you can achieve.
   function main() {
     var iterable = [1, 2, 3, 4, 5]
     var chk = []
-    loop iterable while < 5 {
+    loop iterable while $value < 5 {
       chk.push($value)
     }
     #assert chk == [1,2,3,4]
@@ -444,7 +444,7 @@ Here is a few examples of what you can achieve.
   ```
 
 * loop only element that match certain criteria
-  ````language
+  ```language
   function main() {
     var iterable = [1, 2, 3, 4, 5]
     var chk = []
@@ -458,7 +458,7 @@ Here is a few examples of what you can achieve.
 
 If you want to iterate starting below the start, send a built iterator for example:
 
-```language-spec
+```language-test
 function main() {
   var arr = [1, 2, 3, 4, 5, 6]
   var check = []
@@ -468,8 +468,8 @@ function main() {
     check.push($value);
   }
   #assert check == [3,4,5]
-  #assert typeof arr == array<i64>
-  #assert typeof check == array<i64>
+  #assert typeof(arr) == array<i64>
+  #assert typeof(check) == array<i64>
 }
 ```
 
@@ -523,7 +523,7 @@ function main() {
 
   indexes = []
   values = []
-  loop value, 10 {
+  loop value in 10 {
     indexes.push($index)
     values.push(value)
   }
@@ -533,7 +533,7 @@ function main() {
 
   indexes = []
   values = []
-  loop index, value, 10 {
+  loop index, value in 10 {
     indexes.push(index)
     values.push(value)
   }
@@ -802,7 +802,7 @@ foreachStmt
 
 Unlike `loop` it's not safe. You can fall into infinite loops, it's also not safe to some modifications but It will try to follow your modifications to the structure.
 
-```language-spec
+```language-test
 function main() {
   var arr = [1, 2, 3, 4, 5]
   // it will loop 5 times.
@@ -953,31 +953,65 @@ A label can be used instead to clarify.
 
 *Example*
 
-```language
-function main() {
-  loop i in 1..10 {
-    loop j in 1..10 {
-      if j < 10 {
-        continue // it will continue $j loop
+```language-test
+function continue_test() {
+  loop i in 1 .. 10 { // TODO fix parser, needs a space to detect a range
+    loop j in 1 .. 10 {
+      if j < 5 {
+        continue // it will skip first 5
       }
     }
   }
+}
 
-  loop i in 1..10 {
-    loop i in 1..10 {
-      if j < 10 {
-        continue 2 // it will continue $i loop
+function continue_with_number_test() {
+  // 10x10 array zero-initialized
+  var arr = new[10][10](0)
+
+  loop i in 1 .. 10 {
+    loop j in 1 .. 10 {
+      if i < 5 {
+        continue 2 // it will skip the first 5 continue i loop
       }
+      arr[i][j] = 1
     }
   }
 
-  outterloop: loop i in 1..10 {
-    loop 1..10 as j {
-      if j < 10 {
+  // now the top side is 0, and bottom side is 1
+  loop 5 {
+    #assert arr[$index] == [0,0,0,0,0,0,0,0,0,0]
+  }
+  loop 5 {
+    #assert arr[5 + $index] == [1,1,1,1,1,1,1,1,1,1]
+  }
+}
+
+function continue_with_label() {
+  // 10x10 array zero-initialized
+  var arr = new[10][10](0)
+
+  outterloop: loop i in 1 .. 10 {
+    loop j in 1 .. 10 {
+      if j < 5 {
         continue outterloop // this is clearer and allowed :)
       }
+      arr[i][j] = 1
     }
   }
+
+  // now the top side is 0, and bottom side is 1
+  loop 5 {
+    #assert arr[$index] == [0,0,0,0,0,0,0,0,0,0]
+  }
+  loop 5 {
+    #assert arr[5 + $index] == [1,1,1,1,1,1,1,1,1,1]
+  }
+}
+
+function main() {
+  continue_test()
+  continue_with_number_test()
+  continue_with_label()
 }
 ```
 
