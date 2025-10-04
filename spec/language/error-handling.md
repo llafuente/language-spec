@@ -25,13 +25,17 @@ It also ensure the programmer to handle the exceptions.
 
 ```syntax
 errorHandlingStmts
-	: tryBlock catchBlock* finallyBlock?
+  : tryBlock catchBlock* finallyBlock?
   | 'throw' expression?
-	;
+  ;
 
 errorHandlingExprs
   : 'try' conditional_expr ('catch' conditional_expr)?
-  | 'catch' conditional_expr functionBody
+  // TODO how do we rename the exception ?
+  // catch x: expr
+  // catch expr as x
+  // try name {} catch name is x {}
+  | 'catch' conditional_expr ('as' name=identifier)? functionBody
   | conditional_expr
   ;
 
@@ -69,11 +73,12 @@ function main() {
 		inner: loop 20 {
 			try {
 				break outter
-			} catch e {
+			} catch {
+				// $exception
 			}
-		}
-	}
-}
+		};
+	};
+};
 ```
 
 2. A `goto` statements shall not enter `tryBlock` or `catchBlock` or `finallyBlock`
@@ -168,7 +173,7 @@ function main() {
 
 	try {
 		function_that_throws(true)
-	} catch e, e is string {
+	} catch ($exception is string) { // TODO fix: here parenthesis avoid a syntax error
 		print("Error found " + e)
 	}
 }
@@ -398,15 +403,16 @@ import http
 
 function main() {
 	var retries = 3
-:retry
+retry_main:
   if (--retries == 0) {
 	print("could not get url")
 	exit(1)
   }
+
   var response = catch http.get("xxx") as err {
     if (err == http.errors.couldNotResolveHost) {
 		sleep(1000)
-		goto retry
+		goto retry_main
 	}
 	throw err
   }
@@ -462,7 +468,7 @@ This is the end, my only friend
 
 ```syntax
 retryUntilWhileStmt
-  : 'retry' functionBody ('while' expression | 'until' expression)
+  : 'retry' keyName=identifier? (',' expectionName=identifier)? ('while' expression | 'until' expression) functionBody
   ;
 ```
 
@@ -474,9 +480,9 @@ Retry body block until expression is met or Retry body block while expression is
 
 *Constraints*
 
-1. `retry` statement create a magic variable with name $index, that count how many iterations are being performed. Stating from 0.
+1. `retry` statement create a compiler variable with name $index, that count how many iterations are being performed. Stating from 0.
 
-2. `retry` statement create a magic variable with name $exception, that store the exception throw in the last iteration. It will be zero in the first try.
+2. `retry` statement create a compiler variable with name $exception, that store the exception throw in the last iteration. It will be zero in the first try.
 
 3. `retry` statement is repleaced by a: try-catch-if
 
@@ -484,48 +490,48 @@ Retry body block until expression is met or Retry body block while expression is
 
 ```language
 function main() {
-  retry {
+  retry while ($index < 5) {
     doMagic()
-  } while ($index < 5)
-}
-```
-
-```language
-function main() {
-retry_loop_001: loop {
-	var exception
-	try {
-    	doMagic()
-	} catch e {
-		$exception = e
-		if ($index < 5) {
-			continue retry_loop_001
-		}
-	}
   }
 }
 ```
 
-```language
+```language-compiled
 function main() {
-  retry {
-    doMagic()
-  } until ($index > 5)
+	var $index = 0;
+retry_loop_001:
+	{ 
+		try {
+			doMagic()
+		} catch {
+			if ($index < 5) {
+				++$index
+				goto retry_loop_001
+			}
+		}
+	}
 }
 ```
 
 ```language
 function main() {
-retry_loop_001: loop {
-	var exception
-	try {
-    	doMagic()
-	} catch e {
-		$exception = e
-		if (!($index > 5)) {
-			continue retry_loop_001
-		}
-	}
+  retry counter until (counter == 5) {
+    doMagic()
+  }
+}
+```
+
+Try to open a file until it exists during 60s each second.
+
+```language
+import fs
+
+// wait until file exists
+
+function main() {
+  // 60s
+  retry while $exception is fs.error.NotFound and $index < 60 and (sleep(1000) ? true : true) {
+    var file = fs.open("./file.txt")
   }
 }
 ```
