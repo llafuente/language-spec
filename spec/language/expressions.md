@@ -29,7 +29,10 @@ constant
     | numberLiteral           # numberLiteralExpr
     | identifier              # identifierExpr
     | preprocessorExpr        # preprocessorExpr2
+    | regularExpressionLiteral # regExExpr
     ;
+
+regularExpressionLiteral: RegularExpressionLiteral;
 
 primary_expr
     : constant                   # constantPrimaryExpr
@@ -37,10 +40,13 @@ primary_expr
     | structConstantInitializer  # structInitializer2
     | structInitializer          # structInitializer2
     | '(' expression ')'         # groupPrimaryExpr
+    | typeDefinition             # typePrimaryExpr
     ;
 
-memberIdentifier
-    : identifier | 'default' | 'new' ;
+identifierName
+    : identifier
+    | keywords // TODO atm we use every keyword but makes no sense
+    ;
 
 postfix_expr
     // memberAccessExpression
@@ -50,10 +56,10 @@ postfix_expr
     | postfix_expr '[' expression ']'                                                  # postfixElementAccessExpr
     // TODO slice operator
     | postfix_expr '[' expression ':' expression ']'                                   # postfixSliceExpr
-    | postfix_expr '?.' memberIdentifier                                               # postfixSafeMemberAccessExpr
-    | postfix_expr '!.' memberIdentifier                                               # postfixSelfMemberAccessExpr
+
+    | postfix_expr ('?' | '!')? '.' identifierName templateId?                                     # postfixMemberAccessExpr
+
     | postfix_expr '.' '.' primary_expr                                                # rangeExpr
-    | postfix_expr '.' memberIdentifier                                                # postfixMemberAccessExpr
     // function call
     | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
     //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'     # preprocessorMemberMacroCallExpr
@@ -170,8 +176,8 @@ conditional_expr
 
 assignment_expr
     //:   conditional_expr
-    :   errorHandlingExprs
-    |   unary_expr assignment_operator assignment_expr
+    : errorHandlingExprs
+    | unary_expr assignment_operator assignment_expr
     ;
 
 assignment_operator
@@ -179,7 +185,9 @@ assignment_operator
     ;
 
 expression
-    : assignment_expr (',' assignment_expr)*
+    // remove comma operator
+    //: assignment_expr (',' assignment_expr)*
+    : assignment_expr
     ;
 
 expressionList
@@ -200,7 +208,7 @@ operators
   | '&'
   | '==' | '!='
   | '<' | '>' | '<=' | '>='
-  | '<<' | '>>'
+  | '<' '<' | '>' '>'
   | '-' | '+'
   | '*' | '/' | '%'
   | '<' | '>'
@@ -228,7 +236,8 @@ operators
 | Bitwise OR             | \|                                                        | Left to right |
 | Logical AND            | &amp;&amp;                                                | Left to right |
 | Logical OR             | \|\|                                                      | Left to right |
-| Conditional (**TODO**) | ?:                                                        | Right to left |
+| Conditional            | ?:                                                        | Right to left |
+| Error handling         | try, catch                                                | Right to left |
 | Assignment             | =  +=  -=  *=  /=  %=&gt;&gt;=  &lt;&lt;=  &amp;=  ^= \|= | Right to left |
 
 
@@ -367,20 +376,20 @@ function main() {
 }
 ```
 
-### Assignament operators
+### Assignment operators
 
-Assignament operators operates over two types, modify the first one and return a copy or the first one.
+Assignment operators operates over two types, modify the first one and return a copy or the first one.
 
-* `=`: assignament 
-* `+=`: addition assignament
-* `-=`: subtraction assignament
-* `*=`: multiplication assignament
-* `/=`: division assignament
-* `^=`: power assignament
+* `=`: Assignment 
+* `+=`: addition Assignment
+* `-=`: subtraction Assignment
+* `*=`: multiplication Assignment
+* `/=`: division Assignment
+* `^=`: power Assignment
 
 *Constraints*
 
-1. Definition for all assignaments
+1. Definition for all Assignments
 
 > operator = (ref<struct> lhs, readonly ref<struct> rhs) lend? ref<struct>
 
@@ -501,7 +510,7 @@ type myref = struct<$T> {
   }
 }
 
-struct point {
+type point = struct {
   float x
   float y
 }

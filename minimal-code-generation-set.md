@@ -1,9 +1,11 @@
 # Minimal code generation set
 
 In order to simplify the compiler to it's very minimal core, we describe all
-the functionality needed in this chapter.
+the functionality needed to implement in this chapter.
 
-We will target this set for every major functionality in the language.
+As we suspect the compiler target will be LLVM we will provide an IR file with
+all operations for types.
+
 
 ## Branching
 
@@ -16,34 +18,26 @@ goto - Inconditional jump.
 
 ## Type declaration
 
-* i8,i16,i32,i64,u8,u16,u32,u64
-* float, double
+Basically numeric/arthimetic, pointers and struct.
+
+* positive numbers: i8,i16,i32,i64
+* negative numbers: u8,u16,u32,u64
+* floating numbers: float, double
 * pointer
 * struct
-  * composition of other types
+  * declaration of types inside
   * vector at the end
 
-All operator that affect the types above will be implemented as function calls
-to the operator itself. The compiler will start with those operators defined and
-ready to generate code to target machine.
-That include `cast` and `unsafe_cast` that are considered operator in the
-language.
+All operations that can be performed shall be functions with `always_inline`.
+So the compiler don't need to understand the nitpicking staff of each just how to
+generate the proper function call.
+
+Casting (`cast`, `unsafe_cast`) can also be a function for the compiler like in user land.
 
 ## Function declaration / call.
 
-The calling convention need to be c-like, but at the same time adopting varargs
-it just mostly unacceptable because it will bind the language to libc
-in a dangerous way, also most of the varargs are macros... that we shouldn't
-mimic.
+The calling convention need to be c-like to be friendly with the ecosystem and also to be able to
+call c without `foreign function interface`. Also as our type system is compatible (mostly)
+passing any arguments is not a problem unless you need varargs wich implementation is left as
+`if you need it`.
 
-just need research...
-
-## Functions
-
-### libc.malloc
-
-### libc.free
-
-### deref
-
-Dereference a pointer.

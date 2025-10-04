@@ -29,8 +29,9 @@ Implementation notes.
 ```syntax
 
 preprocessorStr
-  : '##' identifierUp '#'
+  : '##' identifier '#' // TODO why can't we use identifierUp here ?
   ;
+
 preprocessorEcho
   : '#' identifierUp '#'
   ;
@@ -254,7 +255,7 @@ list.#foreach(value) {
   value += value2
 }
 
-struct point {
+type point = struct {
   float x
   float y
 
@@ -613,7 +614,7 @@ forstructStmt
 *Example*
 
 ```language
-struct point {
+type point = struct {
   i8 x
   i8 y
 }
@@ -628,7 +629,7 @@ var p = point(5, 7)
 
 Expansion:
 ```
-struct point {
+type point = struct {
   i8 x
   i8 y
 }
@@ -650,7 +651,7 @@ print(1, "y", p.y)
 
 ```syntax
 assertStmt
-  : '#assert' expression (',' StringLiteral)?
+  : '#assert' expression (',' stringLiteral)?
   ;
 ```
 

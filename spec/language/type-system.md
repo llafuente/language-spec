@@ -54,7 +54,8 @@ type ikea = chair | table;
 
 ```syntax
 primitive
-  : 'self' | 'any' | 'type';
+  : 'self' | 'any' | 'type'
+  ;
 
 typeModifiers
   : 'readonly'
@@ -62,7 +63,8 @@ typeModifiers
   ;
 
 type
-  : typeModifiers* (primitive | dollarIdentifier | identifier);
+  : typeModifiers* (primitive | dollarIdentifier | identifier)
+  ;
 
 templateDefinition
   : '<' templateParameter (',' templateParameter)* '>'

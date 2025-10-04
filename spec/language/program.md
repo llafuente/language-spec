@@ -5,7 +5,7 @@
 ```syntax
 // main program entry point!
 program
-  : programStmsList? EOF
+  : endOfStmt* importStmtList? programStmsList? EOF
   ;
 
 programStmsList
@@ -15,35 +15,12 @@ programStmsList
 programStms
   : comments endOfStmt
   | functionDecl endOfStmt
+  | operatorFunctionDecl endOfStmt
   // program exclusive!
   | typeDecl endOfStmt
   | globalVariableDeclStmt endOfStmt
   | fileVariableDeclStmt endOfStmt
   | endOfStmt
-  ;
-
-
-// package entry point!
-packageProgram
-  : (comments endOfStmt?)* packageDefinitionStmt packageStmsList? EOF
-  ;
-
-packageStmsList
-  : packageStmts+
-  ;
-
-packageStmts
-  : comments endOfStmt
-  | functionDecl endOfStmt
-  // program exclusive!
-  | typeDecl endOfStmt
-  | packageVariableDeclStmt endOfStmt
-  | fileVariableDeclStmt endOfStmt
-  | endOfStmt
-  ;
-
-packageDefinitionStmt
-  : 'package' identifier endOfStmt
   ;
 
 comments

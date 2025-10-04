@@ -133,6 +133,7 @@ var parser: string[] = [];
 var spec_files = [
   "./spec/language/program.md",
   "./spec/package-system.md",
+  "./spec/keywords.md",
   "./spec/language/identifiers.md",
   "./spec/language/literals.md",
   "./spec/language/type-system.md",
@@ -212,7 +213,9 @@ console.log("COMPILER");
     );
   }
 }
-
+// cat .\temp.language | antlr4-parse.bat .\LanguageLexer.g4 .\LanguageParser.g4 program -gui
+// cat .\temp.language | antlr4-parse.bat .\LanguageLexer.g4 .\LanguageParser.g4 program -tree
+// deno run --allow-read .\compiler\typescript\compiler.ts .\temp.language
 async function run_compiler(text: string) {
   const tmp_file = "./temp.language";
   writeFileSync(tmp_file, text);

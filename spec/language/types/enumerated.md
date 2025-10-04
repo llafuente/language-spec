@@ -24,7 +24,7 @@ enumeratorList
   ;
 
 enumerator
-  : identifier ('=' logical_or_expr)?
+  : name=identifier ('=' value=logical_or_expr)?
   ;
 ```
 
@@ -107,12 +107,12 @@ If string is used at `mask` a semantic-error shall raise:
 ```language-semantic-error
 // shall not mix strings and integral
 type e1 = enum {
-  str = "hello",
+  str = "hello"
   int = 100
 }
 
 type e2 = enum {
-  a = -1,
+  a = -1
   b = u64.max
 }
 
@@ -322,7 +322,7 @@ function main() {
 
 The enumarated type is no more than syntactic sugar above struct.
 
-```language
+```todo-language
 #macro enum_convert_to_struct(#text is_enum, #text enum_name, #text value_type, #list_text enumerator_names, #list_text enumerators_values) {
 
   #eval length enumerator_names.length

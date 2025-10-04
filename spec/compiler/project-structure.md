@@ -25,7 +25,7 @@ production environments but a `package` shall have only one.
 
 * Configure compiler. It's the only place you can use `#set`.
 * Declare [global variables](..\language/variables.md#global-variables)
-* `#import` dependencies with version
+* `import` dependencies with version
 * Shall declare function `main`
 
   It's the first function to be executed, should create and destroy
@@ -40,8 +40,8 @@ production environments but a `package` shall have only one.
 Here is an example of an `entry point file`:
 
 ```language
-#import core 1.0.0
-#import requests 1.5.1
+import core 1.0.0
+import requests 1.5.1
 
 #set arch x64
 

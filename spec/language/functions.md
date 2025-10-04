@@ -42,7 +42,7 @@ anonymousFunctionDef
   ;
 
 functionDef
-  : functionModifiers* 'function' identifier templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : functionModifiers* 'function' (identifier | 'autocast') templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 memoryFunctionDecl
@@ -100,7 +100,7 @@ functionBodyStmtList
   ;
 
 labeledStatement
-  : identifier ':' endOfStmt? (functionBodyStmt | blockStatement)
+  : identifier ':' endOfStmt* (functionBodyStmt | blockStatement)
   ;
 
 globalImportVarList 
@@ -117,8 +117,7 @@ blockStatement
 
 functionBodyStmt
   : labeledStatement endOfStmt
-  | blockStatement endOfStmt
-  | comments endOfStmt
+  | blockStatement endOfStmt*  | comments endOfStmt
   | typeDecl endOfStmt
   | functionDecl endOfStmt
   | expression endOfStmt
@@ -129,6 +128,7 @@ functionBodyStmt
   | blockVariableDeclStmt endOfStmt
   | assertStmt endOfStmt
   | errorHandlingStmts endOfStmt
+  | retryUntilWhileStmt endOfStmt
   | endOfStmt
   ;
 
@@ -719,27 +719,18 @@ function joinBy2(string[] list..., string separator) {
 
 ```
 
-## `hook`
+## `hook` (PROPOSSAL)
+<!-- propossal keyword instead: wrap -->
 
 *Semantics*
 
-Wraps a function call.
+Wraps a function inside another
 
-*Remarks*
-
-The main usage for `hook` should be to replace a buggy functions or debug input/output.
-
-*Constraints*
-
-1. A function can be hooked once in the same context.
-
-2. Declared function shall have the same type and name as `hook`ed one.
-
-3. `hook`ed function can be called using the keyword `hook` inside function body.
+1. `hook` function can be called using the keyword `hook` inside function body.
 
 *Example*
 
-```language
+```language-proprossal
 function sum(i32 a, i32 b) i32 {
   return a + b
 }
@@ -750,9 +741,23 @@ hook function sum(i32 a, i32 b) i32 {
   return r;
 }
 
-
-sum(10, 15)
+function main() {
+  sum(10, 15)
+}
 ```
+
+*Remarks*
+
+The main usage for `hook` should be to replace a buggy functions, debug input/output or unit-test.
+
+*Constraints*
+
+1. A function can be hooked only once in the same context or a semantic error shall raise
+
+> duplicated hook. Previous hook at: ?:?:?
+
+2. `hook` shall have same signature (name and type) as target function
+
 
 ## `defer`
 <!--
@@ -1037,10 +1042,10 @@ function sum_error (readonly shared_ptr<int> a, int b) {
 * assign all parameters
 
 ```language
-struct point {
+type point = struct {
   int x
   int y
-  operator clone(readonly p) ref<point> {
+  clone(readonly ref<point> p) {
     return new point(p.x, p.y)
   }
 }

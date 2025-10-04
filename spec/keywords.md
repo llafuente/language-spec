@@ -1,102 +1,92 @@
 # keywords
 
+*Syntax*
 
-## Type system
+```syntax
+keywords
+  // Type system
+  : 'type'
+  | 'struct'
+  | 'noalign'
+  | 'lean'
+  | 'enum'
+  | 'mask'
+  | 'extends'
+  | 'implements'
+  | 'interface'
+  | 'is'
+  | 'any'
+  | 'self'
+  | 'hoist'
+  | 'readonly'
+  | 'instanceof'
+  | 'static'
+  // constants
+  | 'true'
+  | 'false'
+  | 'null'
+  // variables
+  | 'var'
+  | 'const'
+  | 'global'
+  | 'package'
+  // functions
+  | 'function'
+  | 'pure'
+  | 'operator'
+  | 'return'
+  | 'alias'
+  | 'get'
+  | 'set'
+  | 'autocast'
+  | 'defer'
+  | 'out'
+  | 'override'
+  | 'overwrite'
+  // Control flow
+  | 'if'
+  | 'else'
+  | 'switch'
+  | 'case'
+  | 'fallthrough'
+  | 'goto'
+  | 'loop'
+  | 'where'
+  | 'foreach'
+  | 'for'
+  | 'do'
+  | 'while'
+  | 'until'
+  | 'continue'
+  | 'restart'
+  | 'break'
+  | 'in'
+  | 'default'
+  // memory
+  | 'clone'
+  | 'new'
+  | 'delete'
+  | 'lend'
+  | 'own'
+  | 'uninitialized'
+  | 'at'
+  | 'cast'
+  // error handling
+  | 'try'
+  | 'retry'
+  | 'catch'
+  | 'finally'
+  | 'throw'
+  // Operators
+  | 'not'
+  | 'and'
+  | 'or'
+  // package system
+  | 'import'
+  | 'as'
+  ;
+```
 
-* type
-* struct
-* noalign
-* lean
-* enum
-* mask
-* extends
-* implements
-* interface
-* is
-* any
-* self
-* instanceof
-* static
+*Constrains*
 
-### declaration
-
-* var
-* const
-* global
-
-### functions
-
-* function
-* pure
-* operator
-* return
-* alias
-* get
-* set
-* autocast
-* defer
-* out
-* override
-* overwrite
-* hoist
-* readonly
-
-<!-- TODO tokens.md -->
-## templates
-
-* none
-
-<!-- TODO tokens.md -->
-### reserved
-
-* bigint
-* decimal
-* complex
-
-## Control flow
-
-* if
-* else
-* switch
-* case
-* fallthrough
-* goto
-* loop
-* foreach
-* for
-* do
-* while
-* continue
-* restart
-* break
-* in
-* default
-
-## error handling
-
-* try
-* catch
-* finally
-* throw
-
-## memory
-
-* clone
-* new
-* delete
-* at
-* lend
-* own
-* uninitialized
-* cast
-
-<!-- TODO tokens.md -->
-## preprocessor
-
-* empty
-
-## expressions
-
-* and
-* or
-* not
+1. The identifiers shown above are reserved for use as keywords. Some maybe be used as identifiers.

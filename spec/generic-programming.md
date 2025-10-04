@@ -140,7 +140,7 @@ function add<$t>($t a, $t b) $t {
   return a + b
 }
 
-struct point {
+type point = struct {
   f32 x
   f32 y
 }

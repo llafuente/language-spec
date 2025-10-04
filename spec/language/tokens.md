@@ -125,7 +125,7 @@ RIGHTBRACKET_TK : ']';
 LEFTBRACE_TK : '{';
 RIGHTBRACE_TK : '}';
 
-// todo add operators!
+// Operators
 DOLLAR_TK : '$';
 COMMA_TK : ',';
 GT_TK : '>';
@@ -141,9 +141,6 @@ PLUS_TK : '+';
 MINUSMINUS_TK : '--';
 MINUS_TK : '-';
 COLON_TK : ':';
-
-
-
 QUESTIONDOT_TK : '?.';
 NOTDOT_TK : '!.';
 DOT_TK : '.';
@@ -177,6 +174,10 @@ AND_ASSIGN_TK : '&=';
 XOR_ASSIGN_TK : '^=';
 OR_ASSIGN_TK : '|=';
 
+
+// package system
+IMPORT_TK : 'import';
+AS_TK : 'as';
 
 // WS : [ \t\f]+                        -> channel(HIDDEN);
 WS : [ \t\f]+                        -> skip;
