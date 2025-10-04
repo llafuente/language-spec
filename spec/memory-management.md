@@ -21,7 +21,11 @@ allocator
   : 'at' identifier
   ;
 
-typeNewExpression
+uninitializedNewExpression
+  : 'new' typeDefinition? allocator?
+  ;
+
+initializedNewExpression
   : 'new' typeDefinition? ('(' argumentExprList? ')')+ allocator?
   ;
 
@@ -29,7 +33,10 @@ arrayNewExpression
   : 'new' typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? allocator?
   ;
 
-unaryNewExpression: typeNewExpression | arrayNewExpression;
+unaryNewExpression
+  : uninitializedNewExpression
+  | initializedNewExpression
+  | arrayNewExpression;
 ```
 
 *Semantics*
@@ -44,7 +51,7 @@ It also allocates memory from a custom [memory-pool](#memory-pool).
 
 *Constraints*
 
-1. Allocated memory shall be contiguous and 32bit aligned (If target architecture)
+1. Allocated memory shall be contiguous and 32bit aligned (If target architecture allow it)
 
 2. Allocating zero memory shall raise runtime error.
 
@@ -89,9 +96,10 @@ type b = struct {
     this.value = v
   }
 }
+// TODO parser: new () uninitilized ref<b> {
 type a = struct {
-  ref<b> b
-  new () uninitilized ref<b> {
+  ref<b> b  
+  new () {
     this.b = new b
     return b
   }
