@@ -76,6 +76,9 @@
 
 [Memory management](spec/memory-management.md)
 
+[package system](spec/package-system.md)
+
+
 <!--
 [6. Statements](statements.md)
 
