@@ -117,7 +117,9 @@ blockStatement
 
 functionBodyStmt
   : labeledStatement endOfStmt
-  | blockStatement endOfStmt*  | comments endOfStmt
+  | blockStatement endOfStmt
+  | comments endOfStmt
+  | aliasDeclStmt endOfStmt
   | typeDecl endOfStmt
   | functionDecl endOfStmt
   | expression endOfStmt

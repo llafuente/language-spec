@@ -265,6 +265,28 @@ destructor
 end
 ```
 
+## block scope alias
+
+*Syntax*
+
+```syntax
+aliasDeclStmt
+  : 'alias' identifier '=' identifier
+  ;
+```
+
+*Semantics*
+
+Declare an alias of another identifier.
+
+*Constraints*
+
+1. Only variables shall be aliased
+
+> type can't be aliased
+
+> function can't be aliased
+
 
 # Type and inference
 
