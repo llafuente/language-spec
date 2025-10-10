@@ -4,6 +4,8 @@
 	TODO where is the memory allocated -> is important ?
 	TODO rethrow potentially could delete the memory? should check it's not the same address ?
 
+References:
+* https://eel.is/c++draft/except
 
 Implementations details:
 
@@ -92,9 +94,13 @@ function main() {
 
 5. Empty `throw` (re)throws current handled exception.
 
-6. Exceptions are values that need to be known at compile time (constexpr).
+6. Exceptions are values that need to be known at compile time (constexpr)
 
-7. The compiler shall enforce the handle of any exception until
+> any exception need to known at compile time (should be a constexpr)
+
+7. Zero (0) is an invalid value for exceptions
+
+8. The compiler shall enforce the handle of any exception until
 program entry point.
 
 > Unhandled exception
@@ -107,13 +113,13 @@ Exception are values.
 ```language-package
 package fs
 
-type errors = enum {
+type error = enum {
   fileNotFound = 1
 }
 
 function open(uri file_path) file {
 	// ...
-	throw errors.fileNotFound
+	throw error.fileNotFound
 }
 ```
 
@@ -124,7 +130,7 @@ function main() {
 	try {
 		var x = fs.open("file.txt")
 	} catch fs.error.fileNotFound {
-		print("File not found")
+		print("File not found at " + $exception.stack)
 	}
 }
 ```
@@ -132,20 +138,43 @@ function main() {
 *Compiler*
 
 ```language-compiled
+type λ_source_code_loc = struct {
+	uint line
+	uint column
+	string file
+}
+
+global λ_source_code_loc[] λ_call_stack = new
+
+// TODO variant ?
+type λ_exception_t = struct {
+	i64 value
+	type typeid
+	λ_source_code_loc[] stack
+}
+global var λ_exception_t λ_exception = {0, 0}
+
+
 function open(uri file_path) file {
 	// ...
-	λ_exception_value = errors.fileNotFound
-	λ_exception_type = errors
+	λ_exception.value = error.fileNotFound
+	λ_exception.type = fs.error
+	λ_exception.stack = λ_call_stack.clone()
 	return file.default
 }
 
 function main() void {
-	{
-		λ_exception_value = null
+	{ // try block
+		λ_exception.value = 0
+		λ_exception.typeid = 0
 		var x = fs.open("file.txt")
-		if (λ_exception_value != null) {
-			if (λ_exception_type == fs.error && λ_exception_value == fs.error.fileNotFound) {
-				print("File not found")
+		{ // catch block
+			alias $exception = λ_exception
+
+			if (λ_exception.value != 0) {
+				if (λ_exception.type == fs.error && λ_exception.value == fs.error.fileNotFound) {
+					print("File not found at " + $exception.stack
+				}
 			}
 		}
 	}
@@ -182,15 +211,8 @@ function main() {
 *Compiler*
 
 ```language-compiled
-type λt_location = struct {
-	uint line
-	uint column
-	string file
-}
 
-global λt_location[] λ_call_stack = new
-global ref<void>? λ_exception_value = null
-global type λ_exception_type = void
+
 
 function function_that_throws(bool b) i8 {
 	if (b) {
@@ -249,9 +271,46 @@ This makes the caller to handle the exception.
 
 *Semantic*
 
-Define a block that an exception may occur and how to handle it.
+1. Define a block where an exception may occur and how to handle it.
 
-Can be use alone or as part of try/catch/finally.
+2. `try` can be used in expressions to eat exceptions, in that case the called function will return the `default` value.
+
+```language-test
+function i64_throws() i64 {
+	throw "error"
+}
+function string_throws() string {
+	throw "error"
+}
+
+function main() {
+	var tmp = try i64_throws()
+	#assert tmp == i64.default
+
+	var tmp2 = try string_throws()
+	#assert tmp2 == string.default
+}
+```
+
+3. Can be used as statement, part of `try`/`catch`/`finally`
+
+```language-test
+function main() {
+	var steps = 0
+	try {
+		++steps
+		throw "error"
+	} catch {
+		#assert steps == 1
+		++steps
+		#assert $exception == "error"
+	} finally {
+		#assert steps == 2
+		++steps
+	}
+	#assert steps == 3
+}
+```
 
 *Example*
 
@@ -271,25 +330,48 @@ function main() {
 
 Exception eater
 
-```language
-type result = enum {
-  error = 0
-  ok = 1
-}
-
-function step1() result {
+```todo-language
+function step1() void {
   throw "unexpected error"
 }
 
-function step1_alternative() result {
-  return result.ok
+function step2() i64 {
+  throw "unexpected error"
 }
 
+function step3() u32 {
+  throw "unexpected error"
+}
+
+function step4(bool fail) bool {
+  if (fail) {
+	throw "failure"
+  }
+  return true
+}
+
+// TODO test return types!
 function main() {
   try step1()
-  try step2()
-  try step3()
-  try step4()
+
+  var s2 = try step2()
+  #assert s2 == step2.return_type.default
+
+  var s3 = try step3()
+  #assert s3 == step3.return_type.default
+
+  if (try step4(true)) {
+	#unreachable "step4 should fail and return false"
+  } else {
+	#assert true, "step4 failed and return false"
+  }
+
+  if (try step4(false)) {
+  } else {
+	#unreachable "step4 should fail and return false"
+  }
+
+
   if (validate_steps()) {
     // we are ok!
   } else {
