@@ -11,7 +11,7 @@
 
 ```syntax
 structTypeDecl
-  : ('noalign' | 'lean')* 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' endOfStmt? structProperty* '}'
+  : ('noalign' | 'lean')* 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' structProperty* '}'
   ;
 
 typeExtendsDecl
@@ -25,6 +25,7 @@ typeImplementsDecl
 structProperty
   : structPropertyDecl endOfStmt
   | comments endOfStmt
+  | endOfStmt
   ;
 
 structPropertyDecl
@@ -93,33 +94,35 @@ structConstantInitializer
   : '{' structProperyInitializerList? '}'
   ;
 ```
+*Nomenclature*
+
+* `fields`: Named values that are stored in memory inside the structure.
+* `setters` and `getters`: Named values that aren't stored in memory (Syntactic sugar)
+* `alias`: Name value that points to a field has the same type (Syntactic sugar)
+* `methods`: named function that manipulates the struct, there is an implicit first argument.
+* `properties`: Set of `fields` + `aliases` + `getters` + `setters`
+* `members`: Set of `fields` + `aliases` + `getters` + `setters` + `methods`.
 
 *Semantics*
 
 1. A `struct` is an aggregate type with contiguous memory type which fields can have distinct types.
 
-Used nomenclature:
-
-* `fields`: Named values that are stored in memory
-* `setters` and `getters`: Named values that aren't stored in memory (syntax sugar)
-* `alias`: Name value that points directly to a field (syntax sugar)
-* `methods`: named function that manipulates the struct
-* `properties` are the set of `fields` + `aliases` + `getters` + `setters`
-* `members` are the set of `fields` + `aliases` + `getters` + `setters` + `methods`.
-
 *Constraints*
 
-1. It shall have the same constrains as `c language`. With the addition
-of two hidden fields:
+1. It shall have the same constrains as `c language`.
 
-* `type` a pointer to the type to support rtti
-* `allocator` a pointer to the allocator so any memory allocated in the struct methods use the same allocator by default
+2. Some language features may require additional storage that memory shall be prepend to the structure.
 
-When used `lean` modifier this two field are removed and struct is 100% c compatible.
+* `ref<typeid> type`: a pointer to the type to support rtti
+* `ref<allocator> allocator`: a pointer to the allocator so any memory allocated in the struct methods use the same allocator by default
+
+3. `lean` prevents any additional field to be added by the compiler. The struct shall be 100% c compatible.
 
 *Example*
 
-```language
+```language-test
+//! #set rtti = true
+
 type Vector2 = struct {
   f32 x
   f32 y
@@ -132,9 +135,24 @@ type Vector3 = struct extends Vector2 {
 type Quaternion = struct extends Vector3 {
   f32 w
 }
+
+type cVector2 = lean struct {
+  f32 x
+  f32 y
+}
+
+test "structure memory size" {
+  #assert sizeof(Vector2) != sizeof(cVector2)
+  #assert sizeof(Vector2) + sizeof(f32) == sizeof(Vector3)
+  #assert sizeof(Vector3) + sizeof(f32) == sizeof(Quaternion)
+}
 ```
 
-2. A structure shall not contain a field with an incomplete type
+2. A structure shall not contain a field with an incomplete type.
+
+*Example*
+
+Mutual instances
 
 ```language-semantic-error
 type A = struct {
@@ -145,7 +163,7 @@ type B = struct {
 }
 ```
 
-or an instance of itself
+Instance of itself
 
 ```language-semantic-error
 type A = struct {
@@ -155,20 +173,55 @@ type A = struct {
 
 > mutually dependent types found: \['?'\[,]]
 
-But using a ref is ok, because a pointer is always of the same size regarless the type it points.
+The solution for this is to use pointers in the form of `ref`, `shared_ref`, `array`, etc.
+because pointers has a fixed size regardless where it points.
 
-```language-semantic-error
+```language-test
 type A = struct {
   ref<B> b
 }
 type B = struct {
   ref<A> a
 }
+
+test "memory size" {
+  #assert A.sizeof == B.sizeof == ref.size
+  #assert A.b.sizeof == B.a.sizeof == ref.size
+}
+
 ```
 
 3. A structure property name shall be unique or a semantic-error shall raise
 
 > property redefinition '?:name' at '?:file?:line?:column'
+
+```language-semantic-error
+type A = struct {
+  int add
+  function add(A other) {
+  }
+}
+```
+
+```language-semantic-error
+type A = struct {
+  int add
+  get int add {
+    return 0
+  }
+}
+```
+
+<!-- PROPROSSAL: allow it but can't be instanced -->
+4. A structure shall have size. At least one fields shall be defined.
+
+```language-semantic-error
+type A = struct {
+  function x() {}
+}
+```
+
+> struct :name at :file:line:column has no size
 
 
 ## Field declaration
@@ -177,11 +230,38 @@ type B = struct {
 
 A `struct` field is a identifier that point to a defined offset/type in a struct.
 
+
 *Constraints*
 
 1. A field shall require a type that defines its size/offset based on c rules.
 
-2. A field may have a default value.
+2. A field may have a default value, if not defined will use the underlying type default value.
+
+*Note*: When an exception is thrown current function will return the default value to the callee.
+
+```language-test
+type point = struct {
+  int x = 100
+  int y
+}
+
+type line = struct {
+  point start
+  point end
+}
+
+function main() {
+  #assert point.x.default == 100
+  #assert point.y.default == int.default
+
+  #assert line.start.default == point.default
+  #assert line.end.default == point.default
+
+  var point p = new
+  #assert p.x == 100
+  #assert p.y == int.default
+}
+```
 
 3. A field name shall be unique or a semantic-error shall raise
 
@@ -196,24 +276,27 @@ A `struct` field is a identifier that point to a defined offset/type in a struct
 
 *Semantics*
 
-Getters and setters are just syntax sugar for field manipulation/validation.
+Getters and setters are just syntactic sugar for field manipulation/validation/query.
 
 They are struct properties that have no storage.
 
 *Rationale*
 
-* Setters allow field validation
-* Getters expose fields in diferent representations
-* Future change encapsulation
-* Debuggin, the developercan change a field and intercept/debug each usage.
+* Setters allow field validation and can throw on invalid values.
+* Getters can expose fields in diferent representations.
+* Seamless change/encapsulation: Allows to a compatibility layer around a ABI change. ABI could change but the code remains the same.
+* Debuggin: Change a field to setter/getter and intercept/debug each usage.
 
-Syntax is split to support documentation of each part.
+Syntax is split to support documentation of each part and also support multiple setters.
+
+it shall be a compiler feature, not a runtime.
 
 *Constraints*
 
 1. A getter shall no modify struct memory or a semantic-error shall raise
+<!-- a.k.a all memory is readonly except for stack -->
 
-> At type '?' Found a getter '?' that modify the type.
+> At type '?' Found a getter '?' that modifies memory.
 
 2. A setter shall have at least one code path that modify the struct memory or a semantic-error shall raise
 
@@ -267,6 +350,41 @@ type Person = struct {
 
 > At type 'Person' Found a setter 'name' that do not modify the type.
 
+3. Only one getter with the same identifier is allowed.
+
+4. Only one setter with the same identifier and type is allowed.
+
+```language-test
+type person = struct {
+  int unixtimestamp_born = 0
+
+  set born (int value) {
+    unixtimestamp_born = $value
+  }
+  set born (date value) {
+    this.unixtimestamp_born = $value.to_unix()
+  }
+  set born (string value) {
+    this.unixtimestamp_born = (new date($value)).to_unix() // TODO syntax this requires parenthesis
+  }
+}
+
+test "check - x" {
+  var person bruce = new
+  bruce.born = 0
+  
+  #assert date.from_unix(bruce.unixtimestamp_born).year == 1970
+
+/* TODO syntax
+  expect({
+    bruce.born = "in USA"
+  }).throw("invalid date")
+*/
+}
+
+```
+
+
 ## Decorators (EXPERIMENTAL)
 
 <!--
@@ -304,7 +422,7 @@ functionDecoratorDecl
 
 *Semantics*
 
-Struct decorators allows validation, initialization, dependency injection, observation, etc. reusable.
+Struct decorators allows validation, initialization, dependency injection, observation, etc. in a reusable way.
 
 *Constraints*
 <!-- STUDY: function could be applied to all methods -->
@@ -431,7 +549,7 @@ function main() {
 function main() {
   #assert decorator_is_called == false
   #assert decorated_is_called == false
-  var s = log(decorated, " x "))
+  var s = log(decorated, " x ")
   #assert decorated_is_called == true
   #assert decorator_is_called == true
 }
