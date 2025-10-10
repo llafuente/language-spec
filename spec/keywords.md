@@ -84,6 +84,9 @@ keywords
   // package system
   | 'import'
   | 'as'
+  // unit-test
+  | 'test'
+  | 'mock'
   ;
 ```
 

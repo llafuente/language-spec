@@ -48,17 +48,13 @@ identifierName
     | keywords // TODO atm we use every keyword but makes no sense
     ;
 
+
+
 postfix_expr
-    // memberAccessExpression
-    // TODO this should be a rhs_expression?
-    : postfix_expr '![' expression ']'                                                 # postfixSelfElementAccessExpr
-    | postfix_expr '?[' expression ']'                                                 # postfixSafeElementAccessExpr
-    | postfix_expr '[' expression ']'                                                  # postfixElementAccessExpr
+    : postfix_expr ('!' | '?')? '[' expression ']'                                     # postfixBracesMemberAccessExpr
+    | postfix_expr ('?' | '!')? '.' identifierName templateId?                         # postfixDotMemberAccessExpr
     // TODO slice operator
     | postfix_expr '[' expression ':' expression ']'                                   # postfixSliceExpr
-
-    | postfix_expr ('?' | '!')? '.' identifierName templateId?                                     # postfixMemberAccessExpr
-
     | postfix_expr '.' '.' primary_expr                                                # rangeExpr
     // function call
     | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
@@ -87,12 +83,16 @@ argumentExprList
   ;
 
 
-// TODO expand the operator like @postfix_expr
 unary_expr
-    : unaryNewExpression                                        # unaryNewExpr
-    | unaryDeleteExpression                                     # unaryDeleteExpr
-    // NOTE:  there is not sizeof operator
-    | ('++' |  '--')* (postfix_expr | unaryOperators cast_expr) # operatorUnityExpr
+    // defined at memory-management
+    : unaryNewExpression
+    // defined at memory-management
+    | unaryDeleteExpression
+    // defined at unit-test
+    | unaryMockExpr
+
+    // NOTE:  there is not sizeof operator, as it's a function or a compiler property
+    | ('++' |  '--')* (postfix_expr | unaryOperators cast_expr)
     ;
 
 unaryOperators

@@ -110,6 +110,10 @@ META_WARNING_TK : '#warning';
 META_TYPE_ERROR_TK : '#type_error';
 META_SEMANTIC_ERROR_TK : '#semantic_error';
 
+// unit test
+TEST_TK : 'test';
+MOCK_TK : 'mock';
+
 // Preprocessor
 
 DOUBLE_HASH_TK : '##';

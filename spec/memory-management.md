@@ -21,22 +21,20 @@ allocator
   : 'at' identifier
   ;
 
-uninitializedNewExpression
-  : 'new' typeDefinition? allocator?
+defaultNewExpression
+  : typeDefinition? allocator?
   ;
 
 initializedNewExpression
-  : 'new' typeDefinition? ('(' argumentExprList? ')')+ allocator?
+  : typeDefinition? ('(' argumentExprList? ')')+ allocator?
   ;
 
 arrayNewExpression
-  : 'new' typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? allocator?
+  : typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? allocator?
   ;
 
 unaryNewExpression
-  : uninitializedNewExpression
-  | initializedNewExpression
-  | arrayNewExpression;
+  : 'new' ( defaultNewExpression | initializedNewExpression | arrayNewExpression );
 ```
 
 *Semantics*

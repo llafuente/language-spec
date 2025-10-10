@@ -20,6 +20,7 @@ programStms
   | typeDecl endOfStmt
   | globalVariableDeclStmt endOfStmt
   | fileVariableDeclStmt endOfStmt
+  | testStmt
   | endOfStmt
   ;
 
