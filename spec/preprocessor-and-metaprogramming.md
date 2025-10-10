@@ -27,6 +27,14 @@ Implementation notes.
 *syntax*
 
 ```syntax
+preprocessorProgramStmtList
+  : preprocessorProgramStmt+
+  ;
+
+preprocessorProgramStmt
+  : preprocessorSetStatement
+  | endOfStmt
+  ;
 
 preprocessorStr
   : '##' identifier '#' // TODO why can't we use identifierUp here ?
@@ -187,7 +195,7 @@ everything declared in the macro inside it's own scope.
 
 This is an error.
 
-```language-err
+```language-semantic-error
 #macro ret() {
   return 0
 }
@@ -201,7 +209,7 @@ function test(): number {
 
 This is an error.
 
-```language-err
+```language-semantic-error
 #macro expr() {
   1 + 1
 }
@@ -773,7 +781,7 @@ Date format can be configured using compiler flag `PREPROCESSOR_DATE_FORMAT`
 
 *Example*
 ```language
-#set PREPROCESSOR_DATE_FORMAT YYYY-mm-DD
+#set PREPROCESSOR_DATE_FORMAT = YYYY-mm-DD
 
 print(##date)
 ```
@@ -913,7 +921,7 @@ c1.doSomething(c2)
 
 #### Errors
 
-```language
+```language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#")
@@ -922,11 +930,9 @@ c1.doSomething(c2)
 print_text((xy)
 ```
 
-```error
-Invalid macro argument: Not closed parentheses started at line 6:11
-```
+> Invalid macro argument: Not closed parentheses started at line 6:11
 
-```language
+```language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#")
@@ -935,11 +941,9 @@ Invalid macro argument: Not closed parentheses started at line 6:11
 #print_text(x,y)
 ```
 
-```error
-Invalid macro arguments count: expected 1 found 2 at line 6
-```
+> Invalid macro arguments count: expected 1 found 2 at line 6
 
-```language
+```language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#")
@@ -950,11 +954,9 @@ Invalid macro arguments count: expected 1 found 2 at line 6
 }
 ```
 
-```error
-End of line reached with an open string started at line 6:30
-```
+> End of line reached with an open string started at line 6:30
 
-```language
+```language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#)
@@ -965,74 +967,50 @@ End of line reached with an open string started at line 6:30
 }
 ```
 
-```error
-Syntax error unclosed string started at line 3:10
-#macro print_text(#text t) {
-  print("#t#)
-        ^
-}
-```
+> Syntax error unclosed string started at line 3:10
+> #macro print_text(#text t) {
+>   print("#t#)
+>        ^
+>}
 
 
-```language
+```language-semantic-error
 #macro if() {
 }
 ```
 
-```error
-Syntax error: Invalid macro name: used a reserved macro name at line 3:10
-(if, define, macro, forstruct, assert, repeat, line, file, date, error, warning, exec, block, value, text, uid)
+> Syntax error: Invalid macro name: used a reserved macro name at line 3:10
+> :keywords
 
-#macro if() {
-       ^
-}
-```
 
-```language
+```language-semantic-error
 #macro test(#text if) {
 }
 ```
 
-```error
-Syntax error: Invalid macro argument name: used a reserved macro name at line 3:10
-(if, define, macro, forstruct, assert, repeat, line, file, date, error, warning, exec, block, value, text, uid)
+> Syntax error: Invalid macro argument name: used a reserved macro name at line 3:10
+> :keywords
 
-#macro test(#text if) {
-                  ^
-}
-```
 
-```language
+```language-semantic-error
 #macro test(#if a) {
 }
 ```
 
-```error
-Syntax error: Invalid macro argument modifier: expected #text or #value line 3:13
-(if, define, macro, forstruct, assert, repeat, line, file, date, error, warning, exec, block, value, text, uid)
+> Syntax error: Invalid macro argument modifier: expected #text or #value line 3:13
+> :keywords
 
-#macro test(#if a) {
-            ^
+
+```language-semantic-error
+#macro foreach_v(#value value, #value itr_able) #block {}
+
+test "foreach_v" {
+  #foreach_v(1, 1)
+  1 + 1
 }
 ```
 
-```language
-#macro foreach_v(#value value, #value itr_able) #block {}
-#foreach_v(1, 1)
-1 + 1
-```
-
-```error
-Syntax error: foreach_v expected a block 2:1
-
-#macro foreach_v(#value value, #value itr_able) #block {}
-#foreach_v(1, 1)
-^
-1 + 1
-```
-
-
-
+> Syntax error: foreach_v expected a block :file:line:column
 
 <!--
 ### Variadic-Macros [*UNDER STUDY*]

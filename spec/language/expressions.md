@@ -132,6 +132,18 @@ relational_expr
     | shift_expr                      # relational_expr_fw
     ;
 
+relational_operators
+    : '<'
+    | '>'
+    | '<='
+    | '>='
+    ;
+equality_operators
+    : '=='
+    | '!='
+    | '<' '>'
+    ;
+
 equality_expr
     // memory equality (pointer comparation)
     : equality_expr '===' relational_expr # equality_expr_eqp

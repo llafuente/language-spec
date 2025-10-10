@@ -7,16 +7,16 @@ Unlike many language, compiler is configured inside the source code.
 *syntax*
 
 ```syntax
-preprocessor_set_statement
-  : '#set' Identifier CCHAR_SEQUENCE
+preprocessorSetStatement
+  : '#' 'set' identifier ('.' identifier)* '=' constant
   ;
 ```
 
-*semantics*
+*Semantics*
 
 Sets a compiler property.
 
-*constraints*
+*Constraints*
 
 1. It's only available at `program` `entry point file`.
 
@@ -29,41 +29,33 @@ Sets a compiler property.
 *Example*
 
 ```language
-#set arrays.out_of_bounds true
+#set arrays.out_of_bounds = true
 ```
 
-# `#get`
-
-*syntax*
-
-```syntax
-preprocessor_get_expr
-  : '#get' Identifier
-  ;
-```
+# get configuration
 
 *semantics*
 
-Gets a property. It's value is always a string.
+Retrieves a value from compiler configuration.
 
-*constraints*
-
-1. Property shall exists or a compiler error shall raise.
-
+Compiler configuration is available at compile time as constant.
 
 *Example*
 
-```language
-var x = #get arrays.out_of_bounds
+```todo-language
+test "get configuration" {
+  // x will be true or false at compile time.
+  var x = arrays.out_of_bounds
+}
 ```
 
 # `#require`
 
 *syntax*
 
-```syntax
+```todo-syntax
 preprocessor_require_statement
-  : '#require' Identifier CCHAR_SEQUENCE?
+  : '#' 'require' identifier ('.' identifier)* (relational_operators | equality_operators) constant
   ;
 ```
 
@@ -86,8 +78,8 @@ Enforce a property to be set or equal to a specific value
 
 Imagine you are developing a math library and you want the developer to choose beetween f32/f64 you can use.
 
-```language
-#require mathlib.float_type
+```todo-language
+#require mathlib.float_type == f32
 ```
 
 This way the developer must `#set mathlib.float_type`
