@@ -2,7 +2,7 @@
 
 Path is a specialization type of string.
 
-These means it contains a method specialization by the underlying type is the same and interchangeable.
+These means it contains a method specialization but the underlying type is the same and interchangeable.
 
 The path is OS independent because a [https://en.wikipedia.org/wiki/Uniform_Resource_Identifier](URI - Uniform Resource Identifier) must be used.
 
@@ -45,31 +45,33 @@ Methods
 
 
 ```language
-fs.file.get("/c/file.txt?grep=xxx")
-fs.file.get("/c/file.json?pick=dependencies")
-fs.file.append("/c/file.text", "new line\n")
-fs.file.write("/c/file.text", "new line\n", create = true)
+function main() {
+	fs.file.get("/c/file.txt?grep=xxx")
+	fs.file.get("/c/file.json?pick=dependencies")
+	fs.file.append("/c/file.text", "new line\n")
+	fs.file.write("/c/file.text", "new line\n", create = true)
 
-fs.file.get("http://www.google.com")
-fs.file.get("http://www.google.com", headers = ["Accept: application/json"])
-fs.file.post("http://www.google.com", headers = ["Accept: application/json"], body = `{"message": "xxx"}`)
-
-
-fs.file.post("http://www.google.com", headers = ["Accept: application/json"], body = `{"message": "xxx"}`, auth = basic_auth)
-
-var credentials = new BasicAuth(user = "john", password = "Doe")
-fs.file.get("http://www.mybank.com", auth = credentials)
-
-var credentials = new SSLCertificateAuth(key = "/c/file.pem", ssltype = "PEM", crt="/c/file.crt", keypassword = "xxx")
-fs.file.get("http://www.mybank.com", auth = credentials)
+	fs.file.get("http://www.google.com")
+	fs.file.get("http://www.google.com", headers = ["Accept: application/json"])
+	fs.file.post("http://www.google.com", headers = ["Accept: application/json"], body = `{"message": "xxx"}`)
 
 
-fs.file.post("http://www.google.com").pipe(fs.stream.create("/c/download.html"))
-fs.file.post("http://www.google.com").pipe(app.stdout)
-fs.file.post("http://www.google.com").pipe(app.stderr)
+	fs.file.post("http://www.google.com", headers = ["Accept: application/json"], body = `{"message": "xxx"}`, auth = basic_auth)
 
-fs.file.read_line(app.stdin)
-fs.file.eot_read(app.stdin)
+	var credentials = new BasicAuth(user = "john", password = "Doe")
+	fs.file.get("http://www.mybank.com", auth = credentials)
+
+	var credentials = new SSLCertificateAuth(key = "/c/file.pem", ssltype = "PEM", crt="/c/file.crt", keypassword = "xxx")
+	fs.file.get("http://www.mybank.com", auth = credentials)
+
+
+	fs.file.post("http://www.google.com").pipe(fs.stream.create("/c/download.html"))
+	fs.file.post("http://www.google.com").pipe(app.stdout)
+	fs.file.post("http://www.google.com").pipe(app.stderr)
+
+	fs.file.read_line(app.stdin)
+	fs.file.eot_read(app.stdin)
+}
 
 ```
 <!-- 

@@ -62,30 +62,55 @@ No overflow shall happen.
 
 *Example*
 
-```
-var i8[] x = new[10] // start with 10 capacity
-var y = new i8[10] // start with 10 capacity
+```language-test
+test "" {
+  var i8[] x = new[10] // start with 10 capacity
+  var y = new i8[10] // start with 10 capacity
 
-// properties
-x.push(0)
-y.push(1)
-y.grow(15)   // grow internal memory by 15
-print(x.cap) // stdout: 10
-print(y.cap) // stdout: 15
-print(x.len) // stdout: 1
-print(y.len) // stdout: 1
-y[7] = 99
-print(y.len) // stdout: 8
-print(y[0]) // stdout: 1
-print(y[1:6]) // stdout: [0,0,0,0,0,0]
-print(y[7]) // stdout: 99
+  // x = [0, 1] of capacity 10
+  x.push(0)
+  x.push(1)
+  #assert x.len == 2
+  #assert x[0] == 0
+  #assert x[0] == 1
+  #assert x.cap == 10
+  
+  // x = [0, 1] of capacity 10
+  x.grow(15)   // grow internal memory by 15
+  #assert x.cap == 15
 
-#assert type(x) == type(y)
+  /// unlike push, if you set beyond length it will initialize to default value the previous
+  y[7] = 99
+  #assert y.len == 8
+  #assert y == [0,0,0,0,0,0,0,99]
+
+  #assert type(x) == type(y)
+
+  // reference copy - point to the valuess, same memory
+  x = y
+  #assert x.cap == 10
+  #assert y.cap == 10
+  
+  y.grow(15)
+  #assert x.cap == 15
+  #assert y.cap == 15
+
+  #assert x == y
+  // clone copy - point to the same values, different memory
+  x = y.clone()
+  #assert x.cap == 15
+  #assert y.cap == 15
+
+  y.grow(10)
+  #assert x.cap == 10
+  #assert y.cap == 10
+  #assert x == y
+}
 ```
 
 *Implementation*
 
-```
+```todo-language
 template $t
 template $array_ptrt $t is ptr
 

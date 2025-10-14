@@ -44,12 +44,19 @@ A `vector` is not an `array`.
 A variant is an especial pointer that holds a reference to a value and it's type.
 
 ```language
-type variant = struct {
+type variant<$t> = struct {
   typeid v_type
-  ptr pointer
+  ref<$t> pointer
+
+  new($t t) {
+    this.v_type = typeid(v_type)
+    this.pointer = t
+  }
 
   function to<$t>() $t {
-    if ($t == v_type) return cast<$t>(pointer)
+    if ($t == v_type) {
+      return cast<$t>(pointer)
+    }
     throw "impossible cast at variant"
   }
 }
@@ -121,18 +128,19 @@ Throws if the rhs is `nullptr`.
 
 
 ```language
-struct ref<$t> {
+type ref<$t> = struct {
   ptr<$t> pointer;
 
-  function new(ptr<$t> p) {
+  new(ptr<$t> p) {
     pointer = p;
   }
 
-  default function new() lend uninitialized $t {
-    return unsafe_cast<$t>(libc.malloc($t.size));
-  }
+  // TODO syntax
+  //new() lend uninitialized $t {
+  //  return unsafe_cast<$t>(libc.malloc($t.size));
+  //}
 
-  destructor() {
+  delete() {
     libc.free(pointer);
   }
 
@@ -151,7 +159,8 @@ struct ref<$t> {
 
 *Examples*
 
-```language
+```todo-language
+
 var i32 value = 100
 var ref<i32> pi32 = value
 
@@ -167,26 +176,27 @@ pi32 = unsafe_cast<>(api32) // ok-ish
 ```
 
 
-```language
+```language-test
 type point = struct {
   float x
   float y
 }
 type ref_point = ref<point>
 
-var ref_point pp = new(0,0)
-
-#assert ref_point.size == ptr.size
+test "pointer sizes" {
+  var ref_point pp = new(0,0)
+  #assert ref_point.sizeof == ptr.sizeof
+}
 
 ```
 
-## mref<$type>
+## mref<$type> (shared_ref)
 
 *Semantics*
 
 Holds a multiple reference to another memory.
 
-It contains a pointer to memory and a use counter.
+It contains a pointer to memory and a use counter to know how many copies there are in the program.
 
 *Constrains*
 
@@ -194,18 +204,68 @@ It contains a pointer to memory and a use counter.
 
 2. If that counter reach zero, the `mref` will be released.
 
+```language-test
+import fs
 
+type filecache = struct {
+  path filename
+  mref<string> contents
 
+  new(path filename) {
+    this.filename = filename
+  }
+  function read() mref<string> {
+    if (!contents) {
+      contents = fs.file.read(filename)
+    }
+    return contents
+  }
+}
+
+test "load keys" {
+    var fcache = new filecache("file://text.txt")
+    var instance1 = fcache.read()
+    var instance2 = fcache.read()
+    var instance3 = fcache.read()
+
+    // !. will access self properties!
+    #assert instance1!.count == 3
+    #assert instance2!.count == 3
+    #assert instance3!.count == 3
+    #assert instance1!.pointer == instance2!.pointer == instance3!.pointer
+}
+```
 # pointers arithmetic
 
 ## Incrementing a pointer
 
 Valid operators: `++ += +`
 
-```
-var x = vector<i8>;
-++x; // single increment
-x+=8; // increment bytes
+```language-test
+
+test "incrementing a pointer" {
+  // creates a vector of 10 i8 elements.
+  var b1 = new i8[10];
+  #assert address(b1) + 1 == address(b1 + 1)
+
+  var b2 = cast<i16[5]>(b)
+  var b2_p1 = b2
+  var b2_inc = b2
+  var b2_ret = b2
+  #assert address(b2) + 2 == address(b2 + 1)
+
+  b2_p1 += 1
+  #assert address(b2_p1) == address(b2 + 1)
+
+  b2_ret = b2_inc++
+  #assert address(b2_ret) == address(b2)
+  #assert address(b2_inc) == address(b2 + 1)
+  
+  b2_inc = b2
+  b2_ret = ++b2_inc
+  #assert address(b2_ret) == address(b2 + 1)
+  #assert address(b2_inc) == address(b2 + 1)
+}
 ```
 ## Decrementing a pointer
 

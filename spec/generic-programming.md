@@ -71,8 +71,8 @@ type and check if a valid function/type.
 
 *Example*
 
-```
-type AStruct = struct<$T> {
+```language
+type AStruct<$T> = struct {
   $T x
 }
 // search for the specific type: AStruct<float>
@@ -113,20 +113,38 @@ And it's negation: `not implement`, `not extend`, `is not`.
 
 *Examples*
 
-```error
-function next<$t>($t value) {
-  value.next()
+```language-semantic-error
+function call_next<$t>($t value) {
+  return value.next()
 }
-next<float>(1.0)
+
+function main() {
+  call_next<float>(1.0)
+}
+```
+
+
+```language-test
+function next<$t>($t value) {
+  return value + 1
+}
+
+function main() {
+  #assert 2.0 == next<float>(1.0)
+  #assert 2 == next<int>(1)
+  #assert 0 == next<u8>(255) // overflow :P
+}
 ```
 
 > 'float' has no member named 'next'.
 
-```error
+```language-semantic-error
 function next<$t implements iterator>($t value) {
   value.next()
 }
-next<float>(1.0)
+function main() {
+  next<float>(1.0)
+}
 ```
 
 > instantiating function not possible: 'function next<$t implements iterator>($t value)'
@@ -136,21 +154,73 @@ next<float>(1.0)
 *Examples*
 
 ```language
+type point = struct {
+  int x
+  int y
+}
+
+operator+(point a, point b) point {
+  return point(a.x + b.x, a.y + b.y)
+}
+
 function add<$t>($t a, $t b) $t {
   return a + b
 }
 
-type point = struct {
-  f32 x
-  f32 y
+function main() {
+  // implicit instantiation
+  var s = add(point(10, 20), point(15, 15))
+  #assert s.x == 25
+  #assert s.y == 35
 }
 
-function operator+(point a, point b) point {
-  return point(a.x + b.x, a.y + b.y)
+```
+
+```language-propossal
+type pick<$s is struct, field is string, $ret = ref> = struct {
+  type tmp = struct {
+    @struct.@field @field
+  }
+
+  operator() ($s s) $ret<tmp> {
+    return new tmp(s.@field)
+  }
 }
 
-# implicit instantiation
-var s = add(point(10, 20), point(15, 15))
-#assert s.x == 25
-#assert s.y == 35
+type point {
+  int x
+  int y
+}
+
+function main() {
+  var p = new point(10, 10)
+  #assert p.x == 10
+  #assert p.y == 10
+  
+  var p2 = pick<point, "x">(p)
+  #assert p.x == 10
+  #assert typeof(p) is ref
+
+}
+```
+
+```todo-language
+function greet(string name) {
+  return "Hello: " + name
+}
+
+type bind<$f is function, $f.arguments[0] first> = struct {
+  $f original
+  $t firstArgument
+  operator(@$f.arguments[:1]) () {
+
+  }
+}
+
+function main() {
+  var fn = new bind<greet, "moe">()
+
+  #assert greet("moe") == "Hello: moe"
+  #assert fn() == "Hello: moe"
+}
 ```

@@ -11,7 +11,7 @@ One package can gain access to another package functionality by importing it.
 import fs
 
 function main() {
-  fs.open("./file.text)
+  fs.open("./file.text")
 }
 ```
 

@@ -378,13 +378,13 @@ function main() {
   var b = point(3, 4)
   var c = a + b
 
-  #assert c.x ~== 4
-  #assert c.y ~== 6
+  #assert c.x ~= 4
+  #assert c.y ~= 6
   #assert typeof(c.y) == point
   
   c = a + 5.5
-  #assert c.x ~== 6.5
-  #assert c.y ~== 7.5
+  #assert c.x ~= 6.5
+  #assert c.y ~= 7.5
 }
 ```
 
@@ -510,14 +510,14 @@ Provides a seamnless encapsulation method it also providen a easy extension meth
 *Example*
 
 ```language
-type myref = struct<$T> {
+type myref<$T> = struct {
   ref<$T> p
 
-  uninitialized $T operator new() {
+  new() {
     return intrinsics_deref(this.p)
   }
 
-  $T operator.() {
+  operator.() $T {
     return intrinsics_deref(this.p)
   }
 }
@@ -533,12 +533,12 @@ function main() {
 }
 ```
 
-#### cast_expr
+#### cast_expr (EXPERIMENTAL)
 
 This is a very special operator because this allows the compiler to fit your
 type in many places. Use it with care.
 
-```language
+```todo-language
 operator cast($t lhs) $other {}
 operator autocast($t lhs) $other {}
 ```

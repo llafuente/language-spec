@@ -11,7 +11,7 @@ an object at runtime.
 Introspection is enabled by default, to disable:
 
 ```language
-#set compiler_introspection false
+#set rtti = false
 ```
 
 Introspection will create a set of function for each type declared along an array
@@ -32,7 +32,7 @@ https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html
 https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html
 -->
 
-```language
+```language-package
 package rtti
 
 type primitives = enum  {
@@ -230,19 +230,20 @@ global type[] types = []
 
 ## rtti.get_type_by_name(string type_name): typeid
 
-```language
+```language-test
 import rtti
 
-struct ab {
+type ab = struct {
   i32 a
   i32 b
 }
-
-// i8 it's the first declared type :)
-#assert rtti.get_type_by_name("i8") == 0
-#assert rtti.get_type_by_name("i8") == i8
-#assert rtti.get_type_by_name("ab") != 0
-#assert rtti.get_type_by_name("ab") != ab
+test "rtti usage" {
+  // i8 it's the first declared type :)
+  #assert rtti.get_type_by_name("i8") == 0
+  #assert rtti.get_type_by_name("i8") == i8
+  #assert rtti.get_type_by_name("ab") != 0
+  #assert rtti.get_type_by_name("ab") != ab
+}
 ```
 
 ## rtti.count_fields(typeid tid): i32
@@ -250,15 +251,18 @@ struct ab {
 
 Returns how many fields / arguments the type has
 
-```test
+```language-test
 import rtti
 
-struct ab {
+type ab = struct {
   i32 a
   i32 b
 }
+test ab {
+  #assert ab.fields.length == 2
+  #assert rtti.count_fields(ab) == 2
 
-#assert rtti.count_fields(i32) == 2
+}
 ```
 
 ## rtti.get_fields(typeid tid): struct_field[]
@@ -268,15 +272,15 @@ Returns the list of fields / arguments the type has
 
 *Example*
 
-```test
-
-struct ab {
+```language-test
+type ab = struct {
   i32 a
   i32 b
 }
-
-#assert rtti.get_fields(i32) == null
-#assert rtti.get_fields(ab) == ["a", "b"]
+test ab {
+  #assert rtti.get_fields(i32) == null
+  #assert rtti.get_fields(ab) == ["a", "b"]
+}
 ```
 
 ## rtti.get_methods_names(typeid tid) string[]
@@ -293,17 +297,18 @@ Returns the list of fields
 
 *Example*
 
-```test
+```language-test
 import rtti
 
-struct ab {
+type ab = struct {
   i32 a
   i32 b
 }
-
-#assert rtti.sizeof(i32) == 8
-#assert rtti.sizeof(i32) == i32.size
-#assert rtti.sizeof(ab) == 16
+test ab {
+  #assert rtti.sizeof(i32) == 8
+  #assert rtti.sizeof(i32) == i32.size
+  #assert rtti.sizeof(ab) == 16
+}
 ```
 
 ## rtti.instance_of(typeid a, typeid b) bool
@@ -312,20 +317,38 @@ Returns true if `a` could be an instance of `b`.
 
 *Example*
 ```language
-struct v2 {
+type v2 = struct {
   f32 x
   f32 y
 }
-#assert rtti.instance_of(v2, string) == false
-#assert rtti.instance_of(string, string) == true
 
-var heap_vec = new v2(0, 0)
-#assert rtti.instance_of(heap_vec, v2) == false
-#assert rtti.instance_of(heap_vec, ref) == true
+type v = struct {
+  f32 x
+  f32 y
+  f32 z
+}
 
-var stack_vec(0, 0)
-#assert rtti.instance_of(stack_vec, v2) == true
-#assert rtti.instance_of(stack_vec, ref) == false
+type vx = v2 | v3
+
+test vx {
+  // p2 and p3 will be a variant ?
+  var vx p2 = new v2(0, 0)
+  var vx p3 = new v3(0, 0, 0)
+
+  #assert rtti.instance_of(vx, v2) == false
+  #assert rtti.instance_of(vx, v3) == false
+
+  #assert rtti.instance_of(v, string) == false
+  #assert rtti.instance_of(string, string) == true
+
+  var heap_vec = new v2(0, 0)
+  #assert rtti.instance_of(heap_vec, v2) == false
+  #assert rtti.instance_of(heap_vec, ref) == true
+
+  var stack_vec = v2(0, 0)
+  #assert rtti.instance_of(stack_vec, v2) == true
+  #assert rtti.instance_of(stack_vec, ref) == false
+}
 ```
 
 ## rtti.instance_of(variant a, typeid b) bool

@@ -65,8 +65,8 @@ preprocessorStmts
   ;
 ```
 
-
-## `#define`
+<!-- why? #set shall be enough -->
+## `#define` (EXPERIMENTAL)
 
 *syntax*
 
@@ -109,7 +109,7 @@ Package developers should append a unique prefix to allow package configuration.
 
 *Example*
 
-```language
+```todo-language
 #define PI 3.1496
 #define HALF_PI (#PI# * 0.5)
 ```
@@ -195,7 +195,7 @@ everything declared in the macro inside it's own scope.
 
 This is an error.
 
-```language-semantic-error
+```todo-language-semantic-error
 #macro ret() {
   return 0
 }
@@ -209,7 +209,7 @@ function test(): number {
 
 This is an error.
 
-```language-semantic-error
+```todo-language-semantic-error
 #macro expr() {
   1 + 1
 }
@@ -231,7 +231,7 @@ These prevent unshielded commas.
 
 A macro can access variables outside its scope but no the other way around.
 
-```language
+```todo-language
 #macro macro_add() {
   var x = 10
   c = a + b
@@ -250,7 +250,7 @@ print(add(10, 10)) // stdout: 20
 
 A macro can be called postfix.
 
-```language
+```todo-language
 var list = [1, 2, 3, 4]
 
 list.#foreach(value) {
@@ -258,7 +258,7 @@ list.#foreach(value) {
 }
 ```
 
-```language
+```todo-language
 #macro add(value, value2) {
   value += value2
 }
@@ -299,7 +299,7 @@ This is the default method so `#text` it's optional.
 
 *Example*
 
-```language
+```todo-language
 // Declaration
 #macro print_text(#text t) {
   print("#t#") // it will print t text value
@@ -315,7 +315,7 @@ This is the default method so `#text` it's optional.
 
 Expansion:
 
-```
+```language-compiled
 {
   print("xxx.ccc")
   print("xxx.ccc")
@@ -350,7 +350,7 @@ Expansion:
 
 It's intention is to give better error message, as it's the same as #text with a type check.
 
-```language
+```todo-language
 #macro xxx(#string message) {
   print(#message#)
 }
@@ -387,7 +387,7 @@ and assigned to a local variable.
 
 *Example*
 
-```language
+```todo-language
 // declaration
 #macro print_type(#value v) {
   print(typeof(#v#), "=", #v#)
@@ -421,7 +421,7 @@ float = 17.2
 
 *Example 2*
 
-```language
+```todo-language
 // Declaration
 #macro safe_add(#text result, #value lhs, #value rhs, #text overflow) {
 
@@ -487,7 +487,7 @@ will be expanded inside the macro.
 
 This is almost how we implement `foreach` internally in the language.
 
-```language
+```todo-language
 // declaration
 #macro foreach_v(#text val, #value itr_able) #block {
   #assert typeof(#itr_able#) implements Iterable
@@ -528,7 +528,7 @@ foreach_kv(key, it, [1,2,3,4]) {
 ```
 
 *Expansion*
-```
+```language-compiled
 { // expanding foreach arguments
   itr_able_unique := [1,2,3,4];
 
@@ -587,7 +587,7 @@ forargsStmt
 
 *Example*
 
-```language
+```todo-language
 
 #macro print(...) {
   #forargs i, k {
@@ -621,7 +621,7 @@ forstructStmt
 
 *Example*
 
-```language
+```todo-language
 type point = struct {
   i8 x
   i8 y
@@ -636,7 +636,7 @@ var p = point(5, 7)
 ```
 
 Expansion:
-```
+```language-compiled
 type point = struct {
   i8 x
   i8 y
@@ -734,7 +734,7 @@ It generates a unique identifier, can be used as prefix or sufix.
 
 *Example*
 
-```language
+```todo-language
 #uid BLOCK_UID
 
 start_#BLOCK_UID#:
@@ -780,10 +780,13 @@ Display current date.
 Date format can be configured using compiler flag `PREPROCESSOR_DATE_FORMAT`
 
 *Example*
-```language
-#set PREPROCESSOR_DATE_FORMAT = YYYY-mm-DD
+```todo-language
+#set PREPROCESSOR_DATE_FORMAT = "YYYY-mm-DD"
 
-print(##date)
+test "date" {
+  print(##date)
+  // TODO test with a regex
+}
 ```
 
 ## `#error msg`
@@ -921,7 +924,7 @@ c1.doSomething(c2)
 
 #### Errors
 
-```language-semantic-error
+```todo-language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#")
@@ -932,7 +935,7 @@ print_text((xy)
 
 > Invalid macro argument: Not closed parentheses started at line 6:11
 
-```language-semantic-error
+```todo-language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#")
@@ -943,7 +946,7 @@ print_text((xy)
 
 > Invalid macro arguments count: expected 1 found 2 at line 6
 
-```language-semantic-error
+```todo-language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#")
@@ -956,7 +959,7 @@ print_text((xy)
 
 > End of line reached with an open string started at line 6:30
 
-```language-semantic-error
+```todo-language-semantic-error
 // Declaration
 #macro print_text(#text t) {
   print("#t#)
@@ -974,7 +977,7 @@ print_text((xy)
 >}
 
 
-```language-semantic-error
+```todo-language-semantic-error
 #macro if() {
 }
 ```
@@ -983,7 +986,7 @@ print_text((xy)
 > :keywords
 
 
-```language-semantic-error
+```todo-language-semantic-error
 #macro test(#text if) {
 }
 ```
@@ -992,7 +995,7 @@ print_text((xy)
 > :keywords
 
 
-```language-semantic-error
+```todo-language-semantic-error
 #macro test(#if a) {
 }
 ```
@@ -1001,7 +1004,7 @@ print_text((xy)
 > :keywords
 
 
-```language-semantic-error
+```todo-language-semantic-error
 #macro foreach_v(#value value, #value itr_able) #block {}
 
 test "foreach_v" {
@@ -1020,7 +1023,7 @@ It a bit hacky but variadic is supported because we honor parenthesis.
 
 Example:
 
-```language
+```todo-language
 #macro print_them(#text arg) {
   print#arg#
 }

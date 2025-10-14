@@ -1,99 +1,60 @@
+<!--
+
+TODO Study
+Little endian / Big endian -> is part of the enconding
+https://en.wikipedia.org/wiki/Comparison_of_Unicode_encodings
+
+rune.size = 5? -> include null byte? it's usefull ?
+
+-->
+
 # strings
 
 ## `rune`
 
-The `rune` type represent a single character (possible multibyte) in a given encoding.
+The `rune` type represent a single character as Unicode code point (i32)
 
 The type is equivalent to string, but:
 * A rune is a string
 * A string is *NOT* a rune
 
-### Properties
+```language-test
+type rune = struct {
+  i32 codePoint
+}
 
-#### capacity: size
-
-Allocated bytes for value
-
-#### value: ptr<u8>
-
-Rune and null byte.
-
-#### encoding: string_encoding
-
-Reference: [Encoding](#encoding)
-
-<!--
-TODO Study
-Little endian / Big endian
-https://en.wikipedia.org/wiki/Comparison_of_Unicode_encodings
--->
+test rune {
+  var r = rune("a")
+  #assert r.codePoint == 64
+}
+```
 
 ## `string`
 
 Represent a list of characters.
 
-### Properties
+```language
+type string_shape = interface {
+  // Length in runes/characters
+  get size length
+  alias length chatLength
 
-#### length: size (alias: charLength)
+  // Allocated bytes for value
+  get size capacity
+  alias capacity memLength
 
-Length in runes/characters
+  // Length of the memory used, including null byte
+  get size memUsed
 
-#### memLength: size
-
-Length of the memory used, including null byte
-
-#### capacity: size
-
-Allocated bytes for value
-
-#### value: ptr<u8>
-
-Rune and null byte.
-
-#### encoding: string_encoding
-
-Reference: [Encoding](#encoding)
-
-### Implementation
-
-```
-struct string {
-  get size length() { return string_len(value, encoding); }
-  alias chatLength length
-
-  get size memLength { return string_len(value, string_encoding.asscii); }
-
-  size capacity
-
+  // Reference: [Encoding](#encoding)
   encodings encoding
 
+  // list of character and null byte.
   ptr<u8> value
-  alias ptr<u16> value16 value
-  alias ptr<u32> value32 value
+  // alias ptr<u16> value16 value
+  // alias ptr<u32> value32 value
 }
 ```
-
-Operators
-```
-operator[](size position) rune {} // get rune
-operator[](size position, rune) rune {} // set rune (assignment)
-
-// concat
-operator+(string) string {}
-operator+(rune) string {}
-operator+(i8) string {}
-operator+(i16) string {}
-operator+(i32) string {}
-operator+(i64) string {}
-operator+(u8) string {}
-operator+(u16) string {}
-operator+(u32) string {}
-operator+(u64) string {}
-operator+(float) string {}
-operator+(double) string {}
-operator+(...) string {}
-```
-
 
 Declaration:
 
@@ -105,7 +66,7 @@ var s2 = "hello world I'm \"tony\""
 ```
 
 `back tip`: string with interpolation back-slash escape.
-```language
+```todo-language
 var s1 = `hello world`
 var s2 = `${s1} I'm "tony"`
 var num = 19
@@ -114,11 +75,11 @@ var s4 = `dollar sign must be escaped \$ and back tip too\``
 ```
 
 
-## string_slice
+## `string_slice`
 
 <!-- https://en.cppreference.com/w/cpp/string/basic_string_view -->
 
-A string slice points to a specific part of a `string`
+A string slice points to a specific part of a `string`, a slice is not null terminated.
 
 ### Properties
 
