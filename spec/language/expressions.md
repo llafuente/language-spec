@@ -51,8 +51,8 @@ identifierName
 
 
 postfix_expr
-    : postfix_expr ('!' | '?')? '[' expression ']'                                     # postfixBracesMemberAccessExpr
-    | postfix_expr ('?' | '!')? '.' identifierName templateId?                         # postfixDotMemberAccessExpr
+    : postfix_expr ('![' | '?[' | '[') expression ']'                                     # postfixBracesMemberAccessExpr
+    | postfix_expr ('!.' | '?.' | '.') identifierName templateId?                         # postfixDotMemberAccessExpr
     // TODO slice operator
     | postfix_expr '[' expression ':' expression ']'                                   # postfixSliceExpr
     | postfix_expr '.' '.' primary_expr                                                # rangeExpr
