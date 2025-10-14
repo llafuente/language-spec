@@ -12,6 +12,7 @@ import {
 import { spawn, spawnSync } from "node:child_process";
 import assert from "node:assert";
 import path from "node:path";
+import process from "node:process";
 
 // extract lexer and grammer from markdown files
 // lexer is marked as "lexer" source code
@@ -31,11 +32,11 @@ try {
 } catch (e) {}
 
 function readDirSyncR(dir: string) {
-  var results: string[] = [];
-  var list = readdirSync(dir);
+  let results: string[] = [];
+  const list = readdirSync(dir);
   list.forEach(function (file) {
     file = dir + "/" + file;
-    var stat = statSync(file);
+    const stat = statSync(file);
     if (stat && stat.isDirectory()) {
       /* Recurse into a subdirectory */
       results = results.concat(readDirSyncR(file));
@@ -48,12 +49,12 @@ function readDirSyncR(dir: string) {
 }
 
 const fileCache: any = {};
-function readFile(file: string) {
+function readFile(file: string): string[] {
   if (fileCache[file]) {
     return fileCache[file];
   }
 
-  var contents = readFileSync(file, { encoding: "utf-8" }).split("```");
+  const contents = readFileSync(file, { encoding: "utf-8" }).split("```");
   assert(contents.length % 2 == 1);
 
   return (fileCache[file] = contents);
@@ -94,7 +95,7 @@ function replaceTokens(tokens: string[][], contents: string) {
 
 console.log("LEXER");
 
-var lexer: string[] = [];
+const lexer: string[] = [];
 // lexer
 [
   "./spec/language/tokens.md",
@@ -102,7 +103,7 @@ var lexer: string[] = [];
   "./spec/language/literals.md",
   "./spec/language/regular-expressions.md",
 ].forEach((file) => {
-  var contents = readFile(file);
+  const contents = readFile(file);
 
   lexer.push(`//file: ${file}`);
   lexer.push(extractAllCode(contents, "lexer"));
@@ -113,13 +114,13 @@ writeFileSync(LEXER_FILE, lexerContents);
 console.log(`writed ${LEXER_FILE}`);
 
 // extract all tokens to replace it's value in the grammar
-var tokens: string[][] = [];
+const tokens: string[][] = [];
 
 lexer.forEach((chunk) => {
   chunk.split("\n").filter((line) => {
     return line.indexOf(" : ") > 0 && line.indexOf(";") > 0;
   }).forEach((line) => {
-    var parts = line.split(" : ");
+    const parts = line.split(" : ");
     tokens.push([parts[1].substr(0, parts[1].length - 1), parts[0]]);
   });
 });
@@ -129,33 +130,14 @@ console.log(`Found ${tokens.length} tokens`);
 console.log(`Parser`);
 
 // order is important for lexer at least!
-var parser: string[] = [];
-var spec_files = [
-  "./spec/language/program.md",
-  "./spec/package-system.md",
-  "./spec/keywords.md",
-  "./spec/language/identifiers.md",
-  "./spec/language/literals.md",
-  "./spec/language/type-system.md",
-  "./spec/language/functions.md",
-  "./spec/memory-management.md",
-  "./spec/language/expressions.md",
-  // "./spec/generic-programming.md",
-  "./spec/preprocessor-and-metaprogramming.md",
-  // "./spec/compiler/compiler-configuration.md",
-  "./spec/language/control-flow.md",
-  "./spec/language/variables.md",
-  "./spec/language/types/array.md",
-  "./spec/language/error-handling.md",
-  "./spec/language/types/enumerated.md",
-  "./spec/language/types/interface.md",
-  "./spec/language/types/structured.md",
-];
+const parser: string[] = [];
+let spec_files = readDirSyncR("./spec")
+console.log(spec_files)
 
 spec_files.forEach((file) => {
   //console.log(file)
 
-  var contents = readFile(file);
+  const contents = readFile(file);
 
   parser.push(`//file: ${file}`);
   parser.push(replaceTokens(tokens, extractAllCode(contents, "syntax")));
@@ -235,23 +217,12 @@ async function run_compiler(text: string) {
 
 const snippets: {file: string, text: string}[] = [];
 
-// readDirSyncR("./spec")
-spec_files = [
-  "./spec/memory-management.md",
-  "./spec/language/type-system.md",
-  "./spec/language/types/structured.md",
-  "./spec/language/types/interface.md",
-  "./spec/language/functions.md",
-  "./spec/language/control-flow.md",
-  "./spec/language/variables.md",
-  "./spec/language/types/array.md",
-  "./spec/language/error-handling.md",
-  "./spec/language/types/enumerated.md",
-];
+spec_files = readDirSyncR("./spec")
+
 spec_files.forEach((file) => {
   console.log(`Validating spec file: ${file}`);
 
-  var contents = readFile(file);
+  const contents = readFile(file);
 
   ["language", "language-test", "language-semantic-error"].forEach(
     (annotation) => {
@@ -272,9 +243,12 @@ spec_files.forEach((file) => {
         case "language-package": // TODO test it!
         case "language-compiled":
         case "language-syntax-error":
-        case "language-proprossal":          
+        case "language-proprossal":
+        case "language-propossal":        
         case "todo-language":
+        case "todo-language-semantic-error":          
         case "todo-syntax":
+        case "json":          
         case "output":
           break;
         default:
@@ -287,9 +261,23 @@ spec_files.forEach((file) => {
   });
 });
 
+[
+  "./examples/abc.language",
+]
+.forEach((file) => {
+  console.log(`Validating example file: ${file}`);
+
+  const text = readFileSync(file, { encoding: "utf-8" });
+  snippets.push({text, file});
+});
+
+
+
+
 for (const snippet of snippets) {
-  
-  var command = await run_compiler(snippet.text);
+  console.log(`Validating file: ${snippet.file}`);
+
+  const command = await run_compiler(snippet.text);
   const { code, stdout, stderr } = await command.output();
   
   if (code != 0) {
