@@ -58,7 +58,7 @@ operatorFunctionDecl
   ;
 
 operatorFunctionDef
-  : 'operator' overloadableOperators '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : 'operator' overloadableOperators templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 overloadableOperators
