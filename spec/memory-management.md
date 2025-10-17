@@ -210,6 +210,17 @@ unaryDeleteExpression
   ;
 ```
 
+## `clone`: clone memory
+
+*Semantics*
+
+Clone given type.
+
+```syntax
+unaryCloneExpression
+  : 'clone' postfix_expr;
+```
+
 ## Memory annotation
 
 ### `lend`

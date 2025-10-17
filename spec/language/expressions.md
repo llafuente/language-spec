@@ -88,6 +88,8 @@ unary_expr
     : unaryNewExpression
     // defined at memory-management
     | unaryDeleteExpression
+    // defined at memory-management
+    | unaryCloneExpression
     // defined at unit-test
     | unaryMockExpr
 
