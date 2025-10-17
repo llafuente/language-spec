@@ -29,11 +29,13 @@ packageStmsList
 
 packageStmts
   : comments endOfStmt
+  | importStmt
   | functionDecl endOfStmt
   // program exclusive!
   | typeDecl endOfStmt
   | packageVariableDeclStmt endOfStmt
   | fileVariableDeclStmt endOfStmt
+  | testStmt
   | endOfStmt
   ;
 ```
@@ -44,7 +46,7 @@ packageStmts
 
 ```syntax
 packageDefinitionStmt
-  : 'package' name=identifier version=stringLiteral endOfStmt
+  : 'package' name=packageName version=stringLiteral endOfStmt
   ;
 ```
 
