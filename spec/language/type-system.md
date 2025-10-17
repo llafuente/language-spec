@@ -97,11 +97,15 @@ templateImplements
 
 // REVIEW typeDefinitionList ?
 typeDefinition
-  : stringLiteral                                           # fixedStringType
-  | templateTypeDef '?'?                                    #   templatedType
-  | type '[' ']'                                            #       arrayType
-  | type '[' argumentExprList ']'                           # staticArrayType
-  | type ('.' identifier)* '?'?                             #      singleType
+  : primitive
+  | stringLiteral
+  // a.b
+  // a.b<c>
+  // a.b.c<d>[]
+  // a.b.c.d<e>[10]
+  // a.b.c.d<e>[f]
+  // a.b.c.d<e, f>[g()]
+  | type ('.' identifier)* templateId? ('[' argumentExprList? ']')? '?'?
   ;
 
 templateTypeDef

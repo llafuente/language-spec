@@ -61,6 +61,7 @@ function tpl<$t>($t x) {}
 // semantic-error: mock requires a fully qualified function
 test "mock requires a fully qualified function" {
   var invalid = mock tpl
+  var valid = mock tpl<i8>
 }
 ```
 
@@ -158,38 +159,6 @@ test point {
 }
 ```
 
-### Properties
-
-#### i32 calls
-
-Number of calls
-
-### Methods
-
-#### reset()
-
-reset all mock values, restore original implementation, calls and arguments.
-
-#### º  
-
-#### return($t)
-
-Tell the mock to return the value when invoked.
-
-It will disable `return_values`
-
-#### return_values($t[])
-
-Tell the mock to return one of the specified values (sequentially) each time the spy is invoked.
-
-It will disable `return`
-
-#### throw
-
-Tell the mock to throw an error when invoked.
-
-
-
 <!--
 
   Alternative syntax
@@ -217,134 +186,6 @@ Tell the mock to throw an error when invoked.
 -->
 
 ```language-propossal
-
-type mock_call_data<$arguments_type is struct, $return_type> = struct {
-  $arguments_type arguments 
-  $return_type return
-  variant exception
-}
-
-type mock_expect<$mock is ref<mock>> = struct {
-  // true -> push, false -> set last
-  bool mode = true
-  // call data to expect
-  mock_call_data<optional<$function.arguments>, optional<$function.return_type>>[] call_data = []
-  // current call count
-  size call_count = 0
-
-  function _notify() {
-    // TODO check
-  }
-  
-
-  function return($function.return_type return_type) {
-    if (mode) {
-      call_data.push({null, return_type})
-    } else {
-      #assert call_data.length, "cannot start expect with and"
-      #assert call_data.last.return_type != null, "double call to return with and"
-      #assert call_data.last.exception != null, "throw and return are exclusive"
-
-      call_data.last.return = return_type
-      mode = true
-    }
-
-    return this
-  }
-
-  function arguments(@$function.arguments) {
-    if (mode) {
-      call_data.push({arguments, null})
-    } else {
-      #assert call_data.length, "cannot start expect with and"
-      #assert call_data.last.arguments != null, "double call to arguments with and"
-
-      call_data.last.arguments = arguments
-      mode = true
-    }
-    return this
-  }
-
-  function throw(variant exception) {
-    if (mode) {
-      call_data.push({null, null, exception})
-    } else {
-      #assert call_data.length, "cannot start expect with and"
-      #assert call_data.last.exception == 0, "double call to throw with and"
-      #assert call_data.last.return_type != null, "throw and return are exclusive"
-
-      call_data.last.exception = exception
-      mode = true
-    }
-    return this
-  }
-  get and {
-    mode = false
-    return this
-  }
-
-  check_call($mock.$function.arguments, $mock.$function.return_type) {
-    if (call_count >= call_data.length) {
-      throw "unexpected call"
-    }
-  }
-}
-
-
-type mock_t<$function is function> = struct {
-  type strategy = enum {
-    CALL_ORIGINAL
-    CALL_FAKE
-    DO_NOTHING
-    THROW
-  }
-
-  mock_expect<self> expect
-
-  /// original function
-  $function original
-  /// fake override
-  optional<$function> fake
-  /// arguments and returned passed
-  mock_call_data<$function.arguments, $function.return_type>[] call_data = []
-  /// 
-  size called = 0
-
-  reset() {
-    called = 0
-    call_data = []
-  }
-
-  stub() {
-    this.fake = null
-  }
-
-  call_fake(optional<$function> _fake) {
-    this.fake = _fake
-  }
-  // call_through() 
-  remove_fake() {
-    call_fake(null)
-  }
-
-  operator() (@$function.arguments) {
-    ++called
-    call_data.push({arguments, null, null})
-
-    try {
-      if (fake != null) {
-        call_data.last.return = fake(@arguments)
-      } else {
-        call_data.last.return = original(@arguments)
-      }
-    } catch {
-      call_data.last.exception = $exception
-    }
-
-    expect._notify(call_data.last)
-  }
-}
-
 function add(int a, int b) int {
   return a + b
 }

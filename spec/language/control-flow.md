@@ -836,9 +836,7 @@ function main() {
 
 3. `foreach_expr` shall implement `index_iterator<$keyType, $valueType>`
 
-  * Call `next()` to move to next element
-
-  * Call `get_key()`
+<!-- TODO link code! -->
 
 *Constraints*
 

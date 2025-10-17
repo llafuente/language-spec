@@ -110,7 +110,7 @@ test "" {
 
 *Implementation*
 
-```todo-language
+```language
 template $t
 template $array_ptrt $t is ptr
 
@@ -123,7 +123,7 @@ type array_void_callback = function($t element, size index) void
 type array_bool_callback = function($t element, size index) bool
 type array_i32_callback = function($t element, size index) i32
 
-struct array<$t> implements IndexIterator {
+type array<$t> = struct implements index_iterator<$t> {
   size length
   alias len length
   alias count length
@@ -195,12 +195,10 @@ struct array<$t> implements IndexIterator {
   // Appends the elements of a sequence to a range-replaceable collection.
   function operator+=(array<$t> other) { /**/ }
 
-#if $t implements comparable_eq
   // Returns a Boolean value indicating whether two arrays contain the same elements in the same order.
-  function operator==(array<$t> other) bool { /**/ }
+  function operator==<$t implements comparable_eq>(array<$t> other) bool { /**/ }
   // Returns a Boolean value indicating whether two arrays contain the same elements in the same order.
-  function operator!=(array<$t> other) bool { /**/ }
-#endif
+  function operator!=<$t implements comparable_eq>(array<$t> other) bool { /**/ }
 
   // Removes and returns the element at the specified position.
   function remove(at: Int)
