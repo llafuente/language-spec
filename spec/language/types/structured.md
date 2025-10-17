@@ -29,7 +29,7 @@ structProperty
   ;
 
 structPropertyDecl
-  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  : (structPropertyModifiers)* typeDefinition identifierName ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
   // TODO REVIEW aliasing operator?
   | propertyAlias
   | functionDef functionBody
@@ -56,7 +56,7 @@ structGetterDecl
   ;
 
 structGetterDef
-  : 'get' typeDefinition identifier
+  : 'get' typeDefinition identifierName
   ;
 
 structSetterDecl
@@ -64,7 +64,7 @@ structSetterDecl
   ;
 
 structSetterDef
-  : 'set' identifier '(' typeDefinition identifier ')'
+  : 'set' identifierName '(' typeDefinition identifier ')'
   ;
 
 structInitializer
