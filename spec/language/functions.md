@@ -22,6 +22,10 @@ functionDecl
   : (functionDef | anonymousFunctionDef) functionBody
   ;
 
+anonymousfunctionDecl
+  : anonymousFunctionDef functionBody
+  ;
+
 functionModifiers
   : 'pure'
   | 'override'
@@ -89,6 +93,8 @@ overloadableOperators
   | '>='
   | '=='
   | '!='
+  // function call
+  | '(' ')'
   ;
 
 functionBody

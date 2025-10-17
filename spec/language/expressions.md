@@ -70,6 +70,7 @@ namedArgument
 
 orderedArgument
     : conditional_expr
+    | anonymousfunctionDecl
     ;
 
 
