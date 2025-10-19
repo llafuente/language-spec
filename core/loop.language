@@ -1,7 +1,105 @@
 import safe_iterator
 
+// UID_label is used by the compiler generate a UNIQUE ID so it knows where to jump when break/continue/reset
+// if the loop has a label, the UID it's the label
+// loop_numeric_until("XXX", "$index", "$value", 10, true, false)
+
+#macro loop_numeric_until(#text UID_label, #identifier index, #identifier value, #expression input, #expression where_expr, #expression until_expr) {
+  #UID_label:
+
+  #var start
+  #var end
+  #var inc
+
+  var #index# = 0
+  var #value# = 0
+
+
+  #LOOP_UID#_restart: // restart target
+    if (number >= 0) {
+      start = 0
+      end = input
+      inc = 1
+    } else {
+      start = 0
+      end = input
+      inc = -1
+    }
+
+  #LOOP_UID#_continue: // continue target
+
+  if (until_expr) {
+    goto #LOOP_UID#_break
+  }
+  start += input
+  if (start == end) {
+    goto #LOOP_UID#_break
+  }
+  
+  #value# = start // TODOwe need to copy the value, but maybe we mark as readonly/const ?
+  #index# += inc
+  goto #LOOP_UID#_continue
+
+
+  #LOOP_UID#_break: // break target
+}
+
+#macro loop_numeric_while(#text UID_label, #identifier index, #identifier value, #expression input, #expression where_expr, #expression while_expr) {
+  #UID_label:
+
+  #var start
+  #var end
+  #var inc
+
+  var #index# = 0
+  var #value# = 0
+
+
+  #LOOP_UID#_restart: // restart target
+    if (number >= 0) {
+      start = 0
+      end = input
+      inc = 1
+    } else {
+      start = 0
+      end = input
+      inc = -1
+    }
+
+  #LOOP_UID#_continue: // continue target
+
+  if (!while_expr) {
+    goto #LOOP_UID#_break
+  }
+  start += input
+  if (start == end) {
+    goto #LOOP_UID#_break
+  }
+  
+  #value# = start // TODOwe need to copy the value, but maybe we mark as readonly/const ?
+  #index# += inc
+  goto #LOOP_UID#_continue
+
+  #LOOP_UID#_break: // break target
+}
+
+
+#macro loop_range(#text UID_label) {
+
+}
+
+#macro_loop_safe_iterator_until(#text UID_label) {
+
+}
+
+#macro_loop_safe_iterator_where(#text UID_label) {
+  
+}
+
+
+
 // helper macro to loop from start to end, one by one
-#macro loop_range(#value iterable, #text value_id = "$index", #text index_id = "$index") block {
+#macro loop_range(#value iterable, #text value_id = "$index", #text index_id = "$index", #text _where) block {
   #uid LOOP_UID
 
   var start
@@ -31,7 +129,9 @@ import safe_iterator
   if #LOOP_UID#_$index < #LOOP_UID#_$max {
     const #index_id# #LOOP_UID#_$index
 
-    #block#
+    if (_where) {
+      #block#
+    }
 
 // continue statement target
 #LOOP_UID#_loop_continue:

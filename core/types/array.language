@@ -1,3 +1,6 @@
-type array<$t> = struct {
-	shared_ref<array_data>
+package core.array "0.0.0"
+
+/// TODO copy source code from array.md
+type array<$t> = struct implements index_accesor<$t> {
+	shared_ref<$t> values
 }

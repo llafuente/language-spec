@@ -1,39 +1,41 @@
+package core.error "0.0.0"
+
 type source_code_location = struct {
   // file name
   string file
   // function name
-  string function
+  string func_name
   // line number (starts at 1)
-  string line
-  // column number
-  string column (starts at 1)
+  size line
+  // column number (starts at 1)
+  size column 
 }
 
 type error = struct {
   // parent exception
   // it will be set if throw happens inside catch
-  own ref error parent
+  own ref<error> parent
   // error message
   string message
   // source code stack
   source_code_location[] stack
 
-  constructor(string message, string file, string function, string line, string column, own ref error parent = null) {
+  new(string message, string file, string func_name, string line, string column, own ref<error> parent = null) {
     this.message = clone message
     this.parent = parent
 
     new this.stack()
-    stack.push_back()(file, function, line, column)
+    stack.push_back()(file, func_name, line, column)
 
   	// TODO calculate stack
   }
 
-  to_string() lend string {
+  function to_string() lend string {
     var buffer = ""
     buffer += message
     
-    for (var s in stack) {
-      buffer += s.file + ":" + s.line.to_string() + ":" + s.column.to_string() " at " + s.function
+    loop s in stack {
+      buffer += s.file + ":" + s.line.to_string() + ":" + s.column.to_string() + " at " + s.function
     }
 
     return buffer

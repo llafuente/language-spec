@@ -1,8 +1,6 @@
 function __ptr_deref(raw_ptr<$t> p) #intrinsic __ptr_deref
-function operator+(i8 a, i8 b) #intrinsic __add_i8_i8
-function operator-(i8 a, i8 b) #intrinsic __sub_i8_i8
-function operator*(i8 a, i8 b) #intrinsic __mult_i8_i8
-function operator/(i8 a, i8 b) #intrinsic __div_i8_i8
-
-// ups :D
-// function operator/(i8 a, i8 b) #macro pepe(b, a)
+operator+(i8 a, i8 b) #intrinsic __add_i8_i8
+operator-(i8 a, i8 b) #intrinsic __sub_i8_i8
+operator*(i8 a, i8 b) #intrinsic __mult_i8_i8
+operator/(i8 a, i8 b) #intrinsic __div_i8_i8
+operator%(i8 a, i8 b) #intrinsic __mod_i8_i8

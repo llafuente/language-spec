@@ -2,7 +2,9 @@
 The std::allocator class template is the default Allocator used by all standard library containers if no user-specified allocator is provided. The default allocator is stateless, that is, all instances of the given allocator are interchangeable, compare equal and can deallocate memory allocated by any other instance of the same allocator type.
 */
 
-package allocators
+package core.allocator "0.0.0"
+
+import libc
 
 /*
 Defines allocation/deallocation functions.
@@ -50,26 +52,25 @@ type allocator<$t> = interface {
 type allocable = interface {
 	allocator _allocator = null
 }
-/*
-It's the default allocator.
-*/
-const global allocator<i8> global_allocator = {
-	function (size s) lend uninitialized ref<i8> {
-		return libc.malloc(s)
-	},
-	// function (size s, size alignament) lend uninitialized ref<i8> {
-	// 	return libc.malloc(s) // TODO
-	// },
-	function (size s) lend uninitialized ref<i8> {
-		return libc.calloc(s)
-	},
-	function (own ref<i8> ptr) void {
-		libc.free(ptr)
-	}
+
+// Default allocator
+
+function default_allocator_malloc (size s) lend uninitialized ref<i8> {
+	return libc.malloc(s)
 }
+
+function default_allocator_calloc (size s) lend uninitialized ref<i8> {
+	return libc.calloc(s)
+}
+function default_allocator_free(own ref<i8> ptr) void {
+	libc.free(ptr)
+}
+
+const allocator<i8> global_allocator = {default_allocator_malloc, default_allocator_calloc, default_allocator_free}
+
 /*
 Holds the current default allocator.
 
 When a core function needs to allocate memory and no allocator is sent, the default_allocator will be used.
 */
-global allocator<i8> default_allocator = global_allocator
+const allocator<i8> default_allocator = global_allocator

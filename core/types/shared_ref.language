@@ -4,38 +4,42 @@
 // https://doc.rust-lang.org/src/alloc/rc.rs.html#317-320
 // https://doc.rust-lang.org/std/ops/trait.Deref.html
 
-import ref
+package core.types.shared_ref "0.0.0"
+
+import core.types.ref
+
 
 // single allocation data
-struct _smart_pointer_data<$t> {
+type _smart_pointer_data<$t> = struct {
 	$t data
 	allocator.dealloca _dealloca
 	size strong_count = 1
 	size weak_count = 0
 
-	operator delete() {
+	delete() {
 		_dealloca(this)
 	}
 }
 
 
-struct _shared_ref_common<$t> {
-	// noone owns this memory, exclusively
-	type data_type = _smart_pointer_data<$t>
-	type data_ref_type = ref<data_type>
+// noone owns this memory, exclusively
+type data_type = _smart_pointer_data<$t>
+type data_ref_type = ref<data_type>
+
+type _shared_ref_common<$t> = struct {
 
 	data_ref_type pointer
 
 	/*
 	Points the same data ?
 	*/
-	operator == (auto ref<weak_ref<$t>> other) bool {
+	operator == (ref<weak_ref<$t>> other) bool {
 		return @pointer.data == @other.data
 	}
 	/*
 	Points the same data ?
 	*/
-	operator == (auto ref<shared_ref<$t>> other) bool {
+	operator == (ref<shared_ref<$t>> other) bool {
 		return @pointer.data == @other.data
 	}
 
@@ -55,11 +59,11 @@ Memory won't be freed until all strong and weak references are deleted.
 
 Memory is valid while strong references exists.
 */
-struct shared_ref<$t> extends _shared_ref_common<$t> {
+type shared_ref<$t> = struct extends _shared_ref_common<$t> {
 	/*
 	Default constructor
 	*/
-	new() uninitialized ref<$t> {
+	new() { // uninitialized ref<$t>
 		pointer = default_allocator.alloca(data_type.size)
 		pointer._dealloca = default_allocator.dealloca
 		return @pointer.data
@@ -87,7 +91,7 @@ struct shared_ref<$t> extends _shared_ref_common<$t> {
 	/*
 	Copy constructor from shared_ref
 	*/
-	operator = (auto ref<shared_ref<$t>> other) {
+	operator = (ref<shared_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}
@@ -97,7 +101,7 @@ struct shared_ref<$t> extends _shared_ref_common<$t> {
 	/*
 	Copy constructor from weak_ref
 	*/
-	operator = (auto ref<weak_ref<$t>> other) {
+	operator = (ref<weak_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}
@@ -111,13 +115,13 @@ Smart pointer that holds a non-owning ("weak") reference to an object that is ma
 To access shared data safe dereference operator (?.) shall be used.
 
 */
-struct weak_ref<$t> extends _shared_ref_common<$t, None>
-	new(auto ref<sharef_ref<$t>> sr) {
+type weak_ref<$t> = struct extends _shared_ref_common<$t, None> {
+	new(ref<sharef_ref<$t>> sr) {
 		pointer = sr.pointer
 		++pointer.weak_count
 	}
 
-	new(auto ref<weak_ref<$t>> wr) {
+	new(ref<weak_ref<$t>> wr) {
 		pointer = wr.pointer
 		++pointer.weak_count
 	}
@@ -141,7 +145,7 @@ struct weak_ref<$t> extends _shared_ref_common<$t, None>
 	/*
 	Copy constructor from shared_ref
 	*/
-	new (auto ref<shared_ref<$t>> other) {
+	new (ref<shared_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}
@@ -151,7 +155,7 @@ struct weak_ref<$t> extends _shared_ref_common<$t, None>
 	/*
 	Copy constructor from weak_ref
 	*/
-	new (auto ref<weak_ref<$t>> other) {
+	new (ref<weak_ref<$t>> other) {
 		if (pointer != null) { // can this happens ?
 			this.delete()
 		}
@@ -180,8 +184,10 @@ struct weak_ref<$t> extends _shared_ref_common<$t, None>
 	}
 }
 
-#assert shared_ref<i64>.size == ref.size
-#assert shared_ref<i32>.size == ref.size
+test shared_ref {
+	#assert shared_ref<i64>.size == ref.size
+	#assert shared_ref<i32>.size == ref.size
 
-#assert _smart_pointer_data<i32>.size == size.size + i32.size
-#assert _smart_pointer_data<i64>.size == size.size + i64.size
+	#assert _smart_pointer_data<i32>.size == size.size + i32.size
+	#assert _smart_pointer_data<i64>.size == size.size + i64.size
+}

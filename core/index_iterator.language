@@ -2,26 +2,25 @@
 
 package iterators
 
-type index_iterator<$t> = interface {
+type has_index_iterator<$key, $value> = interface {
   size length
   operator[](size i) $t
+  function index_iterator() index_iterator<$key, $value>
 }
 
-type iterator<$t> = interface {
+type index_iterator<$key, $value> = interface {
   function next() this
   // continue
   // alias operator ++ next
 
-  function value() $t
-  // alias operator* value
-  // REVIEW TODO get is a token :**
-  // alias get *
+  function get_ref_value() ref<$value>
+  function get_key() $key
 
   // restart
   function reset()
 
-  function isFirst() bool
-  function isLast() bool
+  isFirst bool
+  isLast bool
 
 
 }

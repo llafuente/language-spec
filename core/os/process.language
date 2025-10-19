@@ -1,10 +1,10 @@
 /**
  * Process contains a process execution definition and result.
  */
-package os.process
+package os.process "0.0.0"
 
-type process_std_callback = function(data: string)
-type process_exit_callback = function(int: exit_code, string signal)
+type process_std_callback = function(string data)
+type process_exit_callback = function(int exit_code, string signal)
 type process_notification = function()
 type process_ipc_callback = function(string message) // sendHandle ?
 

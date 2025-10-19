@@ -1,28 +1,43 @@
+package core.types.vector "0.0.0"
+
+import core.types.ref
+
 // unbound memory access
-struct vector<$t> {
-#if arch == x64
-  i64 ptr
-#else
-  i32 ptr
-#if
+type vector<$t> = struct {
+  ref<$t> ptr
+  size capacity
+  alias len capacity
 
-  clone(ref<$t> other) {
-    other.ptr = ptr
+  clone() {
+    // allocate
+    var t = new vector(this.capacity)
+    // copy
+    for (var i = 0; i < capacity; ++i) {
+      t!.ptr[i] = this!.ptr[i]
+    }
+
+    return t
   }
-
+  // direct access to the type
   operator.() $t {
-    return cast<$t>(intrinsics_pointer_deref(this.ptr))
+    return unsafe_cast<$t>(intrinsics_pointer_deref(this.ptr))
   }
 
-  operator=(ref<$t> other) ref<$t> {
-    return cast<$t>(intrinsics_pointer_deref(this.ptr)) = cast<$t>(intrinsics_pointer_deref(this.ptr))
+  operator=(vector<$t> other) vector<$t> {
+    this.free()
+    this.ptr = other.ptr
+
+    return this
   }
+
   operator[](size i) ref<$t> {
     return cast<ref<$t>>(this.ptr + i * $t.sizeof)
   }
+
   operator+(size i) ref<$t> {
     return cast<ref<$t>>(this.ptr + i * $t.sizeof)
   }
+  
   operator-(size i) ref<$t> {
     return cast<ref<$t>>(this.ptr + i * $t.sizeof)
   }
