@@ -1,4 +1,4 @@
-# The package system
+# The package system (FINAL)
 <!--
   https://docs.python.org/3/reference/import.html
 -->
@@ -40,6 +40,18 @@ packageStmts
   ;
 ```
 
+*Semantics*
+
+Like a program a package have it's entry point: `main.language` at the root of the package.
+
+There is no official repository at this time.
+
+*Folder structure*
+
+* packagename (shall be a valid identifier)
+  * main.ts (package entry point)
+* main.ts (program entry point)
+
 ## Package declaration
 
 *Syntax*
@@ -58,11 +70,16 @@ Every function in the main package will be exported. Anything below won't be exp
 
 *Constraints*
 
-* Package version shall conform semver.
+1. Package version shall conform semver.
 
-* A package can't declare or use `global` variables.
+2. A package can't declare or use `global` variables.
 
-* Any preprocesssor/metaprogramming shall be contained inside the package.
+3. A package can't configure the compiler.
+
+4. Everything declared in the package is public except for:
+
+* preprocesssor
+* metaprogramming
 
 ## Package import
 
@@ -71,16 +88,16 @@ Every function in the main package will be exported. Anything below won't be exp
 ```syntax
 
 packageName
-  : identifier ('.' identifier)*
+  : identifier ('.' identifier)* ('.' '*')?
   ;
 
 importStmt
-  : 'import' packageName version=stringLiteral? ('as' name=identifier)?
+  : 'import' location=packageName version=stringLiteral? ('as' name=identifier)? endOfStmt
+  | endOfStmt
   ;
 
 importStmtList
-  : (importStmt endOfStmt+)+
-  | endOfStmt*
+  : importStmt+
   ;
 ```
 
@@ -103,7 +120,7 @@ contents.
 
 > * ?file:?line:?column. Expected version x.x.x
 
-5. Module resolution, given the following example
+5. Package resolution, given the following example
 
 ```language
 import x.y.z
@@ -111,13 +128,11 @@ import x.y.z
 
 The compiler shall test the following files in order.
 
-* ./x.y.z.src
-* ./x/y.z.src
-* ./x/y/z.src
+* &lt;project-root&gt;/x/y/z.src
 * &lt;project-lib-path&gt;/x/y/z/package.src
 * &lt;compiler-core-path&gt;/x/y/z/package.src
 
-If the module is not found locally it shall download the module from the central repository.
+If the package is not found locally it shall download the package from the central repository.
 
 For debugging purposes the compiler shall export the import information in a file where there will be the resolution per file.
 
@@ -133,9 +148,46 @@ For debugging purposes the compiler shall export the import information in a fil
 }
 ```
 
+6. Wildcard imports merge the package into current namespace. Allowing fast access but also introducing future collisions.
+
+*Examples*
+
+Importing a package, namespaced
+
+```language
+import fs
+
+function main() {
+  var f = fs.open("file.txt")
+  fs.close(f)
+}
+```
+
+Importing a package into current namespace
+
+```language
+import fs.*
+
+function main() {
+  var f = open("file.txt")
+  close(f)
+}
+```
+
+Importing single function
+
+```language
+import fs.open
+
+function main() {
+  var f = open("file.txt")
+  f.close()
+}
+```
+
 *Rationale*
 
-Resolving modules locally for the project with higher priority that lib or core will ensure that any functionality can be mock
+Resolving packages locally for the project with higher priority than external libraries or core libraries will ensure that any functionality can be mock
 or patch if needed by end user.
 
-It add a indirection as the end-user shall know the module resolution but it's we hope is simple enough to not add complexity to any project.
+It adds an indirection as the end-user shall know the module resolution but We hope is simple enough to not add complexity to any project.

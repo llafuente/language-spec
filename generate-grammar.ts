@@ -35,7 +35,7 @@ function readDirSyncR(dir: string) {
   let results: string[] = [];
   const list = readdirSync(dir);
   list.forEach(function (file) {
-    file = dir + "/" + file;
+    file = path.join(dir, file);
     const stat = statSync(file);
     if (stat && stat.isDirectory()) {
       /* Recurse into a subdirectory */
@@ -131,8 +131,8 @@ console.log(`Parser`);
 
 // order is important for lexer at least!
 const parser: string[] = [];
-let spec_files = readDirSyncR("./spec")
-console.log(spec_files)
+let spec_files = readDirSyncR("./spec");
+console.log(spec_files);
 
 spec_files.forEach((file) => {
   //console.log(file)
@@ -159,13 +159,16 @@ console.log(`writed ${PARSER_FILE}`);
 
 console.log("COMPILER");
 {
+  const compiler_args = ["compiler/typescript", "-Dlanguage=TypeScript"]
+  // visitor test
+  // const compiler_args = ["compiler/typescript2", "-Dlanguage=TypeScript", "-visitor"]
+
   const compile = new Deno.Command(
     "C:\\Users\\luis\\.pyenv\\pyenv-win\\shims\\antlr4.bat",
     {
       args: [
         "-o",
-        "compiler/typescript",
-        "-Dlanguage=TypeScript",
+        ...compiler_args,
         PARSER_FILE,
         LEXER_FILE,
       ],
@@ -191,14 +194,14 @@ console.log("COMPILER");
   ) {
     Deno.writeTextFileSync(
       file,
-      Deno.readTextFileSync(file).replaceAll(".js\"", ".ts\""),
+      Deno.readTextFileSync(file).replaceAll('.js"', '.ts"'),
     );
   }
 }
 // cat .\temp.language | antlr4-parse.bat .\LanguageLexer.g4 .\LanguageParser.g4 program -gui
 // cat .\temp.language | antlr4-parse.bat .\LanguageLexer.g4 .\LanguageParser.g4 program -tree
 // deno run --allow-read .\compiler\typescript\compiler.ts .\temp.language
-async function run_compiler(text: string) {
+async function run_compiler_text(text: string, program: boolean = true) {
   const tmp_file = "./temp.language";
   writeFileSync(tmp_file, text);
 
@@ -208,6 +211,20 @@ async function run_compiler(text: string) {
       "--allow-read",
       path.join(COMPILER_PATH, "compiler.ts"),
       "./temp.language",
+      !program ? "-package" : "",
+    ],
+    cwd: "C:\\Users\\luis\\Desktop\\git\\language-spec",
+  });
+}
+
+async function run_compiler_file(file: string, program: boolean = true) {
+  return new Deno.Command("deno", {
+    args: [
+      "run",
+      "--allow-read",
+      path.join(COMPILER_PATH, "compiler.ts"),
+      file,
+      !program ? "-package" : "",
     ],
     cwd: "C:\\Users\\luis\\Desktop\\git\\language-spec",
   });
@@ -215,9 +232,9 @@ async function run_compiler(text: string) {
 
 // < core\os\process.language
 
-const snippets: {file: string, text: string}[] = [];
+const snippets: { file: string; text: string }[] = [];
 
-spec_files = readDirSyncR("./spec")
+spec_files = [];
 
 spec_files.forEach((file) => {
   console.log(`Validating spec file: ${file}`);
@@ -231,7 +248,7 @@ spec_files.forEach((file) => {
           return;
         }
 
-        snippets.push({text, file});
+        snippets.push({ text, file });
       });
     },
   );
@@ -244,11 +261,11 @@ spec_files.forEach((file) => {
         case "language-compiled":
         case "language-syntax-error":
         case "language-proprossal":
-        case "language-propossal":        
+        case "language-propossal":
         case "todo-language":
-        case "todo-language-semantic-error":          
+        case "todo-language-semantic-error":
         case "todo-syntax":
-        case "json":          
+        case "json":
         case "output":
           break;
         default:
@@ -261,25 +278,12 @@ spec_files.forEach((file) => {
   });
 });
 
-[
-  "./examples/abc.language",
-]
-.forEach((file) => {
-  console.log(`Validating example file: ${file}`);
-
-  const text = readFileSync(file, { encoding: "utf-8" });
-  snippets.push({text, file});
-});
-
-
-
-
 for (const snippet of snippets) {
   console.log(`Validating file: ${snippet.file}`);
 
-  const command = await run_compiler(snippet.text);
+  const command = await run_compiler_text(snippet.text);
   const { code, stdout, stderr } = await command.output();
-  
+
   if (code != 0) {
     console.log(snippet.text);
     console.log(
@@ -287,7 +291,32 @@ for (const snippet of snippets) {
         new TextDecoder().decode(stderr)
       }`,
     );
-    console.log(snippet.file)
+    console.log(snippet.file);
+    process.exit(1);
+  }
+}
+
+[
+  // "./examples/abc.language",
+  "./core/types/string.language",
+  "./core/types/rune.language",
+];
+
+const packageFiles = readDirSyncR("./core/types/").concat(readDirSyncR("./core/tests/"));
+for (const file of packageFiles) {
+  console.log(`Validating example file: ${file}`);
+
+  const command = await run_compiler_file(file, false);
+  const { code, stdout, stderr } = await command.output();
+
+  if (code != 0) {
+    // console.log(text);
+    console.log(
+      `Compile: ${code}\nstdout: ${new TextDecoder().decode(stdout)}\nstderr:${
+        new TextDecoder().decode(stderr)
+      }`,
+    );
+    console.log(file);
     process.exit(1);
   }
 }

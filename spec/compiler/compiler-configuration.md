@@ -1,6 +1,6 @@
 # Compiler configuration
 
-Unlike many language, compiler is configured inside the source code.
+The compiler is configured inside the source code.
 
 # `#set`
 
@@ -29,7 +29,10 @@ Sets a compiler property.
 *Example*
 
 ```language
-#set arrays.out_of_bounds = true
+#set config.array.check_oob = true
+
+function main() {
+}
 ```
 
 # get configuration
@@ -42,22 +45,29 @@ Compiler configuration is available at compile time as constant.
 
 *Example*
 
-```todo-language
+```language-test
 test "get configuration" {
-  // x will be true or false at compile time.
-  var x = arrays.out_of_bounds
+  #print config.array.check_oob
 }
 ```
 
-# `#require`
+# check configuration
 
-*syntax*
+*Example*
 
-```todo-syntax
-preprocessor_require_statement
-  : '#' 'require' identifier ('.' identifier)* (relational_operators | equality_operators) constant
-  ;
+```language-package
+package example "0.0.0"
+
+function main() {
+  #if config.array.check_oob {
+    #error "This package is incompatible with oob check, please disable it!"
+  }
+}
 ```
+
+<!-- 
+
+#require
 
 *semantics*
 
@@ -83,3 +93,4 @@ Imagine you are developing a math library and you want the developer to choose b
 ```
 
 This way the developer must `#set mathlib.float_type`
+-->
