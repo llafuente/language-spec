@@ -47,10 +47,12 @@ preprocessorEcho
 preprocessorExpr
   : preprocessorStr
   | preprocessorEcho
-  | preprocessorRepeatExpr
+  // PROPOSSAL: | preprocessorRepeatExpr
   ;
 
 preprocessorStmts
+  : preprocessorIfStmt
+/*
   : defineDecl
   | preprocessorMacroDecl
   | forargsStmt
@@ -62,8 +64,29 @@ preprocessorStmts
   | warningStmt
   | typeErrorStmt
   | semanticErrorStmt
+*/
   ;
 ```
+## `#if/else`
+
+```syntax
+preprocessorIfStmt
+  : '#' ifStmt
+  ;
+```
+
+*Semanticss*
+
+Same a [control-flow.md#if-else](control-flow `if` statement) but the expression shall be resolved at compile time.
+
+*Constrains*
+
+1. Expression shall be resolve t compile time or a semantic error shall raise
+
+> expected expression to be resolved at compile time
+
+
+
 
 <!-- why? #set shall be enough -->
 ## `#define` (EXPERIMENTAL)
@@ -114,7 +137,7 @@ Package developers should append a unique prefix to allow package configuration.
 #define HALF_PI (#PI# * 0.5)
 ```
 
-## `#macro`
+## `#function`
 
 *syntax*
 
@@ -131,7 +154,7 @@ preprocessorMacroArgumentList
   ;
 
 preprocessorMacroDecl
-  : '#macro' identifier '(' preprocessorMacroArgumentList? ')' '#block'? functionBody
+  : '#' 'function' identifier '(' preprocessorMacroArgumentList? ')' '#block'? functionBody
   ;
 
 // TODO
@@ -168,9 +191,9 @@ A macro can fetch next block of code and expanded inside it's own block see [`#b
 
 *Constraints*
 
-1. A `#macro` is always inlined at call site.
+1. A `#function` is always inlined at call site.
 
-2. `#macro` body shall have the same statements as function body, expect for `#define`
+2. `#function` body shall have the same statements as function body
 
 <!--
 The compiler will choose when to expand depending on what inputs require the macro.
