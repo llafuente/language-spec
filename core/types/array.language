@@ -1,6 +1,213 @@
 package core.array "0.0.0"
 
-/// TODO copy source code from array.md
+type array_void_callback = function($t element, size index) void
+type array_bool_callback = function($t element, size index) bool
+type array_i32_callback = function($t element, size index) i32
+type array_map_callback<$t, $x> = function($t element, size index) $x
+
 type array<$t> = struct implements index_accesor<$t> {
-	shared_ref<$t> values
+  size length
+  alias len length
+  alias count length
+
+  size capacity
+  alias cap capacity
+
+  get bool isEmpty {
+    return length == 0
+  }
+
+  get bool isFull {
+    return length == capacity
+  }
+
+  get bool first {
+    if (isEmpty) {
+		throw "array is empty"
+	}
+    return data[0]
+  }
+
+  get bool last {
+    if (isEmpty) {
+		throw "array is empty"
+	}
+    return data[length-1]
+  }
+
+  // Type type // STUDY: maybe ?
+
+  flexible_vector<$t> data
+
+  function getRandomElement() $t { }
+
+  // Adds a new element at the end of the array, the element will be copied.
+  // Returns current length
+  function append($t element) size { }
+  // Adds the elements of a sequence to the end of the array, the elements will be copied.
+  // NOTE $t shall not own memory
+  function append(array<$t> elements) $t { }
+  // Adds a new element at the end of the array, and return the element to be initialized
+  // Returns an uninitialized element
+  function append_new() uninitialized ref<$t> { }
+
+  alias append push
+
+  // Inserts a new element at the specified position
+  // Returns current length
+  function insert($t element, size pos) size { }
+  // Inserts a new element at the specified position, if used it will destroy the object
+  // Returns an uninitialized element
+  function insert_new(size pos) uninitialized ref<$t> { }
+
+  //
+
+  // Replaces all values in the array that match inValue with given element.
+  // Returns number of modified values
+  function replace($t inValue, $t element) size { }
+  // Replaces a range of elements with the elements in the specified collection.
+  // Returns number of modified values
+  function replace(range<size,size> rng, $t element) size { }
+
+  // Reserves enough space to store the specified number of elements.
+  function reserveCapacity(size elements) {}
+  alias grow reserveCapacity
+
+
+  // operators
+
+  // Creates a new collection by concatenating the elements of a sequence and a collection.
+  operator+(array<$t> other) lend array<$t> { }
+  // Appends the elements of a sequence to a range-replaceable collection.
+  operator+=(array<$t> other) { }
+
+  // Returns a Boolean value indicating whether two arrays contain the same elements in the same order.
+  operator==<$t implements comparable_eq>(array<$t> other) bool { }
+  // Returns a Boolean value indicating whether two arrays contain the same elements in the same order.
+  operator!=<$t implements comparable_eq>(array<$t> other) bool { }
+
+  // Removes and returns the element at the specified position.
+  function remove(size pos) {}
+  // Removes the elements in the specified subrange from the collection.
+  // Returns current length
+  function remove(range rnge) size {
+    // if $t is primitive -> call destructor
+  }
+  // Removes all the elements that satisfy the given predicate.
+  function remove(array_bool_callback where_cb) {}
+
+  function pop() lend $t {}
+  alias popLast pop
+
+  // Returns the minimum element in the sequence, using the given predicate as the comparison between elements.
+  function min(array_i32_callback where_cb) $t { }
+
+  // Returns the maximum element in the sequence, using the given predicate as the comparison between elements.
+  function max(array_i32_callback where_cb) $t { }
+
+  // Returns a subsequence by skipping elements while predicate returns true and returning the remaining elements.
+  function drop(array_bool_callback while_cb) lend array<$t> { }
+  alias skip drop
+
+  // Returns an array containing the results of mapping the given closure over the sequence’s elements.
+  function map<$x>(array_map_callback<$t, $x> map_cb) array<$x> {}
+  // TODO
+  function reduce() {}
+
+  // Calls the given closure on each element in the sequence in the same order as a for-in loop.
+  function forEach(array_void_callback where_cb) { }
+
+  // Shuffles the collection in place.
+  function shuffle() {}
+  // Returns the elements of the sequence, shuffled.
+  function shuffled() lend array<$t> {}
+
+  // Exchanges the values at the specified indices of the collection.
+  function swapAt(size a, size b) void { }
+
+  function every(array_bool_callback callback) bool { }
+  function some(array_bool_callback callback) bool { }
 }
+
+
+// Returns a Boolean value indicating whether the sequence contains the given element.
+function contains<$t implements comparable_eq>(array<$t> arr, $t element) bool { }
+function contains<$t implements comparable_eq>(array<$t> arr, range<int,int> rng, $t element) bool { }
+
+// Returns the first element of the sequence that match given element
+function first<$t implements comparable_eq>(array<$t> arr, $t element) $t { }
+// Returns the first element in given range that match given element
+function first<$t implements comparable_eq>(array<$t> arr, range<int,int> rng, $t element) $t { }
+// Returns the first element of the sequence that satisfies the given predicate
+function first<$t implements comparable_eq>(array<$t> arr, array_bool_callback where_cb) $t { }
+
+// Returns a the position indicating whether the elements of the sequence are the same as the elements in another sequence.
+function indexOf<$t implements comparable_eq>(array<$t> arr, array<$t> element) size { }
+function indexOf<$t implements comparable_eq>(array<$t> arr, $t element) size { }
+function indexOf<$t implements comparable_eq>(array<$t> arr, range<int,int> rng, $t element) size { }
+
+function lastIndexOf<$t implements comparable_eq>(array<$t> arr, $t element) size { }
+function lastIndexOf<$t implements comparable_eq>(array<$t> arr, range<int,int> rng, $t element) size { }
+
+// Returns the minimum element in a numeric-like sequence
+function min<$t implements comparable_lt>(array<$t> arr) $t { }
+
+// Returns the maximum element in the sequence.
+function max<$t implements comparable_lt>() $t { }
+
+// Sorts the collection in place.
+function sort<$t implements comparable_lt>() { }
+// Returns the elements of the sequence, sorted.
+function sorted<$t implements comparable_lt>() lend array<t> { }
+
+// Reverses the elements of the collection in place.
+function reverse<$t implements comparable_lt>() { }
+// Returns the elements of the sequence, in reverse order.
+function reversed<$t implements comparable_lt>() lend array<t> { }
+
+
+
+// Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.
+function split<$t implements comparable_eq>($t element) array<array<$t>> { }
+
+
+function join<$t implements to_tring_shape>(string x) string { }
+
+type array<$t is pointer<$x>> = struct implements index_accesor<$t> {
+  size length
+  alias len length
+
+  size capacity
+  alias cap capacity
+
+  // Type type // STUDY: maybe ?
+
+  own flexible_vector<$t> data
+
+  new (size capacity) {
+    // this = unsafe_cast<ref<array<$t>>> libc_malloc(@sizeof(array<$t>) + $t.sizeof * cap)
+    this = unsafe_cast<ref<array<$t>>> libc_calloc(@sizeof(array<$t>) + $t.sizeof * cap)
+
+    // x.type = @typeof($t)
+    this.len = 0
+    this.cap = capacity
+  }
+
+  delete () {
+    libc_free(this)
+  }
+
+  operator[](index i) $t {
+    #if config.array.check_oob {
+      if (i >= this.length) {
+        throw error("out of bounds")
+      }
+    }
+
+    return this.data[i]
+    // as ptr -> this.data + i * $t.sizeof
+  }
+}
+
+
+
