@@ -13,7 +13,8 @@ same as c, but we want to support advanced staff like
 */
 
 STRING_LITERAL
-    :   ENCODING_PREFIX? '"' SCHAR_SEQUENCE? '"'
+    :   ENCODING_PREFIX? '"' DQUOTE_SCHAR_SEQUENCE? '"'
+    |  ENCODING_PREFIX? '`' BACKTICK_SCHAR_SEQUENCE? '`'
     ;
 
 fragment
@@ -25,13 +26,26 @@ ENCODING_PREFIX
     ;
 
 fragment
-SCHAR_SEQUENCE
-    :   SCHAR+
+BACKTICK_SCHAR_SEQUENCE
+    :   BACKTICK_SCHAR+
     ;
 
 fragment
-SCHAR
-    :   ~["\\\r\n]
+BACKTICK_SCHAR
+    :   ~[`]
+    |   ESCAPE_SEQUENCE
+    |   '\\\n'   // Added line
+    |   '\\\r\n' // Added line
+    ;
+
+fragment
+DQUOTE_SCHAR_SEQUENCE
+    :   DQUOTE_SCHAR+
+    ;
+
+fragment
+DQUOTE_SCHAR
+    :   ~["]
     |   ESCAPE_SEQUENCE
     |   '\\\n'   // Added line
     |   '\\\r\n' // Added line
