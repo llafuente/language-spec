@@ -43,6 +43,7 @@ IDENTIFIERUP_NON_DIGIT
 
 IDENTIFIER_NON_DIGIT
     :   NON_DIGIT
+    |  [\p{L}] // this fix, utf8 identifiers problem, but don't know why/how ?!
     |   UNIVERSAL_CHARACTER_NAME
     ;
 
