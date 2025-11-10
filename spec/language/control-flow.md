@@ -34,6 +34,7 @@ A selection statement selects among a set of statements depending on the value o
 
 The controlling expression shall have bool type, there won't be implicit conversions.
 
+<a name="if-else"></a>
 ### `if` / `else`
 
 <!--

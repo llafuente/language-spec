@@ -188,7 +188,7 @@ A block variable will live until the end of the current block.
 
 *Example*
 
-```language
+```language-test
 type a = struct {
   new() {
     print("a constructor called")
@@ -199,30 +199,37 @@ type a = struct {
 }
 
 function simple_test() {
-  print("function called")
+  print("function starts")
 
   var aptr = new a()
+  print("function ends")
 } // <-- aptr freed here
+
 
 function main() {
   print("program starts")
   simple_test()
   print("program ends")
 }
+
+test main {
+  expect.stdout("program starts
+function starts
+a constructor called
+function ends
+a destructor called
+program ends", function() {
+  main()
+})
+}
 ```
 
-```output
-program starts
-function called
-a constructor called
-a destructor called
-program ends
-```
+
 
 <!-- REVIEW this example collide with new lambda spec -->
 *Example*
 
-```language
+```language-test
 type a = struct {
   new() {
     print("constructor")
@@ -245,24 +252,22 @@ function do_your_job() callback {
   return r
 }
 
-function main() {
-  print("start")
-  var t = do_your_job()
-  print("job started")
-  print(t())
-  print("lambda finished")
-  delete t
-  print("end")
-}
-```
-
-```output
-start
+test do_your_job {
+  expect.stdout("start
 constructor
 lambda start and return
 lambda finished
 destructor
-end
+end", function() {
+    print("start")
+    var t = do_your_job()
+    print("job started")
+    print(t())
+    print("lambda finished")
+    delete t
+    print("end")
+  })
+}
 ```
 
 ## block scope alias

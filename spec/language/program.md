@@ -5,7 +5,7 @@
 ```syntax
 // main program entry point!
 program
-  : endOfStmt* importStmtList? preprocessorProgramStmtList? programStmsList? EOF
+  : importStmtList? preprocessorProgramStmtList? programStmsList? EOF
   ;
 
 programStmsList
@@ -14,13 +14,14 @@ programStmsList
 
 programStms
   : comments endOfStmt
+  | preprocessorDecl endOfStmt
   | functionDecl endOfStmt
   | operatorFunctionDecl endOfStmt
   // program exclusive!
   | typeDecl endOfStmt
   | globalVariableDeclStmt endOfStmt
   | fileVariableDeclStmt endOfStmt
-  | testStmt
+  | testStmt endOfStmt
   | endOfStmt
   ;
 

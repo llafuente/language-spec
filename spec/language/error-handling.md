@@ -524,7 +524,7 @@ Define an a block that will be executed regarless if an exception is throw or no
 
 *Example*
 
-```language
+```language-test
 function main() {
 	try {
 		print("Open file")
@@ -537,14 +537,16 @@ function main() {
 		print("This is the end, my only friend")
 	}
 }
-```
 
-```output
-Open file
+test main {
+	expect.stdout("Open file
 File not found
-This is the end, my only friend
-```
+This is the end, my only friend", function() {
+		main()
+	});
+}
 
+```
 
 ## retry
 

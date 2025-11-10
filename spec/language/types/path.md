@@ -121,11 +121,11 @@ fs
 * attributes
   * type: file, symlink, folder
   * hidden
+  * locked
+  * access_date
+  * modified_date
+  * creation_date
 * permissions
-* access_date
-* modified_date
-* creation_date
-* locked
 
 web
 * uri

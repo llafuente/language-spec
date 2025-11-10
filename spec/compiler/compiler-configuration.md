@@ -47,7 +47,7 @@ Compiler configuration is available at compile time as constant.
 
 ```language-test
 test "get configuration" {
-  #print config.array.check_oob
+  #print(config.array.check_oob)
 }
 ```
 
