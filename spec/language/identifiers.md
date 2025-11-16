@@ -8,58 +8,19 @@
 *Syntax*
 
 ```lexer
+// Identifier: starts with a letter or underscore, followed by letters, digits, or underscores
 Identifier
-    :   IDENTIFIER_NON_DIGIT
-        (   IDENTIFIER_NON_DIGIT
-        |   DIGIT
-        )*
+    :   (ID_Start | '_') (ID_Continue | '_')*
     ;
 
-IdentifierLow
-    :   IDENTIFIERLOW_NON_DIGIT
-        (   IDENTIFIERLOW_NON_DIGIT
-        |   DIGIT
-        )*
+// Matches any character that can start an identifier (letters, letter numbers, etc.)
+fragment ID_Start
+    :   [\p{L}\p{Nl}]
     ;
 
-IdentifierUp
-    :   IDENTIFIERUP_NON_DIGIT
-        (   IDENTIFIERUP_NON_DIGIT
-        |   DIGIT
-        )*
-    ;
-
-fragment
-IDENTIFIERLOW_NON_DIGIT
-    :   NON_DIGIT_LOW
-    |   UNIVERSAL_CHARACTER_NAME
-    ;
-
-fragment
-IDENTIFIERUP_NON_DIGIT
-    :   NON_DIGITUP
-    |   UNIVERSAL_CHARACTER_NAME
-    ;
-
-IDENTIFIER_NON_DIGIT
-    :   NON_DIGIT
-    |  [\p{L}] // this fix, utf8 identifiers problem, but don't know why/how ?!
-    |   UNIVERSAL_CHARACTER_NAME
-    ;
-
-fragment
-NON_DIGIT
-    :   [a-zA-Z_$]
-    ;
-
-fragment
-NON_DIGIT_LOW
-    :   [a-z_]
-    ;
-
-fragment
-NON_DIGITUP
-    :   [A-Z_]
+// Matches any character that can continue an identifier (letters, digits, marks, connector punctuation, etc.)
+fragment ID_Continue
+    :   [\p{L}\p{Nl}\p{Nd}\p{Mn}\p{Mc}\p{Pc}]
     ;
 
 fragment
@@ -79,8 +40,6 @@ HEX_QUAD
 
 ```syntax
 identifier: Identifier;
-
-identifierUp: IdentifierUp;
 
 dollarIdentifier
   : '$' identifier
