@@ -30,10 +30,9 @@ functionModifiers
   : 'pure'
   | 'override'
   | 'overwrite'
-  | 'readonly'
+  | 'readonly' // struct-readonly
+  | 'inline'
   ;
-  // | '@mock'
-  // | '@debug'
 
 functionReturnTypeModifiers
   : 'lend'
