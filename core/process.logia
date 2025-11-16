@@ -13,14 +13,14 @@ When a core function needs to allocate memory and no allocator is sent, the defa
 
 // static 
 type ProcessIO = struct {
-  static write_stream stdout = write_stream(0)
-  static file_descriptor stdout_fn = 0
+  static read_stream stdin = write_stream(0)
+  static file_descriptor stdin_fn = 0
 
-  static write_stream stderr = write_stream(1)
-  static file_descriptor stderr_fn = 1
+  static write_stream stdout = write_stream(1)
+  static file_descriptor stdout_fn = 1
 
-  static read_stream stdin = write_stream(2)
-  static file_descriptor stdin_fn = 2
+  static write_stream stderr = write_stream(2)
+  static file_descriptor stderr_fn = 2
 }
 
 
@@ -143,7 +143,7 @@ type process = struct {
   */
   function exit(i32 exit_code) {}
 
-  function memory_usage() i32 {}
+  function get_memory_usage() i32 {}
 
   /*
   //

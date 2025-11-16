@@ -25,7 +25,7 @@ type rune = struct {
 
 test rune {
   var r = rune("a")
-  #assert r.codePoint == 64
+  #assert(r.codePoint == 64)
 }
 ```
 

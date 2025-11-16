@@ -130,9 +130,9 @@ function next<$t>($t value) {
 }
 
 function main() {
-  #assert 2.0 == next<float>(1.0)
-  #assert 2 == next<int>(1)
-  #assert 0 == next<u8>(255) // overflow :P
+  #assert(2.0 == next<float>(1.0))
+  #assert(2 == next<int>(1))
+  #assert(0 == next<u8>(255)) // overflow :P
 }
 ```
 
@@ -170,8 +170,8 @@ function add<$t>($t a, $t b) $t {
 function main() {
   // implicit instantiation
   var s = add(point(10, 20), point(15, 15))
-  #assert s.x == 25
-  #assert s.y == 35
+  #assert(s.x == 25)
+  #assert(s.y == 35)
 }
 
 ```
@@ -194,12 +194,12 @@ type point {
 
 function main() {
   var p = new point(10, 10)
-  #assert p.x == 10
-  #assert p.y == 10
+  #assert(p.x == 10)
+  #assert(p.y == 10)
   
   var p2 = pick<point, "x">(p)
-  #assert p.x == 10
-  #assert typeof(p) is ref
+  #assert(p.x == 10)
+  #assert(typeof(p) is ref)
 
 }
 ```
@@ -220,7 +220,7 @@ type bind<$f is function, $f.arguments[0] first> = struct {
 function main() {
   var fn = new bind<greet, "moe">()
 
-  #assert greet("moe") == "Hello: moe"
-  #assert fn() == "Hello: moe"
+  #assert(greet("moe") == "Hello: moe")
+  #assert(fn() == "Hello: moe")
 }
 ```

@@ -1,0 +1,25 @@
+package core.assert "0.0.0"
+
+import metaprogramming as meta
+
+#function assert(meta.expression expr, meta.string_literal message) meta.statement {
+  return tokenize {
+    var x = #expr#
+
+    #if (typeof(x) == bool) {
+      #error("assert expected expr(1) parameter to be a bool")
+    }
+    #if (typeof(message) != string) {
+      #error("assert expected(2) message parameter to be a string")
+    } 
+
+    // comptime, constexpr
+    #if (x is comptime && !x) {
+      #error(#message# + "\n" + ##expr# + " at " + #file# + ":" + #line# + "@" + #function#)
+    }
+    
+    if (!x) {
+      throw #message# + "\n" + ##expr# + " at " + #file# + ":" + #line# + "@" + #function#
+    }
+  }
+}

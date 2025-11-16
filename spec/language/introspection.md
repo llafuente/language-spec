@@ -239,10 +239,10 @@ type ab = struct {
 }
 test "rtti usage" {
   // i8 it's the first declared type :)
-  #assert rtti.get_type_by_name("i8") == 0
-  #assert rtti.get_type_by_name("i8") == i8
-  #assert rtti.get_type_by_name("ab") != 0
-  #assert rtti.get_type_by_name("ab") != ab
+  #assert(rtti.get_type_by_name("i8") == 0)
+  #assert(rtti.get_type_by_name("i8") == i8)
+  #assert(rtti.get_type_by_name("ab") != 0)
+  #assert(rtti.get_type_by_name("ab") != ab)
 }
 ```
 
@@ -259,8 +259,8 @@ type ab = struct {
   i32 b
 }
 test ab {
-  #assert ab.fields.length == 2
-  #assert rtti.count_fields(ab) == 2
+  #assert(ab.fields.length == 2)
+  #assert(rtti.count_fields(ab) == 2)
 
 }
 ```
@@ -278,8 +278,8 @@ type ab = struct {
   i32 b
 }
 test ab {
-  #assert rtti.get_fields(i32) == null
-  #assert rtti.get_fields(ab) == ["a", "b"]
+  #assert(rtti.get_fields(i32) == null)
+  #assert(rtti.get_fields(ab) == ["a", "b"])
 }
 ```
 
@@ -305,9 +305,9 @@ type ab = struct {
   i32 b
 }
 test ab {
-  #assert rtti.sizeof(i32) == 8
-  #assert rtti.sizeof(i32) == i32.size
-  #assert rtti.sizeof(ab) == 16
+  #assert(rtti.sizeof(i32) == 8)
+  #assert(rtti.sizeof(i32) == i32.size)
+  #assert(rtti.sizeof(ab) == 16)
 }
 ```
 
@@ -335,19 +335,19 @@ test vx {
   var vx p2 = new v2(0, 0)
   var vx p3 = new v3(0, 0, 0)
 
-  #assert rtti.instance_of(vx, v2) == false
-  #assert rtti.instance_of(vx, v3) == false
+  #assert(rtti.instance_of(vx, v2) == false)
+  #assert(rtti.instance_of(vx, v3) == false)
 
-  #assert rtti.instance_of(v, string) == false
-  #assert rtti.instance_of(string, string) == true
+  #assert(rtti.instance_of(v, string) == false)
+  #assert(rtti.instance_of(string, string) == true)
 
   var heap_vec = new v2(0, 0)
-  #assert rtti.instance_of(heap_vec, v2) == false
-  #assert rtti.instance_of(heap_vec, ref) == true
+  #assert(rtti.instance_of(heap_vec, v2) == false)
+  #assert(rtti.instance_of(heap_vec, ref) == true)
 
   var stack_vec = v2(0, 0)
-  #assert rtti.instance_of(stack_vec, v2) == true
-  #assert rtti.instance_of(stack_vec, ref) == false
+  #assert(rtti.instance_of(stack_vec, v2) == true)
+  #assert(rtti.instance_of(stack_vec, ref) == false)
 }
 ```
 

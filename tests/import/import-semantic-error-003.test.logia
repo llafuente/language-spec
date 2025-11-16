@@ -1,0 +1,12 @@
+/*TEST
+{
+    "cmd": "-run",
+    "stdout": "",
+    "stderr: "Module '"core"' has no exported member 'uuu'."
+}
+*/
+import core
+
+function main() {
+    print(core.uuu)
+}

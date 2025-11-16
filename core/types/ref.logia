@@ -1,0 +1,38 @@
+package core.types.ref "0.0.0"
+
+import libc
+
+// TODO REVIEW $t not implements has_dot_operator
+// this prevents, recursive dot, while useful also dangerous
+type ref<$t> = struct {
+  ptrize ptr
+
+  new () {
+    this!.ptr = null
+  }
+  // pointer copy constructor
+  new (ptrize ptr) {
+    this!.ptr = ptr
+  }
+  // pointer copy constructor
+  new (ref<$t> ptr) {
+    this!.ptr = ptr!.ptr
+  }
+  // TODO REVIEW do we need to check head vs stack memory to do this ?
+  // seems like a source of bugs. Maybe ref shall be heap only
+  // value copy constructor
+  new (own $t t) {
+    libc.memcpy(intrinsics_pointer_address(t), this!.ptr, $t.sizeof)
+  }
+  // clone is applied to the ref, so shallow copy of the pointer
+  clone() {
+    return new ref<$t>(this!.ptr)
+  }
+  // access to the type below
+  operator.() $t {
+    return unsasfe_cast<$t>(intrinsics_pointer_deref(this!.ptr))
+  }
+  operator @() ptrdiff {
+    return unsasfe_cast<ptrdiff>(intrinsics_pointer_address(this!.ptr))
+  }
+}

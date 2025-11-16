@@ -30,16 +30,15 @@ NULL_TK : 'null';
 
 
 // variables
-
 VAR_TK : 'var';
 CONST_TK : 'const';
 GLOBAL_TK : 'global';
 PACKAGE_TK : 'package';
 
 // functions
-
 FUNCTION_TK : 'function';
 PURE_TK : 'pure';
+INLINE_TK : 'inline';
 OPERATOR_TK : 'operator';
 RETURN_TK : 'return';
 ALIAS_TK : 'alias';
@@ -52,7 +51,6 @@ OVERRIDE_TK : 'override';
 OVERWRITE_TK : 'overwrite';
 
 // Control flow
-
 IF_TK : 'if';
 ELSE_TK : 'else';
 SWITCH_TK : 'switch';
@@ -92,7 +90,6 @@ THROW_TK : 'throw';
 
 //metaprogramming
 
-META_MACRO_TK : '#macro';
 META_REPEAT_TK : '#repeat';
 META_MACRO_BLOCK_TK : '#block';
 META_DEFINE_TK : '#define';
@@ -101,14 +98,11 @@ META_STRING_TK : '#string';
 META_EXPR_TK : '#expression';
 META_VALUE_TK : '#value';
 META_FORARGS_TK : '#forargs';
-META_FORSTRUCT_TK : '#forstruct';
 META_EXEC_TK : '#exec';
-META_ASSERT_TK : '#assert';
-META_UID_TK : '#uid';
-META_ERROR_TK : '#error';
-META_WARNING_TK : '#warning';
-META_TYPE_ERROR_TK : '#type_error';
-META_SEMANTIC_ERROR_TK : '#semantic_error';
+
+META_TOKENIZE_TK : 'tokenize';
+
+
 
 // unit test
 TEST_TK : 'test';
@@ -187,8 +181,12 @@ AS_TK : 'as';
 WS : [ \t\f]+                        -> skip;
 WHITESPACE: ' ' -> skip;
 
-NEWLINE_TK :   ('\r' '\n'? | '\n');
+// new lines
+NEWLINE_WIN_TK: '\r\n';
+NEWLINE_LINUX_TK: '\n';
 SEMICOLON_TK : ';';
+
+BACKTICK : '`';
 
 
 // ?? -> channel(HIDDEN);

@@ -69,18 +69,18 @@ function main() {
   var sarr = new point[10]
   var arr = new point[](10)
 
-  #assert sarr.length == 10
-  #assert sarr.capacity == 10
-  #assert arr.length == 0
-  #assert arr.capacity == 10
+  #assert(sarr.length == 10)
+  #assert(sarr.capacity == 10)
+  #assert(arr.length == 0)
+  #assert(arr.capacity == 10)
 
   arr.grow(20)
-  #assert arr.capacity == 20
+  #assert(arr.capacity == 20)
 
   arr.push_back()(10, 11)
-  #assert arr.length == 1
-  #assert arr[0].x == 10
-  #assert arr[0].y == 11
+  #assert(arr.length == 1)
+  #assert(arr[0].x == 10)
+  #assert(arr[0].y == 11)
 }
 ```
 
@@ -107,9 +107,9 @@ function main() {
   var var_b = new b(11)
   var var_a = new a()(10)
 
-  #assert var_b.value == 11
-  #assert var_a.b != null
-  #assert var_a.b.value == 10
+  #assert(var_b.value == 11)
+  #assert(var_a.b != null)
+  #assert(var_a.b.value == 10)
 }
 ```
 
@@ -274,9 +274,9 @@ function main() {
 `own` holds memory while variable is alive. If the variable get out of scope it
 will be freed.
 
-See [function.own](./language/functions.md#own)
+See [function.own](./language/functions.md#struct-own)
 
-See [structured.own](./language/types/structured.md#own)
+See [structured.own](./language/types/structured.md#struct-own)
 
 *Constraints*
 
@@ -396,13 +396,13 @@ type point = struct {
 
 function main() {
   var p = new point()
-  #assert p.x ~= point.x.default
-  #assert p.y ~= point.y.default
+  #assert(p.x ~= point.x.default)
+  #assert(p.y ~= point.y.default)
 
   p.x = point.x.default + 1
   memory_default(a, 1) // TODO maybe we need to cast ? -> unsafe
-  #assert p.x ~= point.x.default
-  #assert p.y ~= point.y.default
+  #assert(p.x ~= point.x.default)
+  #assert(p.y ~= point.y.default)
 }
 ```
 
@@ -435,19 +435,19 @@ function main() {
 
   a.random()
   memory_copy(a, b, 10)
-  #assert memory_cmp(a, b, 10) == 0
+  #assert(memory_cmp(a, b, 10) == 0)
 
   a[9] = 0
   b[9] = 1
-  #assert memory_cmp(a, b, 10) == -1
+  #assert(memory_cmp(a, b, 10) == -1)
 
   a[9] = 1
   b[9] = 0
-  #assert memory_cmp(a, b, 10) == 1
+  #assert(memory_cmp(a, b, 10) == 1)
 
   a = memory_clear(a, 10)
   b = memory_clear(a, 10)
-  #assert memory_cmp(a, b, 10) == 0
+  #assert(memory_cmp(a, b, 10) == 0)
 }
 ```
 

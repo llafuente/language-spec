@@ -1,0 +1,24 @@
+/**
+START_TEST
+flags:
+
+stdout:
+{x: 10,y: 12}
+stderr:
+
+stdin:
+
+END_OF_TEST
+*/
+import dot_operator_def
+function main() {
+    var l = new agg_point(10, 12)
+
+    #assert(l.x == 10)
+    #assert(l.y == 12)
+
+    #assert(agg_point.size == point.size)
+    #assert(typeof(l).size == point.size)
+
+    print(l)
+}

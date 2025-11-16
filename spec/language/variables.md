@@ -316,10 +316,10 @@ type inference.
 ```language-test
 function main() {
   var i = 10
-  #assert type(i) == i64
+  #assert(type(i) == i64)
 
   var f = 10.0
-  #assert type(f) == f64
+  #assert(type(f) == f64)
 }
 ```
 

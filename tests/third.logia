@@ -1,0 +1,10 @@
+function sum(int x, int y) {
+    return x + y
+}
+
+function main() {
+    var x = 1
+    var y = 10
+
+    print(sum(x, y));
+}

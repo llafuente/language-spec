@@ -30,6 +30,10 @@ constant
     | identifier              # identifierExpr
     | preprocessorExpr        # preprocessorExpr2
     | regularExpressionLiteral # regExExpr
+    | 'struct'                 # structTypeLit
+    | 'mask'                   # maskTypeLit
+    | 'enum'                   # enumTypeLit
+    | 'function'               # functionTypeLit
     ;
 
 regularExpressionLiteral: RegularExpressionLiteral;
@@ -48,8 +52,6 @@ identifierName
     | keywords // TODO atm we use every keyword but makes no sense
     ;
 
-
-
 postfix_expr
     : postfix_expr ('![' | '?[' | '[') expression ']'                                     # postfixBracesMemberAccessExpr
     | postfix_expr ('!.' | '?.' | '.') identifierName templateId?                         # postfixDotMemberAccessExpr
@@ -59,7 +61,6 @@ postfix_expr
     // function call
     | postfix_expr '(' argumentExprList? ')'                                           # postfixCallExpr
     //| postfix_expr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'     # preprocessorMemberMacroCallExpr
-    //| preprocessorMacroCallExpr                                                      # preprocessorMacroCallExpr2
     | postfix_expr ( '++' | '--' )+                                                    # postfixIndecrementExpr
     | primary_expr                                                                     # primaryExprFwExpr
     ;
@@ -141,11 +142,6 @@ relational_operators
     | '<='
     | '>='
     ;
-equality_operators
-    : '=='
-    | '!='
-    | '<' '>'
-    ;
 
 equality_expr
     // memory equality (pointer comparation)
@@ -163,6 +159,15 @@ equality_expr
     | equality_expr 'implements' relational_expr # equality_expr_implements
     | equality_expr 'instanceof' relational_expr # equality_expr_instanceof
     | relational_expr                    # equality_expr_fw
+    ;
+
+equality_operators
+    : '==='
+    | '!=='
+    | '~='
+    | '=='
+    | '!='
+    | '<' '>'
     ;
 
 and_expr
@@ -200,8 +205,7 @@ assignment_operator
     ;
 
 expression
-    // remove comma operator
-    //: assignment_expr (',' assignment_expr)*
+    // NOTE comma operator is removed on purpose.
     : assignment_expr
     ;
 
@@ -211,18 +215,19 @@ expressionList
 
 rhsExpr
   : errorHandlingExprs
+  | tokenizeExpr
   | anonymousFunctionDef functionBody
   ;
-
+// NOTE comma is not an operator!
 operators
   : assignment_operator
+  | relational_operators
+  | equality_operators
   | '||'
   | '&&'
   | '|'
   | '^'
   | '&'
-  | '==' | '!='
-  | '<' | '>' | '<=' | '>='
   | '<' '<' | '>' '>'
   | '-' | '+'
   | '*' | '/' | '%'
@@ -381,13 +386,13 @@ function main() {
   var b = point(3, 4)
   var c = a + b
 
-  #assert c.x ~= 4
-  #assert c.y ~= 6
-  #assert typeof(c.y) == point
+  #assert(c.x ~= 4)
+  #assert(c.y ~= 6)
+  #assert(typeof(c.y) == point)
   
   c = a + 5.5
-  #assert c.x ~= 6.5
-  #assert c.y ~= 7.5
+  #assert(c.x ~= 6.5)
+  #assert(c.y ~= 7.5)
 }
 ```
 

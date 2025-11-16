@@ -1,0 +1,69 @@
+/*
+The std::allocator class template is the default Allocator used by all standard library containers if no user-specified allocator is provided. The default allocator is stateless, that is, all instances of the given allocator are interchangeable, compare equal and can deallocate memory allocated by any other instance of the same allocator type.
+*/
+
+package core.allocator "0.0.0"
+
+import libc
+import core.process
+
+/*
+Defines allocation/deallocation functions.
+*/
+type allocator<$t> = interface {
+	// XXX REVIEW this is fun to parse ?! even possible!?
+	// function () return type name <-- so strange!
+	
+	/*
+	Allocates uninitialized continuos memory of given size
+
+	Remarks:
+		allocation has accesss to the type that it's going to be allocated
+		* enables Region-based memory management based on types.
+		* enables stub returing, while possible to allocate more memory it will exceed your memory bound.
+	*/	
+	function alloca (size s) lend uninitialized ref<$t>
+
+	/*
+	Allocates continuos memory of given size initialized to zero
+	
+	Type system should test if the memory requires to be initialized based on the $t
+	$t is primitive, zero is valid
+	$t is struct, zero is invalid, force to call constructor before use
+	*/
+	function calloca (size s) lend ref<$t>
+
+	/*
+	Deallocates memory
+
+	Remarks:
+		Eats memory because it doesn't lend anything!
+	*/
+	function dealloca (own ref<$t> ptr) void
+
+
+	// EXPERIMENTAL
+	/*
+	Allocates aligned uninitialized continuos memory of given size
+	*/
+	// function aalloca (size s, size alignament) lend uninitialized ref<$t>
+
+}
+
+type has_allocator = interface {
+	allocator allocator
+}
+
+// Default uninitialized allocator
+function default_allocator_alloca (size s) lend uninitialized ref<i8> {
+	return libc.malloc(s)
+}
+// Default zero fill allocator
+function default_allocator_calloca (size s) lend uninitialized ref<i8> {
+	return libc.calloc(s)
+}
+// default dealllocator
+function default_allocator_dealloca(own ref<i8> ptr) void {
+	libc.free(ptr)
+	ptr = null // TODO maybe to a defined value to detect dangling
+}

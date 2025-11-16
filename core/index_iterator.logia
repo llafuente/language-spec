@@ -1,0 +1,52 @@
+// https://rosettacode.org/wiki/Loops/Foreach
+
+package iterable "0.0.0"
+
+type has_index_iterator<$value> = interface {
+  size length
+  operator[](size i) $value
+
+  function make_index_iterator() index_iterator<$value>
+}
+
+type index_iterator<ref<readonly $target>> = struct {
+  ref<readonly $target> target = null
+  size current = 0
+
+  new(ref<readonly $target> target) {
+    this.target = target
+  }
+
+  function next() self {
+    ++this.current
+    return this
+  }
+  // TODO how to get the return_type, while not ugly also no beatiful
+  // function get_ref_value() $target.operator[].return_type {
+    function get_ref_value() $target.operator_brakets.return_type {
+    return this.target[this.current]
+  }
+
+  function get_key() size {
+    return this.current
+  }
+
+  // restart
+  function reset() {
+    this.current = 0
+  }
+
+  get bool is_first {
+    return this.current == 0
+  }
+  /* {
+    return current == 0
+  } */
+  get bool is_last {
+    return this.target.length - 1 == this.current
+  }
+}
+
+type safe_iterator<$t> = interface {
+  function get_safe_iterator() lend ref<iterator<$t> >
+}

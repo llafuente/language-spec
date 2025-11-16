@@ -77,6 +77,8 @@ overloadableOperators
   | '/'
   | '^'
   | '%'
+  // pointer get address
+  | '@'
   // shift
   | '<' '<'
   | '>' '>'
@@ -145,15 +147,17 @@ functionBodyStmt
   | aliasDeclStmt endOfStmt
   | typeDecl endOfStmt
   | functionDecl endOfStmt
-  | expression endOfStmt
   | selectionStmts endOfStmt
   // function exclusive
   | returnStmt endOfStmt
   | deferStmt endOfStmt
   | blockVariableDeclStmt endOfStmt
-  | assertStmt endOfStmt
   | errorHandlingStmts endOfStmt
   | retryUntilWhileStmt endOfStmt
+  // preprocessor
+  | preprocessorStmts endOfStmt
+  // expression at the bottom to fix some preprocessor issues
+  | expression endOfStmt
   | endOfStmt
   ;
 
@@ -293,7 +297,7 @@ function main() {
   print([1, 2, 3].sort(isort))
 
   // equivalent ?
-  #assert typeof(isort) === typeof(xxx)
+  #assert(typeof(isort) === typeof(xxx))
 }
 ```
 
@@ -424,10 +428,10 @@ function reset(out int a) {
 
 function main() {
   var int a = 1;
-  #assert a == 1
+  #assert(a == 1)
 
   reset(a)
-  #assert a == 0
+  #assert(a == 0)
 }
 ```
 
@@ -554,17 +558,17 @@ function add4(int a = 1, int b = 2, int c = 3, int d = 4) {
 
 
 function main() {
-  #assert add2(7) == 8
-  #assert add2(7, default) == 8
-  #assert add2(7, 3) == 10
+  #assert(add2(7) == 8)
+  #assert(add2(7, default) == 8)
+  #assert(add2(7, 3) == 10)
   // using named params
-  #assert add2(b = default, a = 7) == 8
+  #assert(add2(b = default, a = 7) == 8)
 
   
-  #assert add4() == 10
-  #assert add4(c = 7) == 14
-  #assert add4(default, default, 7) == 14
-  #assert add4(1, default, default, 7) == 13
+  #assert(add4() == 10)
+  #assert(add4(c = 7) == 14)
+  #assert(add4(default, default, 7) == 14)
+  #assert(add4(1, default, default, 7) == 13)
 }
 
 ```
@@ -692,13 +696,13 @@ function return_data(string[] list..., string separator) string?[]{
 }
 function main() {
   // empty list, just the separator
-  #assert return_data("1") == [[], null, "1"]
+  #assert(return_data("1") == [[], null, "1"])
   // 1 parameters varargs
-  #assert return_data("1", "2") == [["1"], null, "2"]
+  #assert(return_data("1", "2") == [["1"], null, "2"])
   // 2 parameters varargs
-  #assert return_data("1", "2", "3") == [["1", "2"], null, "3"]
+  #assert(return_data("1", "2", "3") == [["1", "2"], null, "3"])
   // 3 parameters varargs
-  #assert return_data("1", "2", "3", "4") == [["1", "2", "3"], null, "4"]
+  #assert(return_data("1", "2", "3", "4") == [["1", "2", "3"], null, "4"])
 }
 
 ```
@@ -714,7 +718,7 @@ function join(string[] list...) {
   return str
 }
 
-#assert join("a", "b", "c") == "abc"
+#assert(join("a", "b", "c") == "abc")
 
 function joinBy(string[] list..., rune x) {
   // string[] list
@@ -728,18 +732,18 @@ function joinBy(string[] list..., rune x) {
   return str
 }
 
-#assert joinBy("a", "b", "c", ',') == "a,b,c"
+#assert(joinBy("a", "b", "c", ',') == "a,b,c")
 
 // same type is supported.
 function joinBy2(string[] list..., string separator) {
   return joinBy(string[] list..., separator[0])
 }
 // empty list, just the separator
-#assert joinBy("a") == ""
+#assert(joinBy("a") == "")
 // ["a"], ":"
-#assert joinBy("a", ":") == "a"
+#assert(joinBy("a", ":") == "a")
 // ["a", "b", "c"], ":"
-#assert joinBy("a", "b", "c", ":") == "a:b:c"
+#assert(joinBy("a", "b", "c", ":") == "a:b:c")
 
 
 ```
@@ -838,10 +842,10 @@ function main() {
   var string[] a = new()
   defer_order(ar)
 
-  #assert ar.length == 3
-  #assert ar[0] == "start"
-  #assert ar[1] == "middle"
-  #assert ar[2] == "end"
+  #assert(ar.length == 3)
+  #assert(ar[0] == "start")
+  #assert(ar[1] == "middle")
+  #assert(ar[2] == "end")
 }
 ```
 
@@ -925,9 +929,9 @@ function error() void {
 
 *Example*
 
-STUDY-PITFALL. lambda grabbing for primitives is by copy.
+TODO STUDY-PITFALL. lambda grabbing for primitives is by copy.
 
-```language
+```language-test
 function add_one(i32 a) void {
   defer print("stmt - add_one", a)
   defer function () {
@@ -940,15 +944,17 @@ function main() {
   x(10)
   x(15)
 }
-```
 
-```output
-stmt add_one 11
+test main {
+  expect.stdout("stmt add_one 11
 lambda add_one 10
-
 stmt add_one 16
-lambda add_one 15
+lambda add_one 15", function () {
+  main()
+})
+}
 ```
+
 
 *Example 2*
 
@@ -1037,7 +1043,7 @@ function sum (int a, int b) {
 }
 
 function main() {
-  #assert sum(10, 10)() == 21
+  #assert(sum(10, 10)() == 21)
 }
 ```
 
@@ -1148,8 +1154,8 @@ function add($t a, $t b) {
 }
 
 function main () {
-  #assert add(5, 6) == 11
-  #assert add(3.1, 3.1) ~= 6.2
+  #assert(add(5, 6) == 11)
+  #assert(add(3.1, 3.1) ~= 6.2)
   
   // semantic-error
   add(5, "hello")

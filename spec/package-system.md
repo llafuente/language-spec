@@ -20,8 +20,9 @@ function main() {
 ```syntax
 // package entry point!
 packageProgram
-  : (comments endOfStmt?)* packageDefinitionStmt packageStmsList? EOF
+  : (comments endOfStmt?)* packageDefinitionStmt importStmtList? preprocessorProgramStmtList? packageStmsList? EOF
   ;
+
 
 packageStmsList
   : packageStmts+
@@ -29,15 +30,19 @@ packageStmsList
 
 packageStmts
   : comments endOfStmt
-  | importStmt
+  | preprocessorDecl endOfStmt
+  | preprocessorStmts endOfStmt
   | functionDecl endOfStmt
+  | operatorFunctionDecl endOfStmt
   // program exclusive!
   | typeDecl endOfStmt
   | packageVariableDeclStmt endOfStmt
   | fileVariableDeclStmt endOfStmt
-  | testStmt
+  | testStmt endOfStmt
   | endOfStmt
   ;
+
+
 ```
 
 *Semantics*

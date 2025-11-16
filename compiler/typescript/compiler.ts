@@ -1,10 +1,12 @@
 import LanguageLexer from "./LanguageLexer.ts"
-import LanguageParser from "./LanguageParser.ts"
+import LanguageParser, { ProgramContext } from "./LanguageParser.ts"
 import LanguageParserListener from "./LanguageParserListener.ts"
+import { InputStream, CommonTokenStream, ParseTreeWalker, RecognitionException, Parser, ErrorListener, Recognizer, ParseTree } from "antlr4";
 
-import { InputStream, CommonTokenStream, ParseTreeWalker, RecognitionException, Parser, ErrorListener, Recognizer } from "antlr4";
+// https://github.com/ApsarasX/llvm-bindings/tree/master
 
 const inputFile = Deno.args[0]
+const isPackage: boolean = Deno.args[1] == "-package"
 const input = Deno.readTextFileSync(inputFile);
 //const input = 'this is an invalid program!'
 
@@ -15,6 +17,20 @@ function main() {
 }
 
 */
+
+
+// Function to recursively print the AST
+function printAST(tree: ParseTree, indent: string = ""): void {
+    // Print the current node
+    console.log(`${indent}${tree.constructor.name}: ${tree.getText()}`);
+
+    // Recursively print child nodes
+    for (let i = 0; i < tree.getChildCount(); i++) {
+        const child = tree.getChild(i);
+        printAST(child, indent + "  ");
+    }
+}
+
 
 class ExprErrorListener extends ErrorListener {
   override syntaxError(recognizer: Recognizer<Symbol>, offendingSymbol: Symbol, line: number, column: number, msg: string, e: RecognitionException | undefined): void {
@@ -41,12 +57,18 @@ class ExprErrorListener extends ErrorListener {
     console.log(lines.slice(line, line + 5).join("\n"))
 
     console.log(`${inputFile}:${line}:${column}`);
+
+    //console.log(recognizer.getLiteralNames())
+    //console.log(recognizer.getSymbolicNames())
+    console.log(offendingSymbol.toString())
+    
+
     process.exit(1)
   }
 }
 
 // console.log(input)
-const chars = new InputStream(input);
+const chars = new InputStream(input + "\n");
 const lexer = new LanguageLexer(chars);
 const tokens = new CommonTokenStream(lexer);
 // console.log(tokens)
@@ -61,7 +83,7 @@ parser.buildParseTrees = true;
  * You want to invoke the parser specifying a rule which typically is the first rule. 
  * However you can actually invoke any rule directly.
  */
-const tree = parser.program();
-// console.log(tree)
 
-//ParseTreeWalker.DEFAULT.walk(new LanguageParserListener(), tree);
+const tree = (isPackage) ? parser.packageProgram() : parser.program();
+
+ParseTreeWalker.DEFAULT.walk(new LanguageParserListener(), tree);

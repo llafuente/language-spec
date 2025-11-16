@@ -74,13 +74,13 @@ type tpl_ptrf = tpl<float>
 test "implement mock with template" {
   const tpl_ptri_spy = mock tpl<int>
 
-  #assert typeof(tpl_ptri_spy) == mock_t<tpl<int>>
+  #assert(typeof(tpl_ptri_spy) == mock_t<tpl<int>>)
 }
 
 test "implement mock from type with template aliased" {
   const tpl_ptrf_spy = mock tpl_ptrf
 
-  #assert typeof(tpl_ptrf_spy) == mock_t<tpl<float>>
+  #assert(typeof(tpl_ptrf_spy) == mock_t<tpl<float>>)
 }  
 ```
 
@@ -95,9 +95,9 @@ test "double mock points the same struct" {
   const add_spy2 = mock add 
 
   // TODO ?? @add_spy == @add_spy2
-  #assert add_spy.address == add_spy2.address
-  #assert typeof(add_spy) is ref
-  #assert typeof(add_spy) == ref<mock_t<add>>
+  #assert(add_spy.address == add_spy2.address)
+  #assert(typeof(add_spy) is ref)
+  #assert(typeof(add_spy) == ref<mock_t<add>>)
 }
 ```
 
@@ -123,17 +123,17 @@ test sum {
   var mock_sum = mock sum
 
   mock_sum.call_fake(fake_sum)
-  #assert sum(0, 0) == 10, "mock is working"
-  #assert mock_sum.calls == 1, "mock has been called once"
-  #assert fake_sum_is_called == 1, "fake_sum is called once"
+  #assert(sum(0, 0) == 10, "mock is working")
+  #assert(mock_sum.calls == 1, "mock has been called once")
+  #assert(fake_sum_is_called == 1, "fake_sum is called once")
 
   mock_sum.restore()
-  #assert sum(10, 10) == 20, "original implementation is working"
-  #assert mock_sum.calls == 2, "mock has been called twice"
-  #assert fake_sum_is_called == 1, "fake_sum is called once"
+  #assert(sum(10, 10) == 20, "original implementation is working")
+  #assert(mock_sum.calls == 2, "mock has been called twice")
+  #assert(fake_sum_is_called == 1, "fake_sum is called once")
 
   mock_sum.reset()
-  #assert mock_sum.calls == 0, "mock was reset"
+  #assert(mock_sum.calls == 0, "mock was reset")
 }
 ```
 
@@ -155,7 +155,7 @@ test point {
   var i_add = mock iPoint.add
   var f_add = mock point<float>.add
 
-  #assert i_add.original != f_add.original
+  #assert(i_add.original != f_add.original)
 }
 ```
 
@@ -197,43 +197,43 @@ function add_fake(int a, int b) int {
 test "direct API" {
   mock add spy
   // test initial state
-  #assert spy.called == 0
-  #assert spy.fake == null
-  #assert spy.call_data.length == 0
+  #assert(spy.called == 0)
+  #assert(spy.fake == null)
+  #assert(spy.call_data.length == 0)
 
   // direct call
   add(3, 4)
-  #assert spy.called == 1
-  #assert spy.call_data.length == 1
-  #assert spy.call_data[0].arguments.a == 3
-  #assert spy.call_data[0].arguments.b == 4
-  #assert spy.call_data[0].return == 7
+  #assert(spy.called == 1)
+  #assert(spy.call_data.length == 1)
+  #assert(spy.call_data[0].arguments.a == 3)
+  #assert(spy.call_data[0].arguments.b == 4)
+  #assert(spy.call_data[0].return == 7)
 
   // spy call, same effect
   spy(5, 6)
-  #assert spy.called == 2
-  #assert spy.call_data.length == 2
-  #assert spy.call_data[1].arguments.a == 5
-  #assert spy.call_data[1].arguments.b == 6
-  #assert spy.call_data[1].return == 11
+  #assert(spy.called == 2)
+  #assert(spy.call_data.length == 2)
+  #assert(spy.call_data[1].arguments.a == 5)
+  #assert(spy.call_data[1].arguments.b == 6)
+  #assert(spy.call_data[1].return == 11)
 
   spy.reset()
-  #assert spy.called == 0
-  #assert spy.call_data.length == 0
+  #assert(spy.called == 0)
+  #assert(spy.call_data.length == 0)
 
   spy.call_fake(add_fake)
   add(1, 2)
-  #assert spy.called == 1
-  #assert spy.call_data.length == 1
-  #assert spy.call_data[0].arguments.a == 1
-  #assert spy.call_data[0].arguments.b == 2
-  #assert spy.call_data[0].return == 4
+  #assert(spy.called == 1)
+  #assert(spy.call_data.length == 1)
+  #assert(spy.call_data[0].arguments.a == 1)
+  #assert(spy.call_data[0].arguments.b == 2)
+  #assert(spy.call_data[0].return == 4)
 
   spy.reset()
-  #assert spy.called == 0
-  #assert spy.call_data.length == 0
+  #assert(spy.called == 0)
+  #assert(spy.call_data.length == 0)
   // not affected
-  #assert spy.fake != null
+  #assert(spy.fake != null)
   
 }
 

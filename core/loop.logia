@@ -1,0 +1,154 @@
+package core "0.0.0"
+
+import metaprogramming as meta
+import core.safe_iterator
+
+// UID_label is used by the compiler generate a UNIQUE ID so it knows where to jump when break/continue/reset
+// if the loop has a label, the UID it's the label
+// loop_numeric_until("XXX", "$index", "$value", 10, true, false)
+
+#function loop_where_until(meta.identifier UID_label, meta.identifier indexIdent, meta.identifier valueIdent, meta.expression input, meta.expression where_expr, meta.expression until_expr) meta.statements {
+  return tokenize {
+#UID_label#: {
+
+  #if value implements has_index_iterator {
+        var λ_iterator = index_iterator(#input#)
+
+        var λ_iterator.get_ref_value.return_type #indexIdent#
+        var λ_iterator.get_key.return_type #valueIdent#
+
+  // restart keyword target
+#UID_label#_restart:
+        λ_iterator.reset()
+
+  // continue keyword target
+  #UID_label#_continue:
+
+        if (#until_expr#) {
+          goto #UID_label#_break
+        }
+        
+        // TODO? we need to copy the value, but maybe we mark as readonly/const ?
+        #valueIdent# = #indexIdent# = λ_current
+        
+        // execute next block here 
+        #block#
+
+        // TODO can we change it to: continue ?
+        // inside block continue will be changed, can "outside"
+        if (λ_iterator.is_last) {
+          goto #UID_label#_break
+        }
+        λ_iterator.next()
+        goto #UID_label#_continue
+  } else if value is number {
+        var λ_current
+        var λ_end = input
+        var λ_inc = number >= 0 ? 1 : -1
+
+        var #indexIdent# = 0
+        var #valueIdent# = 0
+
+  // restart keyword target
+#UID_label#_restart:
+        λ_current = 0
+
+  // continue keyword target
+  #UID_label#_continue:
+
+        if (#until_expr#) {
+          goto #UID_label#_break
+        }
+        
+        // TODO? we need to copy the value, but maybe we mark as readonly/const ?
+        #valueIdent# = #indexIdent# = λ_current
+        
+        // execute next block here 
+        #block#
+
+        // TODO can we change it to: continue ?
+        // inside block continue will be changed, can "outside"
+        λ_current += λ_inc
+        if (λ_current == λ_end) {
+          goto #UID_label#_break
+        }
+        goto #UID_label#_continue
+    }
+  }
+// break keyword target
+#UID_label#_break: {}
+  } // tokenize
+}
+
+/*
+
+// helper macro to loop from λ_start to λ_end, one by one
+#macro loop_range(#value iterable, #text value_id = "$index", #text index_id = "$index", #text _where) block {
+  #uid LOOP_UID
+
+  var λ_start
+  var λ_end
+  var λ_inc
+
+// restart statement target
+#LOOP_UID#_loop_restart:
+
+  if typeof(iterable) == range {
+    λ_start = range.λ_start
+    λ_end = range.λ_end
+    λ_inc = range.λ_inc
+  } else if typeof(iterable) == number) {
+    λ_start = 0
+    λ_end = range.λ_end
+    λ_inc = number > 0 ? 1 : -1
+  } else if implements(iterable) == number) {
+  }
+
+
+  // cache input
+  var size #LOOP_UID#_$index = λ_start
+  var size #LOOP_UID#_$max = λ_end
+
+#LOOP_UID#_loop_start:
+  if #LOOP_UID#_$index < #LOOP_UID#_$max {
+    const #index_id# #LOOP_UID#_$index
+
+    if (_where) {
+      #block#
+    }
+
+// continue statement target
+#LOOP_UID#_loop_continue:
+    ++#LOOP_UID#_$index
+
+    goto #LOOP_UID#_loop_start:
+  }
+// break statement target
+#LOOP_UID#_loop_break: {}
+}
+
+// loop macro will generate code based on val type
+#macro loop(#value value, #text index_id = "$index", #text value_name = "$value") block {
+// loop <number> {}
+#if value is number
+  #if #value_name# != "$value"
+    #semantic_error "Invalid loop value, when looping a number there is no value."
+  #fi
+
+  #loop_range(0, value, #index_id#) #block#
+// loop <number>..<number> {}
+#else if value is range
+  #loop_range(value.λ_start, value.λ_end, #index_id#) #block#
+
+// loop arr {} <-- aka iterable
+#else if value implements index_iterator
+  #loop_range(0, value.length, #index_id#) {
+    // copy
+    var #value_name# value[#index_id#]
+    #block#
+  }
+#else
+  #static_assert "Invalid loop expression expected type: array, string, number or range."
+#fi
+}
+*/

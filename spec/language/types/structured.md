@@ -29,7 +29,8 @@ structProperty
   ;
 
 structPropertyDecl
-  : (structPropertyModifiers)* typeDefinition identifierName ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  //: (structPropertyModifiers)* typeDefinition identifierName ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  : (structPropertyModifiers)* typeDefinition identifierName ('=' rhsExpr)?
   // TODO REVIEW aliasing operator?
   | propertyAlias
   | functionDef functionBody
@@ -74,6 +75,7 @@ structInitializer
 
 structProperyInitializerList
   : structProperyInitializer (',' structProperyInitializer)*
+  | endOfStmt+
   ;
 
 structProperyInitializer
@@ -142,9 +144,9 @@ type cVector2 = lean struct {
 }
 
 test "structure memory size" {
-  #assert sizeof(Vector2) != sizeof(cVector2)
-  #assert sizeof(Vector2) + sizeof(f32) == sizeof(Vector3)
-  #assert sizeof(Vector3) + sizeof(f32) == sizeof(Quaternion)
+  #assert(sizeof(Vector2) != sizeof(cVector2))
+  #assert(sizeof(Vector2) + sizeof(f32) == sizeof(Vector3))
+  #assert(sizeof(Vector3) + sizeof(f32) == sizeof(Quaternion))
 }
 ```
 
@@ -185,8 +187,8 @@ type B = struct {
 }
 
 test "memory size" {
-  #assert A.sizeof == B.sizeof == ref.size
-  #assert A.b.sizeof == B.a.sizeof == ref.size
+  #assert(A.sizeof == B.sizeof == ref.size)
+  #assert(A.b.sizeof == B.a.sizeof == ref.size)
 }
 
 ```
@@ -251,15 +253,15 @@ type line = struct {
 }
 
 function main() {
-  #assert point.x.default == 100
-  #assert point.y.default == int.default
+  #assert(point.x.default == 100)
+  #assert(point.y.default == int.default)
 
-  #assert line.start.default == point.default
-  #assert line.end.default == point.default
+  #assert(line.start.default == point.default)
+  #assert(line.end.default == point.default)
 
   var point p = new
-  #assert p.x == 100
-  #assert p.y == int.default
+  #assert(p.x == 100)
+  #assert(p.y == int.default)
 }
 ```
 
@@ -373,7 +375,7 @@ test "check - x" {
   var person bruce = new
   bruce.born = 0
   
-  #assert date.from_unix(bruce.unixtimestamp_born).year == 1970
+  #assert(date.from_unix(bruce.unixtimestamp_born).year == 1970)
 
 /* TODO syntax
   expect({
@@ -536,22 +538,22 @@ function decorated(string s) string {
 }
 
 function main() {
-  #assert decorator_is_called == false
-  #assert decorated_is_called == false
+  #assert(decorator_is_called == false)
+  #assert(decorated_is_called == false)
   var s = decorated(" x ")
-  #assert decorated_is_called == true
-  #assert decorator_is_called == true
+  #assert(decorated_is_called == true)
+  #assert(decorator_is_called == true)
 }
 
 ```
 
 ```language-compiled
 function main() {
-  #assert decorator_is_called == false
-  #assert decorated_is_called == false
+  #assert(decorator_is_called == false)
+  #assert(decorated_is_called == false)
   var s = log(decorated, " x ")
-  #assert decorated_is_called == true
-  #assert decorator_is_called == true
+  #assert(decorated_is_called == true)
+  #assert(decorator_is_called == true)
 }
 ```
 
@@ -593,9 +595,9 @@ function sum(
 }
 
 function main() {
-  #assert sum(i32.max, i32.max) == 164
-  #assert sum(-1, -1) == 0
-  #assert sum(1, 1) == 2
+  #assert(sum(i32.max, i32.max) == 164)
+  #assert(sum(-1, -1) == 0)
+  #assert(sum(1, 1) == 2)
 }
 
 ```
@@ -612,9 +614,9 @@ function sum(
 }
 
 function main() {
-  #assert sum(i32.max, i32.max) == 164
-  #assert sum(-1, -1) == 0
-  #assert sum(1, 1) == 2
+  #assert(sum(i32.max, i32.max) == 164)
+  #assert(sum(-1, -1) == 0)
+  #assert(sum(1, 1) == 2)
 }
 ```
 
@@ -678,9 +680,9 @@ type Person = struct {
 function main() {
   var p = Person()
   p.age = -1
-  #assert p.age == 0
+  #assert(p.age == 0)
   p.age = 101
-  #assert p.age == 99
+  #assert(p.age == 99)
 }
 ```
 
@@ -716,9 +718,9 @@ type Person = struct {
 function main() {
   var p = Person()
   p.age = -1
-  #assert p.age == 0
+  #assert(p.age == 0)
   p.age = 101
-  #assert p.age == 99
+  #assert(p.age == 99)
 }
 ```
 
@@ -798,9 +800,9 @@ function main() {
   var str_json = "{\"x\": 0.0, \"y\": 1.1}"
   var p = fromJson<point>(str_json)
 
-  #assert p.x == 0.0
-  #assert p.y == 1.1
-  #assert p.to_json() == str_json
+  #assert(p.x == 0.0)
+  #assert(p.y == 1.1)
+  #assert(p.to_json() == str_json)
 }
 
 ```
@@ -966,12 +968,12 @@ function main () {
 
   // braced ordered initialization with default values
   var person01 = person { "John", "Doe" }
-  #assert person01.address ==  person.address.default
-  #assert person01.born    ==  person.born.default
+  #assert(person01.address ==  person.address.default)
+  #assert(person01.born    ==  person.born.default)
 
   var person02 = person { "John", "Doe", default, 2011 }
-  #assert person02.address ==  person.address.default
-  #assert person02.born    ==  2011
+  #assert(person02.address ==  person.address.default)
+  #assert(person02.born    ==  2011)
 
   // braced named initialization
   // full
@@ -1147,8 +1149,8 @@ type b = struct extends a { float b; }
 type ab = struct { float b; float a; }
 
 function main() {
-  #assert b.size != ab.size
-  #assert b.size > ab.size
+  #assert(b.size != ab.size)
+  #assert(b.size > ab.size)
 }
 ```
 
@@ -1203,8 +1205,8 @@ type B = struct extends A {
 
 function main () {
   var v = B(101, 100)
-  #assert v.value != 101
-  #assert v.value2 != 100
+  #assert(v.value != 101)
+  #assert(v.value2 != 100)
 
 
   v.print() // call B.print
@@ -1234,21 +1236,21 @@ type end = struct extends middle {
 function main () {
   var ref<end> value = new(1,2,3,4,5,6)
   // first position of the struct is the position of the first field
-  #assert @value == @(value.a)
+  #assert(@value == @(value.a))
   // TODO keep in mind type/allocator ?!
-  #assert @value + 1 == @(value.b)
-  #assert @value + 2 == @(value.c)
-  #assert @value + 3 == @(value.d)
-  #assert @value + 4 == @(value.e)
-  #assert @value + 5 == @(value.f)
+  #assert(@value + 1 == @(value.b))
+  #assert(@value + 2 == @(value.c))
+  #assert(@value + 3 == @(value.d))
+  #assert(@value + 4 == @(value.e))
+  #assert(@value + 5 == @(value.f))
 
   var ref<middle> value2 = cast value
-  #assert @(value2) == @(value2.c)
-  #assert @(value2) + 1 == @(value2.d)
+  #assert(@(value2) == @(value2.c))
+  #assert(@(value2) + 1 == @(value2.d))
 
   var ref<end> value3 = cast value
-  #assert @(value3) == @(value3.e)
-  #assert @(value3) + 1 == @(value3.f)
+  #assert(@(value3) == @(value3.e))
+  #assert(@(value3) + 1 == @(value3.f))
 }
 ```
 
@@ -1279,15 +1281,15 @@ type x2 = struct { // default alignament
 }
 
 function main () {
-  #assert x.sizeof == 1
-  #assert x.a.offset == 0
-  #assert x.b.offset == 1
-  #assert x.c.offset == 2
+  #assert(x.sizeof == 1)
+  #assert(x.a.offset == 0)
+  #assert(x.b.offset == 1)
+  #assert(x.c.offset == 2)
 
-  #assert x2.sizeof == 3
-  #assert x2.a.offset == 0
-  #assert x2.b.offset == 8
-  #assert x2.c.offset == 16
+  #assert(x2.sizeof == 3)
+  #assert(x2.a.offset == 0)
+  #assert(x2.b.offset == 8)
+  #assert(x2.c.offset == 16)
 }
 ```
 
@@ -1307,13 +1309,12 @@ or a semantic-error shall raise
 
 # Properties modifiers
 
-## `hoist`
+<a name="struct-hoist"></a>
+## `hoist` struct field modifier [struct-hoist]
 
 *Semantics*
 
 `hoist` modifier makes a field access name optional.
-
-This ease composition patterns.
 
 *Remarks*: Only exposes struct properties but no methods.
 
@@ -1399,7 +1400,17 @@ function main () {
 }
 ```
 
-## `readonly` field/function modifier
+*Rationale*
+
+This ease composition patterns, abstractation, refactoring.
+
+<!--
+real usage: Place{x, y, ...} into Coordinates{x, y} Place{ hoist Coordiantes coords, ... }
+And now place behave exactly as expected
+-->
+
+<a name="struct-readonly">
+## `readonly` field/function modifier [struct-readonly]
 
 *Semantics*
 
@@ -1481,13 +1492,15 @@ function main () {
   var a = new vetor(0, 1)
   var b = new vetor(1, 0)
 
-  #assert a.distance(b) ~= 1.414213
+  #assert(a.distance(b) ~= 1.414213)
   // equivalen to
-  #assert distance(a, b) ~= 1.414213
+  #assert(distance(a, b) ~= 1.414213)
 }
 ```
 
-## `alias`
+
+<a name="struct-alias"></a>
+## `alias` [struct-alias]
 
 *Semantics*
 
@@ -1514,11 +1527,12 @@ type stack = struct {
 function main () {
   var s = stack()
 
-  #assert @(s.length) == @(s.count)
+  #assert(@(s.length) == @(s.count))
 }
 ```
-<a name="own"></a>
-## `own`
+
+<a name="struct-own"></a>
+## `own` field modifier [struct-own]
 
 *Semantics*
 
@@ -1549,17 +1563,18 @@ function main() {
       address = @iptr
     }
     // same address
-    #assert @(user.value) == address
+    #assert(@(user.value) == address)
     // and same value
-    #assert user.value == 101
+    #assert(user.value == 101)
   }
 
-  #assert heap.allocated == core.heap.allocated
+  #assert(heap.allocated == core.heap.allocated)
 }
 
 ```
 
-## `override` modifier
+<a name="struct-override"></a>
+## `override` function modifier [struct-override]
 
 <!--
   https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/override
@@ -1613,7 +1628,8 @@ type v3 = struct extends v2 {
 }
 ```
 
-## `overwrite`
+<a name="struct-overwrite"></a>
+## `overwrite` function modifier [struct-overwrite]
 
 *Semantics*
 

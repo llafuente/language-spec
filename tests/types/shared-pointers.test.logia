@@ -1,0 +1,70 @@
+type point = struct {
+	float x
+	float y
+}
+
+function strong_clone(shared_ref<$t> p, size scount, size wcount) {
+	#assert(p.count() == (wcount + 1))
+	#assert(s_point.weak_count() == (scount))
+}
+
+function weak_clone(shared_ref<$t> p, size scount, size wcount) {
+	#assert(p.count() == (wcount ))
+	#assert(s_point.weak_count() == (scount + 1))
+}
+
+function main() {
+	var memory_usage = processs.get_memory_usage()
+
+	// var si8 = new shared_ref<i8>(/*shared_ref constructor*/)(/*i8 constructor*/ 10);
+	var si8 = new shared_ref<i8>()(10);
+
+	print(si8) // 10
+
+	// var s_point = new shared_ref<point>(/*shared_ref constructor*/)(/*i8 constructor*/ 10, 11);
+	var s_point = new shared_ref<point>()(10, 11);
+	#assert(s_point.x == 10)
+	#assert(s_point.y == 11)
+
+	s_point.x = 12
+	#assert(s_point.x == 12)
+	#assert(s_point.y == 11)
+
+	#assert(s_point.count() == 1)
+	#assert(s_point.weak_count() == 0)
+
+
+	strong_clone(s_point, s_point.count(), s_point.weak_count())
+	#assert(s_point.count() == 1)
+	#assert(s_point.weak_count() == 0)
+
+	weak_clone(s_point, s_point.count(), s_point.weak_count())
+	#assert(s_point.count() == 1)
+	#assert(s_point.weak_count() == 0)
+
+	var s_point2 = s_point.clone()
+	#assert(s_point.count() == 2)
+	#assert(s_point.weak_count() == 0)
+
+	var w_point = s_point.weak_clone()
+	#assert(s_point.count() == 2)
+	#assert(s_point.weak_count() == 1)
+
+	delete s_point
+	delete s_point2
+
+	#assert(w_point.count() == 0)
+	#assert(w_point.weak_count() == 1)
+	#assert(w_point.valid() == false)
+
+	delete w_point
+
+	#assert(memory_usage == processs.get_memory_usage())
+
+	// new shared_ref<i8>(/*shared_ref constructor*/)(/*i8 constructor*/) at global_allocator;
+	// new shared_ref<i8>(/*shared_ref constructor*/)(/*i8 constructor*/)
+
+	// ptr = global_allocator.alloca(shared_ref<i8>.sizeof)
+	// ptr2 = shared_ref<i8>.new(ptr)
+	// i8.new(ptr2)
+}

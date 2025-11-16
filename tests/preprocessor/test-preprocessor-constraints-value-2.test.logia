@@ -1,0 +1,42 @@
+/**
+START_TEST
+flags:
+
+stdout:
+0
+1
+2
+3
+stderr:
+0
+current value = 0
+1
+current value = 1
+2
+current value = 2
+final value = 2
+stdin:
+
+END_OF_TEST
+*/
+var counter = 0
+
+function add() {
+	return ++counter
+}
+
+#function use_counter(meta.expression xxx) meta.statements {
+	return tokenize {
+		var x = #xxx#
+		print(##xxx#)
+		print("current value =", x)
+	}
+}
+
+function main() {
+	#use_counter(add())
+	#use_counter(add.call())
+	#use_counter(++counter)
+
+	print(`final value = ${counter}`)
+}

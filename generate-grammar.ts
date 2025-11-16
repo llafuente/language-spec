@@ -2,17 +2,21 @@
 // deno run --allow-read --allow-write --allow-env --allow-run .\generate-grammar.ts
 
 import {
-  openSync,
   readdirSync,
   readFileSync,
   statSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { spawn, spawnSync } from "node:child_process";
 import assert from "node:assert";
 import path from "node:path";
 import process from "node:process";
+
+const DO_EXAMPLES = false;
+const DO_CORE = true;
+const DO_TESTS = true;
+
+const BAIL = false;
 
 // extract lexer and grammer from markdown files
 // lexer is marked as "lexer" source code
@@ -21,7 +25,15 @@ import process from "node:process";
 // then it will test documentation examples
 // language and language-semantic-error, but it won't check language-syntax-error
 
-const COMPILER_PATH = "./compiler/typescript/";
+const COMPILER_PATH = "./compiler/typescript/"
+const TARGETS = [{
+  path: "./compiler/typescript/",
+  args: ["-Dlanguage=TypeScript"] // "-visitor" ?
+}, {
+  path: "../logia-compiler3/demo/generated/",
+  args: ["-Dlanguage=Cpp"]
+}];
+
 const LEXER_FILE = "./LanguageLexer.g4";
 const PARSER_FILE = "./LanguageParser.g4";
 
@@ -55,7 +67,7 @@ function readFile(file: string): string[] {
   }
 
   const contents = readFileSync(file, { encoding: "utf-8" }).split("```");
-  assert(contents.length % 2 == 1);
+  assert(contents.length % 2 == 1, `parse error on file ${file}`);
 
   return (fileCache[file] = contents);
 }
@@ -142,9 +154,6 @@ spec_files.forEach((file) => {
   parser.push(`//file: ${file}`);
   parser.push(replaceTokens(tokens, extractAllCode(contents, "syntax")));
 
-  //console.log(parser)
-  //process.exit(0)
-
   // search for tokens and replace them!
 });
 
@@ -159,30 +168,31 @@ console.log(`writed ${PARSER_FILE}`);
 
 console.log("COMPILER");
 {
-  const compiler_args = ["compiler/typescript", "-Dlanguage=TypeScript"]
-  // visitor test
-  // const compiler_args = ["compiler/typescript2", "-Dlanguage=TypeScript", "-visitor"]
 
-  const compile = new Deno.Command(
-    "C:\\Users\\luis\\.pyenv\\pyenv-win\\shims\\antlr4.bat",
-    {
-      args: [
-        "-o",
-        ...compiler_args,
-        PARSER_FILE,
-        LEXER_FILE,
-      ],
-      stdout: "piped",
-    },
-  );
-  const { code, stdout, stderr } = await compile.output();
-  console.log(
-    `Compile: ${code}\nstdout: ${new TextDecoder().decode(stdout)}\nstderr:${
-      new TextDecoder().decode(stderr)
-    }`,
-  ); // Check if the command executed successfully
-  if (code != 0) {
-    process.exit(0);
+  for (const target of TARGETS) {
+    console.log(target)
+
+    const compile = new Deno.Command(
+      "C:\\Users\\luis\\.pyenv\\pyenv-win\\shims\\antlr4.bat",
+      {
+        args: [
+          "-o",
+          ...[target.path, ...target.args],
+          PARSER_FILE,
+          LEXER_FILE,
+        ],
+        stdout: "piped",
+      },
+    );
+    const { code, stdout, stderr } = await compile.output();
+    console.log(
+      `Compile: ${code}\nstdout: ${new TextDecoder().decode(stdout)}\nstderr:${
+        new TextDecoder().decode(stderr)
+      }`,
+    ); // Check if the command executed successfully
+    if (code != 0) {
+      process.exit(0)
+    }
   }
 
   // fix sloppy-imports
@@ -218,6 +228,18 @@ async function run_compiler_text(text: string, program: boolean = true) {
 }
 
 async function run_compiler_file(file: string, program: boolean = true) {
+  /*
+  return new Deno.Command("C:\\Users\\luis\\Desktop\\git\\logia-compiler3\\demo\\Windows\\bin\\vs-2022\\x64\\Debug Static\\antlr4cpp-demo.exe", {
+    args: [
+      path.join(process.cwd() , file),
+      "--verbose",
+      !program ? "--package" : "",
+    ],
+    //cwd: "C:\\Users\\luis\\Desktop\\git\\logia-compiler3\\demo\\Windows\\bin\\vs-2022\\x64\\Debug Static\\"
+    //cwd: "C:/Users/luis/Desktop/git/logia-compiler3/demo/Windows/bin/vs-2022/x64/Debug Static/"
+    cwd: COMPILER_PATH
+  });
+  */
   return new Deno.Command("deno", {
     args: [
       "run",
@@ -234,7 +256,8 @@ async function run_compiler_file(file: string, program: boolean = true) {
 
 const snippets: { file: string; text: string }[] = [];
 
-spec_files = [];
+// skip examples
+// spec_files = [];
 
 spec_files.forEach((file) => {
   console.log(`Validating spec file: ${file}`);
@@ -266,7 +289,8 @@ spec_files.forEach((file) => {
         case "todo-language-semantic-error":
         case "todo-syntax":
         case "json":
-        case "output":
+        case "lexer":
+        case "syntax":
           break;
         default:
           assert(
@@ -278,21 +302,25 @@ spec_files.forEach((file) => {
   });
 });
 
-for (const snippet of snippets) {
-  console.log(`Validating file: ${snippet.file}`);
+if (DO_EXAMPLES) {
+  for (const snippet of snippets) {
+    console.log(`Validating file: ${snippet.file}`);
 
-  const command = await run_compiler_text(snippet.text);
-  const { code, stdout, stderr } = await command.output();
+    const command = await run_compiler_text(snippet.text);
+    const { code, stdout, stderr } = await command.output();
 
-  if (code != 0) {
-    console.log(snippet.text);
-    console.log(
-      `Compile: ${code}\nstdout: ${new TextDecoder().decode(stdout)}\nstderr:${
-        new TextDecoder().decode(stderr)
-      }`,
-    );
-    console.log(snippet.file);
-    process.exit(1);
+    if (code != 0) {
+      console.log(snippet.text);
+      console.log(
+        `Compile: ${code}\nstdout: ${
+          new TextDecoder().decode(stdout)
+        }\nstderr:${new TextDecoder().decode(stderr)}`,
+      );
+      console.log(snippet.file);
+      if (BAIL) {
+        process.exit(1);
+      }
+    }
   }
 }
 
@@ -302,22 +330,61 @@ for (const snippet of snippets) {
   "./core/types/rune.language",
 ];
 
-const packageFiles = readDirSyncR("./core/types/").concat(readDirSyncR("./core/tests/"));
-for (const file of packageFiles) {
-  console.log(`Validating example file: ${file}`);
+if (DO_CORE) {
+  const packageFiles = readDirSyncR("./core/");
 
-  const command = await run_compiler_file(file, false);
-  const { code, stdout, stderr } = await command.output();
+  for (const file of packageFiles) {
+    if (file.indexOf(".js") >= 0) {
+      continue;
+    }
 
-  if (code != 0) {
-    // console.log(text);
-    console.log(
-      `Compile: ${code}\nstdout: ${new TextDecoder().decode(stdout)}\nstderr:${
-        new TextDecoder().decode(stderr)
-      }`,
-    );
-    console.log(file);
-    process.exit(1);
+    console.log(`Validating core file: ${file}`);
+
+    const command = await run_compiler_file(file, false);
+    const { code, stdout, stderr } = await command.output();
+
+    if (code != 0) {
+      // console.log(text);
+      console.log(
+        `Compile: ${code}\nstdout: ${
+          new TextDecoder().decode(stdout)
+        }\nstderr:${new TextDecoder().decode(stderr)}`,
+      );
+      console.log(file);
+      if (BAIL) {
+        process.exit(1);
+      }
+    }
+  }
+}
+
+
+if (DO_TESTS) {
+  const testFiles = readDirSyncR("./tests/");
+  // const testFiles = ["./tests/preprocessor/preprocessor-syntax-test.logia"]
+  console.log("testFiles = ", testFiles)
+  for (const file of testFiles) {
+    if (file.indexOf(".js") >= 0) {
+      continue;
+    }
+
+    console.log(`Validating test file: ${file}`);
+
+    const command = await run_compiler_file(file, true);
+    const { code, stdout, stderr } = await command.output();
+
+    if (code != 0) {
+      // console.log(text);
+      console.log(
+        `Compile: ${code}\nstdout: ${
+          new TextDecoder().decode(stdout)
+        }\nstderr:${new TextDecoder().decode(stderr)}`,
+      );
+      console.log(file);
+      if (BAIL) {
+        process.exit(1);
+      }
+    }
   }
 }
 

@@ -159,54 +159,54 @@ function test_array_decl_initialization() {
   var i8[n] sar3
   var i8[get_user_len()] sar4
 
-  #assert ar.capacity == array.default_capacity
-  #assert ar.len == 0
+  #assert(ar.capacity == array.default_capacity)
+  #assert(ar.len == 0)
 
-  #assert ar3.capacity == 10
-  #assert ar3.len == 0
+  #assert(ar3.capacity == 10)
+  #assert(ar3.len == 0)
 
-  #assert ar4.capacity == 10
-  #assert ar4.len == 9
+  #assert(ar4.capacity == 10)
+  #assert(ar4.len == 9)
 
-  #assert sar1.capacity == 10
-  #assert sar1.len == 0
+  #assert(sar1.capacity == 10)
+  #assert(sar1.len == 0)
 
-  #assert sar2.capacity == 15
-  #assert sar2.len == 3
+  #assert(sar2.capacity == 15)
+  #assert(sar2.len == 3)
 
-  #assert sar3.capacity == n
+  #assert(sar3.capacity == n)
 
   // this value can be tested, but 0 -> thow an exception!
-  #assert sar4.capacity > 0
+  #assert(sar4.capacity > 0)
 }
 
 function test_struct_extends() {
-  #assert thei8struct.get_fields().length == 1
-  #assert thei8struct.len == i8
-  #assert astruct.get_fields().length == 1
-  #assert bstruct.get_fields().length == 1
-  #assert cstruct.get_fields().length == 1
+  #assert(thei8struct.get_fields().length == 1)
+  #assert(thei8struct.len == i8)
+  #assert(astruct.get_fields().length == 1)
+  #assert(bstruct.get_fields().length == 1)
+  #assert(cstruct.get_fields().length == 1)
 
-  #assert abstruct.get_fields().length == 2
-  #assert abcstruct.get_fields().length == 3
+  #assert(abstruct.get_fields().length == 2)
+  #assert(abcstruct.get_fields().length == 3)
 
   // runtime
   var abstruct ab_s(1, 2)
   var abcstruct abc_s(1, 2, 3)
 
-  #assert ab_s instanceof abstruct
-  #assert ab_s instanceof astruct
-  #assert ab_s instanceof bstruct
-  #assert ab_s.a == 1
-  #assert ab_s.b == 2
+  #assert(ab_s instanceof abstruct)
+  #assert(ab_s instanceof astruct)
+  #assert(ab_s instanceof bstruct)
+  #assert(ab_s.a == 1)
+  #assert(ab_s.b == 2)
 
-  #assert abc_s instanceof abcstruct
-  #assert abc_s instanceof astruct
-  #assert abc_s instanceof bstruct
-  #assert abc_s instanceof cstruct
-  #assert abc_s.a == 1
-  #assert abc_s.b == 2
-  #assert abc_s.c == 3
+  #assert(abc_s instanceof abcstruct)
+  #assert(abc_s instanceof astruct)
+  #assert(abc_s instanceof bstruct)
+  #assert(abc_s instanceof cstruct)
+  #assert(abc_s.a == 1)
+  #assert(abc_s.b == 2)
+  #assert(abc_s.c == 3)
 }
 
 function main() {

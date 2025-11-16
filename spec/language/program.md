@@ -15,6 +15,7 @@ programStmsList
 programStms
   : comments endOfStmt
   | preprocessorDecl endOfStmt
+  | preprocessorStmts endOfStmt
   | functionDecl endOfStmt
   | operatorFunctionDecl endOfStmt
   // program exclusive!
@@ -30,7 +31,9 @@ comments
   | BLOCK_COMMENT
   ;
 
-endOfStmt: (comments? (NEWLINE_TK | SEMICOLON_TK))+;
+endOfStmt: (comments? (NEWLINE_WIN_TK | NEWLINE_LINUX_TK | SEMICOLON_TK))+;
+
+ws: (comments | NEWLINE_WIN_TK | NEWLINE_LINUX_TK)+;
 
 ```
 

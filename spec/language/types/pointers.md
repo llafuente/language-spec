@@ -144,11 +144,11 @@ type ref<$t> = struct {
     libc.free(pointer);
   }
 
-  operator . () $type {
+  operator . () $t {
     return __ptr_deref(pointer);
   }
 
-  operator = (ref<$type> p) {
+  operator = (ref<$t> p) {
     if (p == nullptr) {
       throws
     }
@@ -185,7 +185,7 @@ type ref_point = ref<point>
 
 test "pointer sizes" {
   var ref_point pp = new(0,0)
-  #assert ref_point.sizeof == ptr.sizeof
+  #assert(ref_point.sizeof == ptr.sizeof)
 }
 
 ```
@@ -229,10 +229,10 @@ test "load keys" {
     var instance3 = fcache.read()
 
     // !. will access self properties!
-    #assert instance1!.count == 3
-    #assert instance2!.count == 3
-    #assert instance3!.count == 3
-    #assert instance1!.pointer == instance2!.pointer == instance3!.pointer
+    #assert(instance1!.count == 3)
+    #assert(instance2!.count == 3)
+    #assert(instance3!.count == 3)
+    #assert(instance1!.pointer == instance2!.pointer == instance3!.pointer)
 }
 ```
 # pointers arithmetic
@@ -246,25 +246,25 @@ Valid operators: `++ += +`
 test "incrementing a pointer" {
   // creates a vector of 10 i8 elements.
   var b1 = new i8[10];
-  #assert address(b1) + 1 == address(b1 + 1)
+  #assert(address(b1) + 1 == address(b1 + 1))
 
   var b2 = cast<i16[5]>(b)
   var b2_p1 = b2
   var b2_inc = b2
   var b2_ret = b2
-  #assert address(b2) + 2 == address(b2 + 1)
+  #assert(address(b2) + 2 == address(b2 + 1))
 
   b2_p1 += 1
-  #assert address(b2_p1) == address(b2 + 1)
+  #assert(address(b2_p1) == address(b2 + 1))
 
   b2_ret = b2_inc++
-  #assert address(b2_ret) == address(b2)
-  #assert address(b2_inc) == address(b2 + 1)
+  #assert(address(b2_ret) == address(b2))
+  #assert(address(b2_inc) == address(b2 + 1))
   
   b2_inc = b2
   b2_ret = ++b2_inc
-  #assert address(b2_ret) == address(b2 + 1)
-  #assert address(b2_inc) == address(b2 + 1)
+  #assert(address(b2_ret) == address(b2 + 1))
+  #assert(address(b2_inc) == address(b2 + 1))
 }
 ```
 ## Decrementing a pointer

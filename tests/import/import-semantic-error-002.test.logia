@@ -1,0 +1,11 @@
+/*TEST
+{
+    "cmd": "-run",
+    "stdout": "",
+    "stderr: "Cannot find module 'corex'."
+}
+*/
+import corex
+
+function main() {
+}

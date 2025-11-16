@@ -1,0 +1,5 @@
+import core
+import core.types
+import core.types.i8
+import core.types.i16 as num
+import array

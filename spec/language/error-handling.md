@@ -285,10 +285,10 @@ function string_throws() string {
 
 function main() {
 	var tmp = try i64_throws()
-	#assert tmp == i64.default
+	#assert(tmp == i64.default)
 
 	var tmp2 = try string_throws()
-	#assert tmp2 == string.default
+	#assert(tmp2 == string.default)
 }
 ```
 
@@ -301,14 +301,14 @@ function main() {
 		++steps
 		throw "error"
 	} catch {
-		#assert steps == 1
+		#assert(steps == 1)
 		++steps
-		#assert $exception == "error"
+		#assert($exception == "error")
 	} finally {
-		#assert steps == 2
+		#assert(steps == 2)
 		++steps
 	}
-	#assert steps == 3
+	#assert(steps == 3)
 }
 ```
 
@@ -355,15 +355,15 @@ function main() {
   try step1()
 
   var s2 = try step2()
-  #assert s2 == step2.return_type.default
+  #assert(s2 == step2.return_type.default)
 
   var s3 = try step3()
-  #assert s3 == step3.return_type.default
+  #assert(s3 == step3.return_type.default)
 
   if (try step4(true)) {
 	#unreachable "step4 should fail and return false"
   } else {
-	#assert true, "step4 failed and return false"
+	#assert(true, "step4 failed and return false")
   }
 
   if (try step4(false)) {
@@ -439,8 +439,8 @@ Can be use alone or as part of try/catch/finally.
 ```language-semantic-error
 function main() {
   var x = catch something_that_throws() {
-    #assert x == 0 // x is undefined
-	#assert $exception == 0 // x is undefined
+    #assert(x == 0) // x is undefined
+	#assert($exception == 0) // x is undefined
   }
 }
 ```

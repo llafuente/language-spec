@@ -16,10 +16,6 @@ type i8 = struct {
 
 // preunary_operator_to_function
 
-operator+ (i8 a) i8 {
-    return logia_operator_sign(a)
-}
-
 inline operator + (i8 a) i8 {
     return logia_operator_sign(a)
 }

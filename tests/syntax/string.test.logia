@@ -1,0 +1,30 @@
+var x = "a"
+var x = "abc"
+var x = "abc\n"
+var x = "abc\"'"
+var x = "${xxx}"
+var x = "\r\n"
+var x = "multi
+line!"
+
+var x = "more
+multi
+line!"
+
+var x = "more
+multi escape: \r\n\"'
+line!"
+
+var x = ("more
+multi escape: \r\n\"'
+line!")
+
+var x = ("more
+multi escape: \r\n\"'
+line!" + "pepe")
+
+var x = (true ? "more
+multi escape: \r\n\"'
+line!" : "pepe")
+
+// TODO backtip

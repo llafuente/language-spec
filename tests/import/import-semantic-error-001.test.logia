@@ -1,0 +1,12 @@
+/*TEST
+{
+    "cmd": "-run",
+    "stdout": "",
+    "stderr: "invalid arguments 'core' is not a value it's a namespace"
+}
+*/
+import core
+
+function main() {
+    print(core)
+}

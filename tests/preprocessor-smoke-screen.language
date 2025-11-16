@@ -1,2 +1,26 @@
-#define xxx 1.0
-#define xxx 1./* :D
+#set xxx = 1.0
+#set xxx = PI
+
+#function a() meta.expression {
+
+}
+
+#function b(meta.tokens c) meta.expression {
+    
+}
+
+#function c(meta.tokens d, meta.tokens e) meta.expression {
+    
+}
+
+#function c(meta.tokens d, meta.tokens e) meta.expression {
+    return tokenize {
+        #file#
+    }   
+}
+
+#function c(meta.tokens d, meta.tokens e) meta.expression {
+    return tokenize {
+        #file()#
+    }   
+}

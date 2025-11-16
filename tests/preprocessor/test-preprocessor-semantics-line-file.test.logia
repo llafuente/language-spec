@@ -8,4 +8,6 @@ stdin:
 
 END_OF_TEST
 */
-print(#line#, #file#)
+function main() {
+    print(#line#, #file#)
+}

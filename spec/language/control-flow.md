@@ -162,14 +162,14 @@ function main() {
   var p3 = new point(12, 12)
   switch(10) {
     case p2,p,p3: {
-      #assert called == 2
+      #assert(called == 2)
       break
     }
     default: {
-      #assert false
+      #assert(false)
     }
   }
-  #assert true
+  #assert(true)
 }
 ```
 
@@ -194,18 +194,18 @@ function add_one() {
 
 function main() {
   var defaultCase = false
-  #assert v == 0
+  #assert(v == 0)
   switch(add_one()) {
     case 0:
     case 2:
     case 3, 4, 5:
-      #assert false
+      #assert(false)
     default:
       defaultCase = true
   }
 
-  #assert v == 1
-  #assert defaultCase
+  #assert(v == 1)
+  #assert(defaultCase)
 }
 ```
 
@@ -236,7 +236,7 @@ function main() {
       throw "default case shall not be reached"
   }
 
-  #assert p == p2
+  #assert(p == p2)
 }
 
 ```
@@ -351,8 +351,8 @@ function main() {
   var b = 1;
 
   JUMP: {
-    #assert a == 1
-    #assert b == 0
+    #assert(a == 1)
+    #assert(b == 0)
   }
 }
 ```
@@ -365,7 +365,7 @@ function main() {
 
   loop 10 {
     JUMP: {
-      #assert $index >= 0
+      #assert($index >= 0)
     }
   }
 }
@@ -403,7 +403,7 @@ Here is a few examples of what you can achieve.
     loop iterable {
       chk.push($value)
     }
-    #assert chk == [1,2,3,4,5]
+    #assert(chk == [1,2,3,4,5])
   }
   ```
 
@@ -416,7 +416,7 @@ Here is a few examples of what you can achieve.
     loop iterable.safe_iterator(2,3) {
       chk.push($value)
     }
-    #assert chk == [3, 4, 5]
+    #assert(chk == [3, 4, 5])
   }
   ```
 
@@ -428,7 +428,7 @@ Here is a few examples of what you can achieve.
     loop iterable until $value == 4 {
       chk.push($value)
     }
-    #assert chk == [1,2,3]
+    #assert(chk == [1,2,3])
   }
   ```
 
@@ -440,7 +440,7 @@ Here is a few examples of what you can achieve.
     loop iterable while $value < 5 {
       chk.push($value)
     }
-    #assert chk == [1,2,3,4]
+    #assert(chk == [1,2,3,4])
   }
   ```
 
@@ -453,7 +453,7 @@ Here is a few examples of what you can achieve.
     loop iterable where $value % 2 == 0 {
       chk.push($value)
     }
-    #assert chk == [2,4]
+    #assert(chk == [2,4])
   }
   ```
 
@@ -468,9 +468,9 @@ function main() {
   loop arr.iterator(3, 2)  {
     check.push($value);
   }
-  #assert check == [3,4,5]
-  #assert typeof(arr) == array<i64>
-  #assert typeof(check) == array<i64>
+  #assert(check == [3,4,5])
+  #assert(typeof(arr) == array<i64>)
+  #assert(typeof(check) == array<i64>)
 }
 ```
 
@@ -500,7 +500,7 @@ function main() {
     i = 20 // regardless i being modified inside the loop
     arr.push(i)
   }
-  #assert arr == [0,1,2,3,4,5,6,7,8,9]
+  #assert(arr == [0,1,2,3,4,5,6,7,8,9])
 }
 ```
 
@@ -519,8 +519,8 @@ function main() {
     indexes.push($index)
     values.push($value)
   }
-  #assert indexes == [0,1,2,3,4,5,6,7,8,9]
-  #assert values == [0,1,2,3,4,5,6,7,8,9]
+  #assert(indexes == [0,1,2,3,4,5,6,7,8,9])
+  #assert(values == [0,1,2,3,4,5,6,7,8,9])
 
   indexes = []
   values = []
@@ -529,8 +529,8 @@ function main() {
     values.push(value)
   }
 
-  #assert indexes == [0,1,2,3,4,5,6,7,8,9]
-  #assert values == [0,1,2,3,4,5,6,7,8,9]
+  #assert(indexes == [0,1,2,3,4,5,6,7,8,9])
+  #assert(values == [0,1,2,3,4,5,6,7,8,9])
 
   indexes = []
   values = []
@@ -539,8 +539,8 @@ function main() {
     values.push(value)
   }
 
-  #assert indexes == [0,1,2,3,4,5,6,7,8,9]
-  #assert values == [0,1,2,3,4,5,6,7,8,9]
+  #assert(indexes == [0,1,2,3,4,5,6,7,8,9])
+  #assert(values == [0,1,2,3,4,5,6,7,8,9])
 }
 ```
 
@@ -558,8 +558,8 @@ function main() {
     indexes.push($index)
     values.push($value)
   }
-  #assert indexes == [5,6,7,8,9]
-  #assert values == [5,6,7,8,9]
+  #assert(indexes == [5,6,7,8,9])
+  #assert(values == [5,6,7,8,9])
 }
 ```
 
@@ -579,8 +579,8 @@ function main() {
     indexes.push($index)
     values.push($value)
   }
-  #assert indexes == [5,6,7]
-  #assert values == [5,6,7]
+  #assert(indexes == [5,6,7])
+  #assert(values == [5,6,7])
 }
 ```
 
@@ -599,8 +599,8 @@ function main() {
     i = 10
     iterations.push($index)
   }
-  #assert i == 10
-  #assert iterations == [0, 1, 2, 3, 4]
+  #assert(i == 10)
+  #assert(iterations == [0, 1, 2, 3, 4])
 }
 ```
 
@@ -640,14 +640,14 @@ function main() {
   loop 10 {
     values.push($index)
   }
-  #assert values == [0,1,2,3,4,5,6,7,8,9]
+  #assert(values == [0,1,2,3,4,5,6,7,8,9])
 
   // Using negative *number*.
   var values = []
   loop -10 {
     values.push($index)
   }
-  #assert values == [0,-1,-2,-3,-4,-5,-6,-7,-8,-9]
+  #assert(values == [0,-1,-2,-3,-4,-5,-6,-7,-8,-9])
 }
 ```
 
@@ -663,8 +663,8 @@ function main() {
     ++i
     arr.push($index)
   }
-  #assert arr == [1, 2, 3, 4, 5, 6, 7, 8, 9]
-  #assert i == 19
+  #assert(arr == [1, 2, 3, 4, 5, 6, 7, 8, 9])
+  #assert(i == 19)
 }
 ```
 
@@ -680,8 +680,8 @@ function main() {
       src.pop()
   }
 
-  #assert src.length == 0
-  #assert dst == [1, 2, 3, 4, 5]
+  #assert(src.length == 0)
+  #assert(dst == [1, 2, 3, 4, 5])
 
   loop v in dst {
       src.push(v)
@@ -689,11 +689,11 @@ function main() {
       dst[$index] = 1
   }
 
-  #assert src.length == 5
-  #assert src == [1, 2, 3, 4, 5]
+  #assert(src.length == 5)
+  #assert(src == [1, 2, 3, 4, 5])
 
-  #assert dst.length == 10
-  #assert dst == [1, 1, 1, 1, 1, 99, 99, 99, 99, 99]
+  #assert(dst.length == 10)
+  #assert(dst == [1, 1, 1, 1, 1, 99, 99, 99, 99, 99])
 }
 ```
 
@@ -810,7 +810,7 @@ function main() {
   loop arr {
     arr.push($value)
   }
-  #assert arr == [1,2,3,4,5,1,2,3,4,5]
+  #assert(arr == [1,2,3,4,5,1,2,3,4,5])
 
   // but foreach will "infinite loop"
   var arr2 = [0]
@@ -821,7 +821,7 @@ function main() {
       break
     }
   }
-  #assert arr2 == [0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+  #assert(arr2 == [0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
 }
 ```
 
@@ -880,7 +880,7 @@ function main() {
     list[k].x = 100
   }
 
-  #assert list[0].x == 100 // 100, because we access directly the array memory
+  #assert(list[0].x == 100) // 100, because we access directly the array memory
 
   // foreach by reference
 
@@ -890,16 +890,16 @@ function main() {
     v.x = 100
   }
 
-  #assert list[0].x == 100 // 100, because we copied the pointer but modify the target memory
+  #assert(list[0].x == 100) // 100, because we copied the pointer but modify the target memory
 
   foreach k,v in list {
     list.clear_pop()
-    #assert v.x == 0 // v is "safe" but logically, shouldn't be used as the array is empty
+    #assert(v.x == 0) // v is "safe" but logically, shouldn't be used as the array is empty
     // list[k] will give a runtime error because it's empty.
   }
 
-  #assert list.length == 0
-  #assert list.capacity == 10
+  #assert(list.length == 0)
+  #assert(list.capacity == 10)
 }
 ```
 
@@ -978,10 +978,10 @@ function continue_with_number_test() {
 
   // now the top side is 0, and bottom side is 1
   loop 5 {
-    #assert arr[$index] == [0,0,0,0,0,0,0,0,0,0]
+    #assert(arr[$index] == [0,0,0,0,0,0,0,0,0,0])
   }
   loop 5 {
-    #assert arr[5 + $index] == [1,1,1,1,1,1,1,1,1,1]
+    #assert(arr[5 + $index] == [1,1,1,1,1,1,1,1,1,1])
   }
 }
 
@@ -1000,10 +1000,10 @@ function continue_with_label() {
 
   // now the top side is 0, and bottom side is 1
   loop 5 {
-    #assert arr[$index] == [0,0,0,0,0,0,0,0,0,0]
+    #assert(arr[$index] == [0,0,0,0,0,0,0,0,0,0])
   }
   loop 5 {
-    #assert arr[5 + $index] == [1,1,1,1,1,1,1,1,1,1]
+    #assert(arr[5 + $index] == [1,1,1,1,1,1,1,1,1,1])
   }
 }
 

@@ -1,0 +1,13 @@
+package core.streams "0.0.0"
+
+type read_stream = struct {
+    new (file_descriptor f) {
+        
+    }
+}
+
+type write_stream = struct {
+    new(file_descriptor f) {
+
+    }
+}

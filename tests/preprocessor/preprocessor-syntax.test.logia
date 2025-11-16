@@ -1,0 +1,58 @@
+import metaprogramming as meta
+
+#function a() meta.tokens {
+
+}
+
+#function b(meta.string c) meta.tokens {
+
+}
+
+
+#function c(meta.bool d) meta.tokens {
+    #if (d) {
+        return []
+    }
+    return []
+}
+
+#function d(meta.bool d) meta.tokens {
+    return tokenize {
+        1 + 1
+    }
+}
+
+#function e(meta.bool d) meta.tokens {
+    return tokenize {
+        for while true
+    }
+}
+
+
+test "syntax" {
+    #callme()
+    #callme(1)
+    #callme(1+1)
+    #callme((1,1))
+    #callme("maybe")
+
+    var x = tokenize {
+    }
+    var x = tokenize {
+        1
+    }
+
+    var x = tokenize {
+        1+1
+    }
+
+    var x = tokenize {
+        "maybe!"
+    }
+
+    var x = tokenize {
+        if (how knows) {
+            what pepe means!
+        }
+    }
+}

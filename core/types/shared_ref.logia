@@ -7,48 +7,41 @@
 package core.types.shared_ref "0.0.0"
 
 import core.types.ref
-
+import core.allocator
 
 // single allocation data
 type _smart_pointer_data<$t> = struct {
-	$t data
-	allocator.dealloca _dealloca
+	$t data = $t.default
+	allocator.dealloca dealloca = null
 	size strong_count = 1
 	size weak_count = 0
-
-	delete() {
-		_dealloca(this)
-	}
 }
 
 
 // noone owns this memory, exclusively
-type data_type = _smart_pointer_data<$t>
-type data_ref_type = ref<data_type>
 
 type _shared_ref_common<$t> = struct {
-
-	data_ref_type pointer
+	ref<_smart_pointer_data<$t>> spointer
 
 	/*
 	Points the same data ?
 	*/
 	operator == (ref<weak_ref<$t>> other) bool {
-		return @pointer.data == @other.data
+		return @this!.sptr.data == @other.data
 	}
 	/*
 	Points the same data ?
 	*/
 	operator == (ref<shared_ref<$t>> other) bool {
-		return @pointer.data == @other.data
+		return @this!.sptr.data == @other.data
 	}
 
 	function count() size {
-		return pointer.strong_count
+		return this!.sptr.strong_count
 	}
 
 	function weak_count() size {
-		return pointer.weak_count
+		return this!.sptr.weak_count
 	}
 }
 
@@ -60,19 +53,22 @@ Memory won't be freed until all strong and weak references are deleted.
 Memory is valid while strong references exists.
 */
 type shared_ref<$t> = struct extends _shared_ref_common<$t> {
-	/*
-	Default constructor
-	*/
-	new() { // uninitialized ref<$t>
-		pointer = default_allocator.alloca(data_type.size)
+	// default, empty constructor
+	new() {
+		return this.new($t.default)
+	}
+	// Copy constructor
+	new($t t) {
+		this!.sptr = new()
+		// TODO ??
 		pointer._dealloca = default_allocator.dealloca
-		return @pointer.data
+		return this!.sptr.data
 	}
 
 	delete() {
-		--pointer.strong_count
-		if (pointer.weak_count == 0 && pointer.strong_count == 0) {
-			delete pointer
+		--this!.sptr.strong_count
+		if (this!.sptr!.weak_count == 0 && this!.sptr!.strong_count == 0) {
+			delete this!.sptr
 		}
 	}
 
@@ -185,9 +181,13 @@ type weak_ref<$t> = struct extends _shared_ref_common<$t, None> {
 }
 
 test shared_ref {
-	#assert shared_ref<i64>.size == ref.size
-	#assert shared_ref<i32>.size == ref.size
+	#assert(shared_ref<i64>.size == ref.size)
+	#assert(shared_ref<i32>.size == ref.size)
 
-	#assert _smart_pointer_data<i32>.size == size.size + i32.size
-	#assert _smart_pointer_data<i64>.size == size.size + i64.size
+	#assert(_smart_pointer_data<i32>.size == size.size + i32.size)
+	#assert(_smart_pointer_data<i64>.size == size.size + i64.size)
+
+	var x = shared_ref<i64>(101)
+	#assert(x == 101)
+	
 }

@@ -1,3 +1,8 @@
+/**TEST
+{
+	"flags": ["--syntax"]
+}
+*/
 //
 // type declaration
 //
@@ -290,3 +295,26 @@ type masky = mask {
 }
 
 
+function main() {
+	
+	var i8 x = new
+	var x = new point
+	var x = new ref<i8>
+	var x = new ref<i8>()
+	var x = new ref<i8>()(10)
+
+
+	// type member access
+	var a.b x
+	var a.b<c> x
+	var a.b<c>.d x
+
+	var x = new a.b.c<d>[]
+  	var x = new a.b.c.d<e>[10]
+  	var x = new a.b.c.d<e>[f]
+  	var x = a.b.c.d<e, f>[g()]
+
+	// parse but makes no sense
+	var a.b.c.d<e, f>[g()] x = 0
+
+}

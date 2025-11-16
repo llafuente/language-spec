@@ -1,0 +1,12 @@
+/*TEST
+{
+    "cmd": "-run",
+    "stdout": "",
+    "stderr: "Duplicate identifier 'core'."
+}
+*/
+import core
+
+function main() {
+    var core = 1
+}

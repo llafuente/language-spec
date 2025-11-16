@@ -1,0 +1,25 @@
+import core
+
+function sum(i8 a, i8 b) i8 {
+    return a + b
+}
+
+function sum2(sum.parameters.a a, sum.parameters.b b) sum.return_type {
+    return a + b
+}
+
+test "sum rtti at compile time!" {
+    #assert(sum is function)
+    #assert(sum.parameters.length == 2)
+    #assert(sum.parameters[1] == i8)
+    #assert(sum.parameters[1] is i8)
+    #assert(sum.parameters[1].name == "b")
+    #assert(sum.parameters[2] is i8)
+    #assert(sum.parameters[2].name == "b")
+
+    #assert(sum.return_type == i8)
+
+    // and everything can be use to chain types
+    var sum.parameters[1] first = 101
+    #assert(first == i8)
+}

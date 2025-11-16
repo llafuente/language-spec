@@ -4,13 +4,18 @@ import core.types.ref
 
 // unbound memory access
 type vector<$t> = struct {
-  ref<$t> ptr
   size capacity
   alias len capacity
+  ref<$t> ptr
+
+  new(size capacity) {
+    this!.ptr = default_allocator_calloca(capacity * $t.sizeof)
+    this!.capacity = capacity    
+  }
 
   clone() {
     // allocate
-    var t = new vector(this.capacity)
+    var t = new vector(this!.capacity)
     // copy
     for (var i = 0; i < capacity; ++i) {
       t!.ptr[i] = this!.ptr[i]
@@ -20,25 +25,25 @@ type vector<$t> = struct {
   }
   // direct access to the type
   operator.() $t {
-    return unsafe_cast<$t>(intrinsics_pointer_deref(this.ptr))
+    return unsafe_cast<$t>(intrinsics_pointer_deref(this!.ptr))
   }
 
   operator=(vector<$t> other) vector<$t> {
-    this.free()
-    this.ptr = other.ptr
+    this.grow(other!.capacity)
+    this!.ptr = other.ptr
 
     return this
   }
 
   operator[](size i) ref<$t> {
-    return cast<ref<$t>>(this.ptr + i * $t.sizeof)
+    return cast<ref<$t>>(this!.ptr + i * $t.sizeof)
   }
 
   operator+(size i) ref<$t> {
-    return cast<ref<$t>>(this.ptr + i * $t.sizeof)
+    return cast<ref<$t>>(this!.ptr + i * $t.sizeof)
   }
   
   operator-(size i) ref<$t> {
-    return cast<ref<$t>>(this.ptr + i * $t.sizeof)
+    return cast<ref<$t>>(this!.ptr + i * $t.sizeof)
   }
 }

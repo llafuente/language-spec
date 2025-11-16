@@ -1,4 +1,4 @@
-struct point {
+type point = struct {
 	float x
 	float y
 
@@ -8,7 +8,7 @@ struct point {
 	}
 }
 
-struct agg_point {
+type agg_point = struct {
 	point start
 
 	new (float x, float y) {

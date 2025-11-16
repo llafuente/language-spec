@@ -1,0 +1,14 @@
+/*TEST
+{
+    "cmd": "-run",
+    "stdout": "an integer of type = i8 and value = 1",
+    "stderr: ""
+}
+*/
+// core it's imported into current space
+import core as core
+
+function main() {
+    var core.i8 an_integer = 1
+    print(`an integer of type = {$.type} and value = {an_integer}`)
+}

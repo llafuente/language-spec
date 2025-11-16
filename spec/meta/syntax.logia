@@ -1,0 +1,10 @@
+#function empty() {
+}
+#function one(#expression expr) {
+}
+#function two(#value expr) {
+}
+#function three(#text expr) {
+}
+#function three(#string expr) {
+}

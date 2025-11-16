@@ -20,9 +20,9 @@ END_OF_TEST
 */
 // https://learn.microsoft.com/en-us/dotnet/csharp/misc/cs0101
 
-struct point {
+type point = struct {
 	float x
 }
-struct point {
+type point = struct {
 	float y
 }

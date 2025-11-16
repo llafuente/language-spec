@@ -59,6 +59,8 @@ primitive
 
 typeModifiers
   : 'readonly'
+  | 'lend'
+  | 'own'
   | 'uninitialized'
   ;
 
@@ -76,6 +78,7 @@ templateId
 
 templateArgument
   : typeDefinition
+  | dollarIdentifier
   ;
 
 // TODO semantic error if a tempalte is inside a template...
@@ -95,18 +98,28 @@ templateImplements
   : 'implements' (identifier | templateTypeDef)
   ;
 
-// REVIEW typeDefinitionList ?
-typeDefinition
-  : primitive
-  | stringLiteral
-  // a.b
-  // a.b<c>
-  // a.b.c<d>[]
-  // a.b.c.d<e>[10]
-  // a.b.c.d<e>[f]
-  // a.b.c.d<e, f>[g()]
-  | type ('.' identifier)* templateId? ('[' argumentExprList? ']')? '?'?
+typeDefinitionList
+  : typeDefinition (',' typeDefinition)*
   ;
+
+typeDefinition
+  : typeModifiers* typeLocator ('?')?
+  ;
+
+typeLocator
+  // | type ('.' (identifier | 'type'))* templateId? ('[' argumentExprList? ']')? '?'?
+  : typeLocator (
+    '.' (typeLocator | 'type')
+    | templateId
+    | '[' argumentExprList? ']'
+  )
+  | primitive
+  | stringLiteral
+  | type
+  | identifier
+  | dollarIdentifier
+  ;
+
 
 templateTypeDef
   : type templateId
@@ -359,21 +372,21 @@ function print_type<$t>($t input) {
 function main() {
   var i8 a = 0
 
-  #assert typeof(a) == i8
-  #assert typeof(i8) == i8
+  #assert(typeof(a) == i8)
+  #assert(typeof(i8) == i8)
 
   var point p()
-  #assert typeof(p) == point
-  #assert typeof(point) == point
+  #assert(typeof(p) == point)
+  #assert(typeof(point) == point)
 
   var p2 = new point()
-  #assert typeof(p2) == ref<point>
+  #assert(typeof(p2) == ref<point>)
 
 
   print_type(a) // i8
 
-  #assert typeof(i8).max == i8.max
-  #assert typeof(typeof(i8)).max == i8.max
+  #assert(typeof(i8).max == i8.max)
+  #assert(typeof(typeof(i8)).max == i8.max)
 
 }
 
@@ -407,21 +420,21 @@ type b = struct extends a {
 
 function main() {
   var i8 i = 0
-  #assert i is i8
+  #assert(i is i8)
 
   // you can use typed directly
-  #assert a is a
-  #assert b is b
-  #assert !(a is b)
-  #assert !(b is a)
+  #assert(a is a)
+  #assert(b is b)
+  #assert(!(a is b))
+  #assert(!(b is a))
 
   var a a_instance()
-  #assert a_instance is a
-  #assert !(a_instance is b)
+  #assert(a_instance is a)
+  #assert(!(a_instance is b))
 
   var b b_instance()
-  #assert !(b_instance is a)
-  #assert b_instance is b
+  #assert(!(b_instance is a))
+  #assert(b_instance is b)
 }
 ```
 
@@ -460,19 +473,19 @@ type b = struct extends a {
 
 function main() {
   var i8 i = 0
-  #assert i instanceof i8
+  #assert(i instanceof i8)
 
   // you can use typed directly
-  #assert a instanceof a
-  #assert a instanceof b
+  #assert(a instanceof a)
+  #assert(a instanceof b)
 
   var a a_instance()
-  #assert a_instance instanceof a
-  #assert !(a_instance instanceof b)
+  #assert(a_instance instanceof a)
+  #assert(!(a_instance instanceof b))
 
   var b b_instance()
-  #assert b_instance instanceof a
-  #assert b_instance instanceof b
+  #assert(b_instance instanceof a)
+  #assert(b_instance instanceof b)
 }
 ```
 
@@ -494,7 +507,7 @@ type hasLengthProperty = interface {
 }
 
 function main() {
-  #assert array implements hasLengthProperty
+  #assert(array implements hasLengthProperty)
 }
 ```
 

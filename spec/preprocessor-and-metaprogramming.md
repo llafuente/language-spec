@@ -4,9 +4,7 @@
 -->
 # Preprocessor and Metaprogramming
 
-Preprocessor and metaprograming both share the same purpose, to generate code,
-but at different compilation stage.
-Both have the same syntax and should be understood as a whole.
+Metaprogramming is the way to generate code inside your code.
 
 <!--
   https://gcc.gnu.org/onlinedocs/cpp/Macros.html
@@ -18,11 +16,10 @@ Both have the same syntax and should be understood as a whole.
   https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
 
   https://docs.julialang.org/en/v1/devdocs/reflection/
+
+  https://doc.rust-lang.org/reference/macros-by-example.html
+
 -->
-
-Implementation notes.
-
-* Max recursion for any macro declaration is 5.
 
 *syntax*
 
@@ -36,37 +33,67 @@ preprocessorProgramStmt
   | endOfStmt
   ;
 
+preprocessorExpr
+  : preprocessorStr
+  | preprocessorEcho
+  | preprocessorCallExpr
+  // PROPOSSAL: | preprocessorRepeatExpr
+  ;
+
 preprocessorStr
   : '##' identifier '#' // TODO why can't we use identifierUp here ?
   ;
 
 preprocessorEcho
-  : '#' identifierUp '#'
+  : '#' (identifier | 'function') '#'
   ;
 
-preprocessorExpr
-  : preprocessorStr
-  | preprocessorEcho
-  // PROPOSSAL: | preprocessorRepeatExpr
+preprocessorCallExpr
+  // TODO eos sensible
+  : '#' postfix_expr ('(' preprocessorCallArgumentsList? ')')? '{' tokenList '}'
+  | '#' postfix_expr ('(' preprocessorCallArgumentsList? ')')
+  ;
+
+preprocessorCallArgumentsList
+  : tokenListNoComma (',' tokenListNoComma)*
+  ;
+
+tokenListNoComma
+  : (groupTokens | isolatedTokenListNoComma)+  tokenListNoComma?
+  ;
+
+tokenList
+  : (groupTokens | isolatedTokenList)+ tokenList?
+  ;
+
+// inside a group "," is allowed
+groupTokens
+  : '(' tokenList?  ')'
+  | '{' tokenList? '}'
+  ;
+
+isolatedTokenListNoComma
+  : ~(',' | '{' | '}' | '(' | ')')
+  ;
+
+isolatedTokenList
+  : ~('{' | '}' | '(' | ')')
   ;
 
 preprocessorStmts
   : preprocessorIfStmt
-/*
-  : defineDecl
-  | preprocessorMacroDecl
-  | forargsStmt
-  | forstructStmt
-  | assertStmt
-  | execStmt
-  | uidStmt
-  | errorStmt
-  | warningStmt
-  | typeErrorStmt
-  | semanticErrorStmt
-*/
+  | preprocessorLoopStmt
   ;
+
+tokenizeExpr
+  : 'tokenize' '{' tokenList '}'
+  ;
+
 ```
+## `#set`
+
+`#set` is covered in [compiler configuration](compiler/compiler-configuration.md)
+
 ## `#if/else`
 
 ```syntax
@@ -77,64 +104,24 @@ preprocessorIfStmt
 
 *Semanticss*
 
-Same a [control-flow.md#if-else](control-flow `if` statement) but the expression shall be resolved at compile time.
+Same a [control-flow.md#if-else](control-flow `if` statement) but the expression shall be resolved at compile time so developer shall asume only one block will remain.
 
 *Constrains*
 
-1. Expression shall be resolve t compile time or a semantic error shall raise
+1. Expression shall be resolved at compile time or a semantic error shall raise
 
 > expected expression to be resolved at compile time
 
+2. conditions that yields true will be pruned leaving only the body, scope included.
 
-
-
-<!-- why? #set shall be enough -->
-## `#define` (EXPERIMENTAL)
-
-*syntax*
-
-```syntax
-defineDecl
-  : '#define' identifier anyNonNewLine
-  ;
-```
-
-*Semantics*
-
-Defines a direct text substitution. Unlike c/cpp does not have arguments.
-
-It's the way the main program configure packages.
-
-*Constrains*
-
-1. The identifier must be uppercased.
-
-2. It shall be just one line.
-
-3. `#define` is scoped.
-
-`#define` at program entry point it's available in every file in the program.
-
-`#define` at package entry point it's available in every file in that package.
-
-`#define` at block scope can't be used outside the block.
-
-4. If a define is redefined a semantic-error shall be raised.
-
-<!--
-5. Shall not be used inside functions
--->
-
-
-*Remarks*
-
-Package developers should append a unique prefix to allow package configuration.
-
-*Example*
-
-```todo-language
-#define PI 3.1496
-#define HALF_PI (#PI# * 0.5)
+```language-test
+test static_if {
+  #if true {
+    #assert(true)
+  } else {
+    #semantic_error("unrecheable!")
+  }
+}
 ```
 
 ## `#function`
@@ -142,56 +129,102 @@ Package developers should append a unique prefix to allow package configuration.
 *syntax*
 
 ```syntax
-preprocessorMacroArgumentModifier
-  : '#text'
-  | '#string'
-  | '#expression'
-  | '#value'
+preprocessorDecl
+  : '#' 'function' identifier '(' preprocessorMacroArgumentList? ')' typeDefinition preprocessorBody
   ;
 
 preprocessorMacroArgumentList
-  : preprocessorMacroArgumentModifier identifier (',' preprocessorMacroArgumentList)
+  : typeDefinition identifier (',' preprocessorMacroArgumentList)*
   ;
 
-preprocessorMacroDecl
-  : '#' 'function' identifier '(' preprocessorMacroArgumentList? ')' '#block'? functionBody
+preprocessorBody
+  : endOfStmt? '{' globalImportVarList? functionBodyStmtList? '}'
   ;
-
-// TODO
-//nonCommaParenthesis
-//  : (NON_DIGIT | DIGIT | operators)+
-//  ;
-
-preprocessorMacroCallArgument
-  : '(' identifier ')'
-  ;
-
-preprocessorMacroCallArgumentList
-  : preprocessorMacroCallArgument (',' preprocessorMacroCallArgumentList)*
-  ;
-
-preprocessorMacroCallExpr
-  : '#' identifier '(' preprocessorMacroCallArgumentList? ')' blockStatement?
-  ;
-
-// see: preprocessorMemberMacroCallExpr
-
-// see: postfix_expr_macro_call
-// preprocessor_macro_call_expr
-//   : '#' identifier '(' preprocessorMacroCallArgumentList? ')' blockStatement?
-//   ;
-
 ```
 
 *Semantics*
 
-Creates a function-like macro that can take arguments.
-
-A macro can fetch next block of code and expanded inside it's own block see [`#block`](#macro-block).
+`#function` Creates a function-like macro that can take arguments, can be expanded inside an expression or statement and can fetch the next block code.
 
 *Constraints*
 
-1. A `#function` is always inlined at call site.
+1. A `#function` shall return an `expression` or `statement`.
+
+```language
+import metaprograming as meta
+
+#function sum(meta.expression a, meta.expression b) meta.expression {
+  return tokenize {
+    #a# + #b#
+  }
+}
+
+test sum {
+  var a = #sum(1, 2)
+  #assert(a == 3)
+  var b = #sum(a, 10)
+  #assert(b == 13)
+
+  var c = #sum(a, 3 * 3)
+  #assert(b == 12)
+}
+
+
+
+#function for_stmt(meta.expression init, meta.expression condition, meta.expression inc) meta.statement {
+  return tokenize {
+    {
+      #uid(UID)
+
+#init#
+#UID#_start:
+  if (#condition#) {
+    #block#
+
+    #inc#
+    goto #UID#_start
+  }
+    }
+  }
+}
+
+#function log(meta.identifier variable) meta.tokens {
+  #if variable implements index_iterator {
+    return tokenize {
+      { // create another block, so current and end don't leak out
+        var current = #variable.begin()
+        var end = #variable.begin()
+        while (start != end) {
+          var #value = current.value()
+          var #key = current.key()
+
+          logger(##variable, key, value)
+
+          current.next()
+        }
+      }
+    }
+  }
+  #if variable implements has_to_string {
+    return tokenize {
+      logger(##variable#.to_string())
+    }
+  }
+}
+
+#function log_iterable(meta.identifier key, meta.identifier value, meta.identifier iterable) meta.tokens {
+  return tokenize {
+    var current = #iterable.begin()
+    var end = #iterable.begin()
+    while (start != end) {
+      var #value = current.value()
+      var #key = current.key()
+
+      current.next()
+    }
+  }
+}
+```
 
 2. `#function` body shall have the same statements as function body
 
@@ -232,16 +265,22 @@ function test(): number {
 
 This is an error.
 
-```todo-language-semantic-error
-#macro expr() {
-  1 + 1
+```language
+#function expr() meta.expression{
+  return tokenize {
+    1 + 1
+  }
 }
 
-function test(): number {
-  var x = #expr()
-
-  return x
+function test() {
+  return #expr()
 }
+
+
+test {
+  #assert(test() == 2)
+}
+
 ```
 
 7. A macro function need to be syntax valid code by it's own.
@@ -281,16 +320,18 @@ list.#foreach(value) {
 }
 ```
 
-```todo-language
-#macro add(value, value2) {
-  value += value2
+```language
+#function add(meta.expression value, meta.expression value2) {
+  return tokenize {
+    #value# += #value2#
+  }
 }
 
 type point = struct {
   float x
   float y
 
-  function operator+=(auto ref<point> other) {
+  function operator+=(ref<point> other) {
     x += other.x
     y += other.y
   }
@@ -382,7 +423,6 @@ xxx("print this message!")
 
 var x = false;
 xxx(`do not print ${x} messages!")
-
 ```
 
 <a name="macro-expression"></a>
@@ -513,7 +553,7 @@ This is almost how we implement `foreach` internally in the language.
 ```todo-language
 // declaration
 #macro foreach_v(#text val, #value itr_able) #block {
-  #assert typeof(#itr_able#) implements Iterable
+  #assert(typeof(#itr_able#) implements Iterable)
 
   #itr_able#.reset()
   for (int i = 0; i < #itr_able#.length; ++i) {
@@ -524,7 +564,7 @@ This is almost how we implement `foreach` internally in the language.
 }
 
 #macro foreach_kv(#text key, #text val, #value itr_able) #block {
-  #assert typeof(#itr_able#) implements Iterable
+  #assert(typeof(#itr_able#) implements Iterable)
 
   #itr_able#.reset()
   for (int i = 0; i < #itr_able#.length; ++i) {
@@ -623,95 +663,101 @@ print(10, 11, 12)
 ```
 
 
-## `#forstruct`
+## `#loop`
 
 *Syntax*
 
 ```syntax
-forstructStmt
-  : '#forstruct' identifier ',' identifier 'in' identifier functionBody
+preprocessorLoopStmt
+  : '#' 'loop' identifier ',' identifier 'in' expression functionBody
   ;
 ```
 *Semantics*
 
-`#forstruct` will loop the `struct` properties.
+`#loop` will repeat it's body for each value in the given iterable.
+Unlike loop statement there is no `break`, `continue` or `restart`
 
 *Constraints*
 
-1. `#forstruct` shall be part of metaprogramming expansion. So a `#macro` containing
-`#forstruct` shall be marked as metaprogramming to be expanded later.
+1. `#loop` can be used outside `#function`
 
 
 *Example*
 
-```todo-language
-type point = struct {
-  i8 x
-  i8 y
+```language-test
+type abc = struct {
+  i8 a
+  i16 b
+  i32 c
 }
-var p = point(5, 7)
+test example {
+  var p = abc(1, 2, 3)
 
-// #forstruct i, k in typeof(p) {
-#forstruct i, k in point {
-  print(#i#, "#k#", p.#k#)
+  #loop i, k in typeof(p) {
+    #if (#i# == "a") {
+      #assert(#v# == i8)
+    }
+    #if (#i# == "b") {
+      #assert(#v# == i16)
+    }
+    #if (#i# == "c") {
+      #assert(#v# == i32)
+    }
+  }
+
+  #expect.stdout("a 18 i8 i8
+b i16 i16 i16
+c i32 i32 i32") {
+    #loop i, k in abc {
+      print(#i#, "#k#", abc.#i#, abc[##i#])
+    }
+  }
+
+  #expect.stdout("1
+2
+3") {
+    #loop i, k in abc {
+      print(p.#i#)
+    }
+  }
 }
-
 ```
 
-Expansion:
-```language-compiled
-type point = struct {
-  i8 x
-  i8 y
-}
-print(0, "x", p.x)
-print(1, "y", p.y)
-```
-
-<!--
-  TODO review nomemclature!
-  this is a macro, so must be const-expression
-  #assert -> static assert in cpp
-
-  this is runtime, can be anything!
-  assert -> assert in cpp
--->
-## `#assert`
-
-*syntax*
-
-```syntax
-assertStmt
-  : '#assert' expression (',' stringLiteral)?
-  ;
-```
+## (core) `#assert(metaprogramming.expression condition, metaprogramming.string message)` (FINAL)
 
 *Semantics*
 
-Raise a compile time error if condition yield false.
+Raise an error if the condition yields false.
 
-`#assert` check will be delayed until macros expanded and all types are resolved.
+If the condition is a compile time expression then it will raise a compiler error.
+
+If the condition is a runtime time expression then it will raise an exception.
 
 *Constraints*
 
-1. `#assert` shall be part of metaprogramming expansion.
+1. Expression type shall be bool.
 
-2. expression type shall be bool.
+2. Message type shall be a string or a semantic error shall raise.
+
+> assert expected message parameter to be a string
 
 *Example*
 
-```
-#assert x == 1
-#assert arr.length != 0
-```
+```language
+function main() {
+  // runtime!
+  var x = process.stdin.read()
+  #assert(x == 1)
 
-## `#static_assert`
+  // compile time!
+  var y = 100
+  #assert(y == 100)
 
-```
-#static_assert #PI# > 3.1
-#static_assert typeof x == typeof y
-#static_assert sizeof(x) > 16
-#static_assert x implements comparable
+  #assert(#PI# > 3.1)
+  #assert(typeof x == typeof y)
+  #assert(sizeof(x) > 16)
+  #assert(x implements comparable)
+}
 ```
 
 ## `#exec`
@@ -737,15 +783,7 @@ Execute given command:
 2. The output of the command won't be re-evaluated. Any preprocessor or metaprogramming is disallowed.
 
 
-## `#uid`
-
-*Syntax*
-
-```syntax
-uidStmt
-  : '#uid' identifierUp
-  ;
-```
+## `#uid(metaprogramming.identifier name)`
 
 *Semantics*
 
@@ -792,19 +830,19 @@ Display current file
 1. Inside a macro function, display the caller file.
 
 
-## `#date` [*TODO*: format]
+## `#date`
 
 *Semantics*
 
-Display current date.
+Replaces itself by current date as string with optional formatting.
 
 *Constraints*
 
-Date format can be configured using compiler flag `PREPROCESSOR_DATE_FORMAT`
+Date format can be configured using compiler flag `config.preprocessor.date_format`
 
 *Example*
 ```todo-language
-#set PREPROCESSOR_DATE_FORMAT = "YYYY-mm-DD"
+#set config.preprocessor.date_format = "YYYY-mm-DD"
 
 test "date" {
   print(##date)
@@ -812,65 +850,58 @@ test "date" {
 }
 ```
 
-## `#error msg`
-
-*Syntax*
-
-```syntax
-errorStmt
-  : '#error' anyNonNewLine
-  ;
-```
+## `#error(metaprogramming.string msg)`
 
 *Semantics*
 
-Display the error message and abort compilation.
+Displays given error message and abort compilation.
 
+*Constraints*
 
-## `#warning msg`
+1. If an `#error` is not pruned from the AST, it will generate the error.
 
-*Syntax*
+```language-test
+test "comptime tree prune" {
+  #if false {
+    #error("this message is pruned")
+  }
 
-```syntax
-warningStmt
-  : '#warning' anyNonNewLine
-  ;
+  #error("this message is not pruned")
+}
 ```
+
+
+## `#warning(metaprogramming.string msg)`
 
 *Semantics*
 
-Display the warning message but continue compilation.
+Displays given warning message and continue compilation.
 
-## `#type_error msg`
+*Constraints*
 
-*Syntax*
+1. If an `#warning` is not pruned from the AST, it will generate the error.
 
-```syntax
-typeErrorStmt
-  : '#type_error' anyNonNewLine
-  ;
-```
+## `#type_error(metaprogramming.string msg)`
 
 *Semantics*
 
-Display a type error message and abort compilation.
+Display given type error message and abort compilation.
 
-## `#semantic_error msg`
+*Constraints*
 
-*Syntax*
+1. If an `#type_error` is not pruned from the AST, it will generate the error.
 
-```syntax
-semanticErrorStmt
-  : '#semantic_error' anyNonNewLine
-  ;
-```
+## `#semantic_error(metaprogramming.string msg)`
 
 *Semantics*
 
 Display a type semantic message and abort compilation.
 
+*Constraints*
 
-### #repeat (line repeater)
+1. If an `#semantic_error` is not pruned from the AST, it will generate the error.
+
+### #repeat (line repeater) (EXPERIMENTAL)
 
 *Syntax*
 
@@ -1060,3 +1091,39 @@ REVIEW
 The `#repeat` operator is "underconsideration" to do the job of repeat
 over varargs.
 -->
+
+
+
+# metaprograming package
+
+## types
+* tokens: array<token>
+
+  List of tokens
+
+* expression: array<token>
+
+  List of tokens, at constructor it will check if it's a valid expression
+
+* statement: array<token>
+
+  List of tokens, at constructor it will check if it's a valid statement
+
+* statements: array<token>
+
+  List of tokens, at constructor it will check if it's a valid statements
+
+* empty: array<token>
+
+  List of tokens, at constructor it will there no tokens
+
+  This is used mostly to debug/error reporting, as it has no real purpose
+
+## functions
+
+* uid
+* semantic_error
+* type_error
+* warning
+* error
+* print

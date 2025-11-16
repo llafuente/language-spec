@@ -1,0 +1,11 @@
+var hello
+var _underscore
+var 变量
+var Δelta
+var مرحبا
+var नमस्ते123
+var _
+var a
+var A
+// $a is not a valid identifier! it's a template name!
+var $a b 
