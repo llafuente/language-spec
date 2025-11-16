@@ -1,0 +1,111 @@
+package types "0.0.0"
+
+// i8.ll
+import i8ll
+
+type i8 = struct {
+    λi8 value
+
+    static λi8 min = -127
+    static λi8 max = 128
+    static λi8 default = 0
+    static λi8 bytes = 1
+    static λi8 bits = 8
+}
+
+
+// preunary_operator_to_function
+
+operator+ (i8 a) i8 {
+    return logia_operator_sign(a)
+}
+
+inline operator + (i8 a) i8 {
+    return logia_operator_sign(a)
+}
+inline operator - (i8 a) i8 {
+    return logia_operator_neg(a)
+}
+inline operator ~ (i8 a) i8 {
+    return logia_operator_xor_self(a)
+}
+// TODO ++
+// TODO --
+
+// TODO postunary_operator_to_function
+
+// unary_bool_operator_to_function
+inline operator ! (i8 a) bool {
+    return logia_operator_not(a)
+}
+
+
+// binary_operator_to_function
+inline operator + (i8 a, i8 b) i8 {
+    return logia_operator_add_i8(a, b)
+}
+inline operator - (i8 a, i8 b) i8 {
+    return logia_operator_sub_i8(a, b)
+}
+inline operator / (i8 a, i8 b) i8 {
+    return logia_operator_div(a, b)
+}
+inline operator * (i8 a, i8 b) i8 {
+    return logia_operator_mult(a, b)
+}
+inline operator % (i8 a, i8 b) i8 {
+    return logia_operator_mult(a, b)
+}
+inline operator << (i8 a, i8 b) i8 {
+    return logia_operator_shl(a, b)
+}
+inline operator >> (i8 a, i8 b) i8 {
+    return logia_operator_ashr(a, b)
+}
+inline operator & (i8 a, i8 b) i8 {
+    return logia_operator_and(a, b)
+}
+inline operator ^ (i8 a, i8 b) i8 {
+    return logia_operator_xor(a, b)
+}
+inline operator | (i8 a, i8 b) i8 {
+    return logia_operator_or(a, b)
+}
+
+// relational_operator_to_function
+inline operator < (i8 a, i8 b) bool {
+    return logia_operator_lt(a, b)
+}
+inline operator > (i8 a, i8 b) bool {
+    return logia_operator_gt(a, b)
+}
+inline operator <= (i8 a, i8 b) bool {
+    return logia_operator_lte(a, b)
+}
+inline operator >= (i8 a, i8 b) bool {
+    return logia_operator_gte(a, b)
+}
+inline operator == (i8 a, i8 b) bool {
+    return logia_operator_eq(a, b)
+}
+inline operator != (i8 a, i8 b) bool {
+    return logia_operator_neq(a, b)
+}
+
+
+/* 
+this could transform error from:
+"operator not found" to "Precision could be lost"
+operator+(i8 a, i16 b) i8 {
+    #error("Precision could be lost")
+}
+
+operator+(i8 a, i32 b) i32 {
+    #error("Precision could be lost")
+}
+*/
+
+
+test i8 {
+    
+}

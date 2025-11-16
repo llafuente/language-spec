@@ -36,7 +36,7 @@ functionModifiers
 
 functionReturnTypeModifiers
   : 'lend'
-  | 'own'
+  // | 'own'
   | 'uninitialized'
   ;
 
@@ -44,8 +44,13 @@ anonymousFunctionDef
   : functionModifiers* 'function' templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
+functionName
+  : identifier
+  | 'autocast'
+  ;
+
 functionDef
-  : functionModifiers* 'function' (identifier | 'autocast') templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : functionModifiers* 'function' name=functionName templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
   ;
 
 memoryFunctionDecl
@@ -57,7 +62,7 @@ memoryFunctionDef
   ;
 
 operatorFunctionDecl
-  : operatorFunctionDef functionBody
+  : functionModifiers* operatorFunctionDef functionBody
   ;
 
 operatorFunctionDef
@@ -70,6 +75,16 @@ overloadableOperators
   | '-'
   | '*'
   | '/'
+  | '^'
+  | '%'
+  // shift
+  | '<' '<'
+  | '>' '>'
+  // AND
+  | '&'
+  // OR
+  | '|'
+  // XOR
   | '^'
   // Assignament operators
   | '='
@@ -94,6 +109,9 @@ overloadableOperators
   | '!='
   // function call
   | '(' ')'
+  // unary
+  | '~'
+  | '!'
   ;
 
 functionBody
