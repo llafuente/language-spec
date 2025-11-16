@@ -159,7 +159,7 @@ stringLiteral
   ;
 
 numberLiteral
-  : Number
+  : ('-')? Number
   ;
 
 anyNonNewLine
