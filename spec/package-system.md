@@ -5,17 +5,19 @@
 
 Packages are the way the language propose to share code across people.
 
-One package can gain access to another package functionality by importing it.
+One package can gain access to another package functionality by importing it, for example:
 
 ```language
 import fs
 
 function main() {
-  fs.open("./file.text")
+  fs.open("./file.txt")
 }
 ```
 
 ## Package entry point
+
+*Syntax*
 
 ```syntax
 // package entry point!
@@ -47,14 +49,15 @@ packageStmts
 
 *Semantics*
 
-Like a program a package have it's entry point: `main.language` at the root of the package.
+Like a program a package have it's entry point: `main.logia` at the root of the package.
 
-There is no official repository at this time.
+*Note*: There is no official package repository at this time.
 
 *Folder structure*
 
-* packagename (shall be a valid identifier)
-  * main.ts (package entry point)
+* lib
+  * packagename (shall be a valid identifier)
+    * main.ts (package entry point)
 * main.ts (program entry point)
 
 ## Package declaration
@@ -71,20 +74,20 @@ packageDefinitionStmt
 
 Declare a package and also it's version.
 
-Every function in the main package will be exported. Anything below won't be exported.
+Every function and variable declaration in the main package will be exported. Anything imported won't be exported.
+
+<!-- TODO REVIEW while this simple constraint allow package to be really simple it makes difficult to export really big packages -->
 
 *Constraints*
 
 1. Package version shall conform semver.
 
-2. A package can't declare or use `global` variables.
+2. A package shall not declare or use `global` variables.
 
-3. A package can't configure the compiler.
+3. A package shall not configure the compiler.
 
-4. Everything declared in the package is public except for:
+4. Everything declared in the package entry point is public.
 
-* preprocesssor
-* metaprogramming
 
 ## Package import
 
@@ -93,7 +96,8 @@ Every function in the main package will be exported. Anything below won't be exp
 ```syntax
 
 packageName
-  : identifier ('.' identifier)* ('.' '*')?
+  : packageName ('.' (identifier | '*'))
+  | identifier
   ;
 
 importStmt

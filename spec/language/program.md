@@ -5,7 +5,7 @@
 ```syntax
 // main program entry point!
 program
-  : importStmtList? preprocessorProgramStmtList? programStmsList? EOF
+  : preprocessorProgramStmtList? importStmtList? programStmsList? EOF
   ;
 
 programStmsList
