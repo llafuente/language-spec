@@ -8,7 +8,7 @@ The compiler is configured inside the source code.
 
 ```syntax
 preprocessorSetStatement
-  : '#' 'set' identifier ('.' identifier)* '=' constant
+  : '#' 'set' identifier ('.' identifier)* '=' mayBeConstant
   ;
 ```
 
@@ -65,32 +65,24 @@ function main() {
 }
 ```
 
-<!-- 
+## configuration list (logia)
 
-#require
+### logia.arguments
 
-*semantics*
+Default arguments for the processs, those arguments will be prepend.
 
-Enforce a property to be set or equal to a specific value
+```language-test
+#set process.arguments = ["a", "b", "c"]
 
-*constraints*
+function main(process p) {
+  // the first one is the name of the process
+  // followed by a,b,c
+  // followed by real process arguments
+  #assert(p.args.len >= 4)
+  #assert(p.args[2] == "a")
+  #assert(p.args[3] == "b")
+  #assert(p.args[4] == "c")
+}
 
-1. It's only available at `package` `entry point file`.
 
-2. If the property doesn't match the value compiler shall raise a configuration error
-
-> Configuration '?' is required
-
-> Configuration '?' is required to be '?'
-
-
-*Example*
-
-Imagine you are developing a math library and you want the developer to choose beetween f32/f64 you can use.
-
-```todo-language
-#require mathlib.float_type == f32
 ```
-
-This way the developer must `#set mathlib.float_type`
--->

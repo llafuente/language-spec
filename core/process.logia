@@ -74,6 +74,7 @@ type process = struct {
     It contains only the arguments.
   */
   string[] arguments
+  alias args arguments
 
   /**
     Returns the PID of the process

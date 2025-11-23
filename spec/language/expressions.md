@@ -38,13 +38,23 @@ constant
 
 regularExpressionLiteral: RegularExpressionLiteral;
 
-primary_expr
+// this is a construct to easy syntax parsing
+// some can be constant or not, but it's up to the compiler to find out, not the parser
+mayBeConstant
     : constant                   # constantPrimaryExpr
     | arrayInitializer           # arrayInitializer2
     | structConstantInitializer  # structInitializer2
     | structInitializer          # structInitializer2
-    | '(' expression ')'         # groupPrimaryExpr
-    | typeDefinition             # typePrimaryExpr
+    ;
+
+groupExpr
+  : '(' expression ')'
+  ;
+
+primary_expr
+    : mayBeConstant
+    | groupExpr
+    | typeDefinition
     ;
 
 identifierName
